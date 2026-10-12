@@ -18,7 +18,7 @@ export interface Extra {
   auth: {
     title: string; sub: string; benefits: string[]; email: string; cont: string; hint: string;
     codeTitle: string; codeSub: (e: string) => string; verify: string; resend: string; resendIn: (s: number) => string;
-    wrong: string; change: string; welcome: string; stats: { games: string; wins: string; bm: string };
+    wrong: string; change: string; welcome: string; orLink: string; stats: { games: string; wins: string; bm: string };
   };
   room: {
     create: string; join: string; code: string; enterCode: string; invite: string; copied: string; waiting: string;
@@ -57,7 +57,7 @@ const en: Extra = {
     email: 'Email', cont: 'Send code', hint: 'By continuing you agree to play fair and have fun.',
     codeTitle: 'Enter your code', codeSub: e => `We sent a 6-digit code to ${e}`, verify: 'Sign in', resend: 'Send a new code',
     resendIn: s => `New code in ${s}s`, wrong: 'That code didn’t work. Check it or send a new one.', change: 'Use another email',
-    welcome: 'You’re in!', stats: { games: 'Games', wins: 'Wins', bm: 'Bridge Money' },
+    welcome: 'You’re in!', orLink: 'Got a sign-in link instead? Open it on this device and you’re in.', stats: { games: 'Games', wins: 'Wins', bm: 'Bridge Money' },
   },
   room: {
     create: 'Create a table', join: 'Join', code: 'Table code', enterCode: 'Enter code', invite: 'Invite friends', copied: 'Link copied',
@@ -97,7 +97,7 @@ const lv: Extra = {
     email: 'E-pasts', cont: 'Sūtīt kodu', hint: 'Turpinot tu apņemies spēlēt godīgi un izbaudīt spēli.',
     codeTitle: 'Ievadi kodu', codeSub: e => `Nosūtījām 6 ciparu kodu uz ${e}`, verify: 'Ienākt', resend: 'Sūtīt jaunu kodu',
     resendIn: s => `Jauns kods pēc ${s} s`, wrong: 'Kods neder. Pārbaudi to vai pieprasi jaunu.', change: 'Cits e-pasts',
-    welcome: 'Tu esi iekšā!', stats: { games: 'Spēles', wins: 'Uzvaras', bm: 'Bridge Money' },
+    welcome: 'Tu esi iekšā!', orLink: 'Saņēmi saiti, nevis kodu? Atver to šajā ierīcē, un būsi iekšā.', stats: { games: 'Spēles', wins: 'Uzvaras', bm: 'Bridge Money' },
   },
   room: {
     create: 'Izveidot galdu', join: 'Pievienoties', code: 'Galda kods', enterCode: 'Ievadi kodu', invite: 'Uzaicināt draugus', copied: 'Saite nokopēta',
@@ -137,7 +137,7 @@ const ru: Extra = {
     email: 'E-mail', cont: 'Отправить код', hint: 'Продолжая, вы обещаете играть честно и получать удовольствие.',
     codeTitle: 'Введите код', codeSub: e => `Мы отправили 6-значный код на ${e}`, verify: 'Войти', resend: 'Отправить новый код',
     resendIn: s => `Новый код через ${s} с`, wrong: 'Код не подошёл. Проверьте его или запросите новый.', change: 'Другой e-mail',
-    welcome: 'Готово!', stats: { games: 'Партии', wins: 'Победы', bm: 'Bridge Money' },
+    welcome: 'Готово!', orLink: 'Пришла ссылка вместо кода? Откройте её на этом устройстве.', stats: { games: 'Партии', wins: 'Победы', bm: 'Bridge Money' },
   },
   room: {
     create: 'Создать стол', join: 'Войти', code: 'Код стола', enterCode: 'Введите код', invite: 'Пригласить друзей', copied: 'Ссылка скопирована',
@@ -177,7 +177,7 @@ const uk: Extra = {
     email: 'E-mail', cont: 'Надіслати код', hint: 'Продовжуючи, ви обіцяєте грати чесно й отримувати задоволення.',
     codeTitle: 'Введіть код', codeSub: e => `Ми надіслали 6-значний код на ${e}`, verify: 'Увійти', resend: 'Надіслати новий код',
     resendIn: s => `Новий код через ${s} с`, wrong: 'Код не підійшов. Перевірте його або запросіть новий.', change: 'Інший e-mail',
-    welcome: 'Готово!', stats: { games: 'Партії', wins: 'Перемоги', bm: 'Bridge Money' },
+    welcome: 'Готово!', orLink: 'Прийшло посилання замість коду? Відкрийте його на цьому пристрої.', stats: { games: 'Партії', wins: 'Перемоги', bm: 'Bridge Money' },
   },
   room: {
     create: 'Створити стіл', join: 'Увійти', code: 'Код столу', enterCode: 'Введіть код', invite: 'Запросити друзів', copied: 'Посилання скопійовано',

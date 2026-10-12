@@ -103,7 +103,8 @@ export function AuthSheet({ onClose }: { onClose: () => void }) {
             <button className="btn acc" disabled={busy || digits.some(d => !d)} style={{ width: '100%', marginTop: 16 }} onClick={() => verify(digits.join(''))}>
               {busy ? <span className="spinner" /> : t.auth.verify}
             </button>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, fontSize: 13.5 }}>
+            <p className="mute" style={{ fontSize: 12.5, marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>{t.auth.orLink}</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 13.5 }}>
               <button className="navlink" onClick={() => { setStep('email'); setErr(null); }}>{t.auth.change}</button>
               <button className="navlink" disabled={wait > 0 || busy} style={{ opacity: wait > 0 ? 0.5 : 1 }} onClick={send}>{wait > 0 ? t.auth.resendIn(wait) : t.auth.resend}</button>
             </div>
