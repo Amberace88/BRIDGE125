@@ -1,8 +1,9 @@
 import { DurableObject } from 'cloudflare:workers';
 import { type Action, type Card, type GameState, apply, newGame, nextRound } from '../src/engine/engine';
 import { botAction } from '../src/engine/bot';
+import { isQuickCode, QUICK_WAIT_MS, type Lobby } from './lobby';
 
-export interface Env { ROOMS: DurableObjectNamespace<Room>; ASSETS: Fetcher }
+export interface Env { ROOMS: DurableObjectNamespace<Room>; LOBBY: DurableObjectNamespace<Lobby>; ASSETS: Fetcher }
 
 interface Seat { pid: string | null; name: string; bot: boolean }
 interface RoomState {
@@ -14,6 +15,8 @@ interface RoomState {
   deadline: number | null;
   createdAt: number;
   emoteId: number;
+  quick?: boolean;
+  startAt?: number | null;
 }
 
 const MAX_SEATS = 4;
@@ -21,6 +24,7 @@ const TURN_MS = 30_000;
 const OFFLINE_MS = 8_000;
 const ROUND_PAUSE_MS = 14_000;
 const BOT_NAMES = ['Artem', 'Marina', 'Oleg', 'Ilze', 'Dmitri', 'Anna'];
+const QUICK_MIN_PLAYERS = 3;
 
 const hidden = (id: string): Card => ({ id, r: '6', s: 'S' });
 
@@ -38,7 +42,10 @@ export class Room extends DurableObject<Env> {
   private async load(code?: string): Promise<RoomState> {
     if (this.s) return this.s;
     const saved = await this.ctx.storage.get<RoomState>('s');
-    this.s = saved ?? { code: code ?? '?', hostPid: null, seats: [], status: 'lobby', game: null, deadline: null, createdAt: Date.now(), emoteId: 0 };
+    if (saved) { this.s = saved; return saved; }
+    const now = Date.now();
+    const quick = isQuickCode(code ?? '');
+    this.s = { code: code ?? '?', hostPid: null, seats: [], status: 'lobby', game: null, deadline: null, createdAt: now, emoteId: 0, quick, startAt: quick ? now + QUICK_WAIT_MS : null };
     return this.s;
   }
   private async save() { if (this.s) await this.ctx.storage.put('s', this.s); }
@@ -68,6 +75,7 @@ export class Room extends DurableObject<Env> {
         s.seats.push({ pid, name, bot: false });
         seat = s.seats.length - 1;
         if (!s.hostPid) s.hostPid = pid;
+        if (s.quick && s.seats.length >= MAX_SEATS) this.startGame();
       } else {
         server.send(JSON.stringify({ t: 'error', code: 'full' }));
         server.close(4001, 'full');
@@ -76,9 +84,24 @@ export class Room extends DurableObject<Env> {
     } else if (s.status === 'lobby') {
       s.seats[seat].name = name;
     }
+    this.schedule();
     await this.save();
     this.broadcast();
     return new Response(null, { status: 101, webSocket: client });
+  }
+
+  private botName(): string {
+    const used = new Set(this.s!.seats.map(x => x.name));
+    return BOT_NAMES.find(n => !used.has(n)) ?? 'Bot';
+  }
+
+  /** Start the game; quick tables top up with bots so nobody plays a lonely 1-on-1 against an empty room. */
+  private startGame(fillTo = 2) {
+    const s = this.s!;
+    while (s.seats.length < Math.min(fillTo, MAX_SEATS)) s.seats.push({ pid: null, name: this.botName(), bot: true });
+    s.status = 'playing';
+    s.startAt = null;
+    s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })));
   }
 
   async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer) {
@@ -97,8 +120,7 @@ export class Room extends DurableObject<Env> {
       }
       case 'addBot': {
         if (!isHost || s.status !== 'lobby' || s.seats.length >= MAX_SEATS) return;
-        const used = new Set(s.seats.map(x => x.name));
-        s.seats.push({ pid: null, name: BOT_NAMES.find(n => !used.has(n)) ?? 'Bot', bot: true });
+        s.seats.push({ pid: null, name: this.botName(), bot: true });
         break;
       }
       case 'removeBot': {
@@ -108,9 +130,8 @@ export class Room extends DurableObject<Env> {
         break;
       }
       case 'start': {
-        if (!isHost || s.status !== 'lobby' || s.seats.length < 2) return;
-        s.status = 'playing';
-        s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })));
+        if (!isHost || s.status !== 'lobby' || (s.seats.length < 2 && !s.quick)) return;
+        this.startGame(s.quick ? QUICK_MIN_PLAYERS : 2);
         break;
       }
       case 'act': {
@@ -170,8 +191,13 @@ export class Room extends DurableObject<Env> {
   private schedule() {
     const s = this.s!;
     const g = s.game;
-    if (!g || s.status !== 'playing') { s.deadline = null; return; }
     const now = Date.now();
+    if (s.status === 'lobby' && s.quick && s.startAt) {
+      s.deadline = s.startAt;
+      this.ctx.storage.setAlarm(s.deadline);
+      return;
+    }
+    if (!g || s.status !== 'playing') { s.deadline = null; return; }
     if (g.phase === 'roundOver') s.deadline = now + ROUND_PAUSE_MS;
     else if (g.phase === 'gameOver') s.deadline = null;
     else {
@@ -187,6 +213,15 @@ export class Room extends DurableObject<Env> {
 
   async alarm() {
     const s = await this.load();
+    if (s.status === 'lobby' && s.quick && s.startAt) {
+      if (Date.now() < s.startAt - 50) { this.ctx.storage.setAlarm(s.startAt); return; }
+      if (!s.seats.some(x => !x.bot)) { s.startAt = null; s.deadline = null; await this.save(); return; }   // everyone left
+      this.startGame(QUICK_MIN_PLAYERS);
+      this.schedule();
+      await this.save();
+      this.broadcast();
+      return;
+    }
     const g = s.game;
     if (!g || s.status !== 'playing' || !s.deadline) return;
     if (Date.now() < s.deadline - 50) { this.ctx.storage.setAlarm(s.deadline); return; }
@@ -209,7 +244,7 @@ export class Room extends DurableObject<Env> {
     const s = this.s!;
     const on = this.online();
     return {
-      code: s.code, status: s.status, maxSeats: MAX_SEATS,
+      code: s.code, status: s.status, maxSeats: MAX_SEATS, quick: !!s.quick,
       seats: s.seats.map(x => ({ name: x.name, bot: x.bot, online: x.bot || on.has(x.pid ?? ''), host: x.pid === s.hostPid })),
     };
   }

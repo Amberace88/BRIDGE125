@@ -40,3 +40,21 @@ end; $fn$;
 revoke execute on function public.record_game(boolean) from public, anon;
 grant execute on function public.record_game(boolean) to authenticated;
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
+
+-- Public leaderboard (top N + the caller's own row). Exposes nicknames and stats only — never ids or emails.
+create or replace function public.leaderboard(lim int default 50)
+returns table (rank bigint, username text, wins int, games_played int, bm bigint, is_me boolean)
+language sql stable security definer set search_path = '' as $fn$
+  with ranked as (
+    select row_number() over (order by p.wins desc, p.games_played asc, p.created_at asc) as rk,
+           coalesce(nullif(btrim(p.username), ''), 'Player') as uname, p.wins, p.games_played, p.bm,
+           p.id = (select auth.uid()) as me
+      from public.profiles p
+     where p.games_played > 0
+  )
+  select rk, uname, wins, games_played, bm, me from ranked
+   where rk <= least(greatest(lim, 1), 100) or me
+   order by rk;
+$fn$;
+revoke execute on function public.leaderboard(int) from public;
+grant execute on function public.leaderboard(int) to anon, authenticated;

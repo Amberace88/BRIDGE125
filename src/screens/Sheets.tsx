@@ -21,7 +21,7 @@ export function Sheet({ children, onClose }: { children: ReactNode; onClose: () 
   );
 }
 
-export function ProfileSheet({ onClose, onAuth }: { onClose: () => void; onAuth: () => void }) {
+export function ProfileSheet({ onClose, onAuth, onLegal }: { onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void }) {
   const app = useApp();
   const { t } = app;
   const [name, setName] = useState(app.name);
@@ -94,6 +94,10 @@ export function ProfileSheet({ onClose, onAuth }: { onClose: () => void; onAuth:
 
       {app.session && <button className="btn ghost" style={{ width: '100%', marginTop: 22 }} onClick={() => app.signOut()}>{t.signOut}</button>}
       <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onClose}>{t.close}</button>
+      <div className="homefoot insheet">
+        <button onClick={() => onLegal('privacy')}>{t.legal.privacy}</button><span>·</span>
+        <button onClick={() => onLegal('terms')}>{t.legal.terms}</button>
+      </div>
     </Sheet>
   );
 }

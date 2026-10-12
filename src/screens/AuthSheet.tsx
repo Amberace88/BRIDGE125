@@ -5,7 +5,7 @@ import { Sheet } from './Sheets';
 import { CardFace } from '../components/CardView';
 import { sfx } from '../sound';
 
-export function AuthSheet({ onClose }: { onClose: () => void }) {
+export function AuthSheet({ onClose, onLegal }: { onClose: () => void; onLegal: (k: 'privacy' | 'terms') => void }) {
   const app = useApp();
   const { t } = app;
   const [step, setStep] = useState<'email' | 'code' | 'done'>('email');
@@ -88,6 +88,7 @@ export function AuthSheet({ onClose }: { onClose: () => void }) {
               </button>
             </form>
             <p className="mute" style={{ fontSize: 12, marginTop: 10, textAlign: 'center' }}>{t.auth.hint}</p>
+            <p className="mute legalnote">{t.legal.agree[0]} <button type="button" onClick={() => onLegal('terms')}>{t.legal.agree[1]}</button> {t.legal.agree[2]} <button type="button" onClick={() => onLegal('privacy')}>{t.legal.agree[3]}</button>.</p>
           </motion.div>
         )}
         {step === 'code' && (

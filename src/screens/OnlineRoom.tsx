@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store';
-import { useRoom, playerId } from '../online/useRoom';
+import { useRoom, playerId, isQuickCode } from '../online/useRoom';
 import { Table } from './Table';
 import { sfx } from '../sound';
 
-export function OnlineRoom({ code, onExit }: { code: string; onExit: () => void }) {
+export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExit: () => void; onQuickAgain: (skip: string) => void }) {
   const app = useApp();
   const { t } = app;
   const fallbackName = useMemo(() => `${t.guest} ${playerId().replace(/[^0-9]/g, '').slice(0, 3) || '7'}`, [t.guest]);
@@ -15,6 +15,30 @@ export function OnlineRoom({ code, onExit }: { code: string; onExit: () => void 
   const link = `${location.origin}/r/${code}`;
 
   const leave = () => { r.leave(); onExit(); };
+  const quick = isQuickCode(code);
+
+  // a quick table that filled up or started before we arrived → quietly find another one
+  const rematched = useRef(false);
+  useEffect(() => {
+    if (quick && r.error === 'full' && !rematched.current) { rematched.current = true; onQuickAgain(code); }
+  }, [quick, r.error, code, onQuickAgain]);
+
+  // stats for signed-in players: one record per finished game
+  const recorded = useRef(false);
+  const phase = r.game?.phase;
+  useEffect(() => {
+    if (phase === 'gameOver' && r.game && r.you >= 0 && !recorded.current) { recorded.current = true; app.recordGame(r.game.winners.includes(r.you)); }
+    if (phase && phase !== 'gameOver') recorded.current = false;
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // lobby countdown for quick tables
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!quick || r.room?.status !== 'lobby') return;
+    const id = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(id);
+  }, [quick, r.room?.status]);
+  const left = r.deadline ? Math.max(0, Math.ceil((r.deadline - now) / 1000)) : null;
 
   const invite = async () => {
     try {
@@ -23,7 +47,7 @@ export function OnlineRoom({ code, onExit }: { code: string; onExit: () => void 
     try { await navigator.clipboard.writeText(link); setCopied(true); sfx.tap(); setTimeout(() => setCopied(false), 1800); } catch { /* */ }
   };
 
-  if (r.error) {
+  if (r.error && !(quick && r.error === 'full')) {
     return (
       <div className="stage center">
         <div className="panel" style={{ padding: 24, textAlign: 'center', maxWidth: 360 }}>
@@ -57,17 +81,25 @@ export function OnlineRoom({ code, onExit }: { code: string; onExit: () => void 
     <div className="stage lobby">
       <div className="lobbyhead">
         <button className="iconbtn" onClick={leave} aria-label={t.room.leave}>‹</button>
-        <div className="mute" style={{ fontSize: 13, fontWeight: 600 }}>{t.room.code}</div>
+        <div className="mute" style={{ fontSize: 13, fontWeight: 600 }}>{quick ? '' : t.room.code}</div>
         <div style={{ width: 42 }} />
       </div>
 
-      <div className="codetiles" aria-label={code}>
-        {code.split('').map((ch, i) => (
-          <motion.span key={i} initial={{ rotateX: -90, opacity: 0 }} animate={{ rotateX: 0, opacity: 1 }} transition={{ delay: 0.08 * i, type: 'spring', stiffness: 260, damping: 18 }}>{ch}</motion.span>
-        ))}
-      </div>
+      {quick ? (
+        <div className="quickhead">
+          <QuickRing left={left} total={20} />
+          <h1 className="serif">{t.quick.title}</h1>
+          <p className="mute">{left === 0 ? t.quick.starting : left != null ? t.quick.startsIn(left) : t.quick.finding}</p>
+        </div>
+      ) : (
+        <div className="codetiles" aria-label={code}>
+          {code.split('').map((ch, i) => (
+            <motion.span key={i} initial={{ rotateX: -90, opacity: 0 }} animate={{ rotateX: 0, opacity: 1 }} transition={{ delay: 0.08 * i, type: 'spring', stiffness: 260, damping: 18 }}>{ch}</motion.span>
+          ))}
+        </div>
+      )}
 
-      <button className="btn acc" style={{ width: '100%', marginTop: 16 }} onClick={invite}>
+      <button className={`btn ${quick ? 'ghost' : 'acc'}`} style={{ width: '100%', marginTop: 16 }} onClick={invite}>
         <AnimatePresence mode="wait">
           <motion.span key={String(copied)} initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}>
             {copied ? `✓ ${t.room.copied}` : `↗ ${t.room.invite}`}
@@ -109,7 +141,12 @@ export function OnlineRoom({ code, onExit }: { code: string; onExit: () => void 
       )}
 
       <div style={{ flex: 1 }} />
-      {r.isHost ? (
+      {quick ? (
+        <div style={{ display: 'grid', gap: 10 }}>
+          <div className="mute" style={{ fontSize: 12.5, textAlign: 'center' }}>{t.quick.botsFill}</div>
+          {r.isHost && <button className="btn acc big" onClick={() => { r.send({ t: 'start' }); sfx.shuffle(); }}>{t.quick.startNow}</button>}
+        </div>
+      ) : r.isHost ? (
         <div style={{ display: 'grid', gap: 10 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <button className="btn ghost" disabled={seats.length >= max} onClick={() => r.send({ t: 'addBot' })}>＋ {t.room.addBot}</button>
@@ -123,6 +160,22 @@ export function OnlineRoom({ code, onExit }: { code: string; onExit: () => void 
         <div className="panel" style={{ padding: 14, textAlign: 'center', fontWeight: 600 }}><span className="dots" style={{ marginRight: 8 }}><i /><i /><i /></span>{t.room.waitHost}</div>
       )}
       <ConnBadge status={r.status} t={t} />
+    </div>
+  );
+}
+
+function QuickRing({ left, total }: { left: number | null; total: number }) {
+  const R = 46, C = 2 * Math.PI * R;
+  const frac = left == null ? 1 : Math.max(0, Math.min(1, left / total));
+  return (
+    <div className="qring">
+      <svg viewBox="0 0 100 100" aria-hidden>
+        <circle cx="50" cy="50" r={R} className="track" />
+        <motion.circle cx="50" cy="50" r={R} className="bar" strokeDasharray={C} animate={{ strokeDashoffset: C * (1 - frac) }} transition={{ duration: 0.3, ease: 'linear' }} />
+      </svg>
+      <AnimatePresence mode="popLayout">
+        <motion.b key={left ?? 'x'} initial={{ y: 12, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: -12, opacity: 0 }}>{left ?? '…'}</motion.b>
+      </AnimatePresence>
     </div>
   );
 }

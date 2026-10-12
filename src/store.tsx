@@ -2,9 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Session } from '@supabase/supabase-js';
 import { DICTS, type Dict, type Lang } from './i18n';
 import { EXTRA, type Extra } from './i18n2';
+import { EXTRA2, type Extra2 } from './i18n3';
 import { applyTheme } from './theme';
 import { setSound } from './sound';
-import { supabase, type Profile } from './supabase';
+import { getSupabase, hasSupabase, type Profile } from './supabase';
 import type { BotLevel } from './engine/bot';
 
 interface Prefs { lang: Lang; accent: string; table: string; sound: boolean; name: string; level: BotLevel; opponents: number }
@@ -18,7 +19,7 @@ function load(): Prefs {
 function persist(p: Prefs) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* */ } }
 
 interface Ctx extends Prefs {
-  t: Dict & Extra;
+  t: Dict & Extra & Extra2;
   set: (patch: Partial<Prefs>) => void;
   session: Session | null;
   profile: Profile | null;
@@ -49,15 +50,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // auth
   useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+    let unsub: (() => void) | null = null, dead = false;
+    getSupabase().then(sb => {
+      if (!sb || dead) return;
+      sb.auth.getSession().then(({ data }) => setSession(data.session));
+      const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+      unsub = () => sub.subscription.unsubscribe();
+    });
+    return () => { dead = true; unsub?.(); };
   }, []);
 
   useEffect(() => {
-    if (!supabase || !session) { setProfile(null); return; }
-    supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data }) => {
+    if (!session) { setProfile(null); return; }
+    getSupabase().then(sb => sb?.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data }) => {
       if (!data) return;
       setProfile(data as Profile);
       const patch: Partial<Prefs> = {};
@@ -66,40 +71,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.background) patch.table = data.background;
       if (data.lang) patch.lang = data.lang as Lang;
       set(patch);
-    });
+    }));
   }, [session, set]);
 
   const saveProfile: Ctx['saveProfile'] = async (patch) => {
     set(patch);
-    if (!supabase || !session) return false;
+    const sb = await getSupabase();
+    if (!sb || !session) return false;
     const row: Record<string, string> = {};
     if (patch.name !== undefined) row.username = patch.name.slice(0, 24);
     if (patch.accent) row.accent = patch.accent;
     if (patch.table) row.background = patch.table;
     if (patch.lang) row.lang = patch.lang;
-    const { error } = await supabase.from('profiles').update(row).eq('id', session.user.id);
+    const { error } = await sb.from('profiles').update(row).eq('id', session.user.id);
     return !error;
   };
 
   const signIn: Ctx['signIn'] = async (email) => {
-    if (!supabase) return 'offline';
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+    const sb = await getSupabase();
+    if (!sb) return 'offline';
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
     return error ? error.message : null;
   };
   const verifyCode: Ctx['verifyCode'] = async (email, code) => {
-    if (!supabase) return 'offline';
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+    const sb = await getSupabase();
+    if (!sb) return 'offline';
+    const { error } = await sb.auth.verifyOtp({ email, token: code, type: 'email' });
     return error ? error.message : null;
   };
-  const signOut = async () => { await supabase?.auth.signOut(); setProfile(null); };
+  const signOut = async () => { await (await getSupabase())?.auth.signOut(); setProfile(null); };
 
   const recordGame = (won: boolean) => {
-    if (!supabase || !session) return;
-    supabase.rpc('record_game', { won }).then(({ data }) => { if (data) setProfile(p => (p ? { ...p, ...(data as object) } : p)); });
+    if (!session) return;
+    getSupabase().then(sb => sb?.rpc('record_game', { won }).then(({ data }) => { if (data) setProfile(p => (p ? { ...p, ...(data as object) } : p)); }));
   };
 
   const value = useMemo<Ctx>(() => ({
-    ...prefs, t: { ...DICTS[prefs.lang], ...EXTRA[prefs.lang] }, set, session, profile, online: !!supabase,
+    ...prefs, t: { ...DICTS[prefs.lang], ...EXTRA[prefs.lang], ...EXTRA2[prefs.lang] }, set, session, profile, online: hasSupabase,
     canPersonalize: !!session, saveProfile, signIn, verifyCode, signOut, recordGame,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [prefs, session, profile]);

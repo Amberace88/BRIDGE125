@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /r/
+
+Sitemap: https://bridge125.com/sitemap.xml

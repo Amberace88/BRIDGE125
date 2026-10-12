@@ -3,7 +3,18 @@ import type { Action, GameState } from '../engine/engine';
 import type { Emote } from '../screens/Table';
 
 export interface RoomSeat { name: string; bot: boolean; online: boolean; host: boolean }
-export interface RoomInfo { code: string; status: 'lobby' | 'playing'; maxSeats: number; seats: RoomSeat[] }
+export interface RoomInfo { code: string; status: 'lobby' | 'playing'; maxSeats: number; seats: RoomSeat[]; quick?: boolean }
+
+export const isQuickCode = (code: string) => code.length === 6 && code[0] === 'Q';
+
+/** Ask the matchmaker for a public table. `skip` avoids being sent back to a table that just turned us away. */
+export async function findQuickMatch(skip = ''): Promise<string> {
+  const r = await fetch(`/api/quick?pid=${encodeURIComponent(playerId())}&skip=${encodeURIComponent(skip)}`, { cache: 'no-store' });
+  if (!r.ok) throw new Error('quick ' + r.status);
+  const j = await r.json() as { code?: string };
+  if (!j.code) throw new Error('quick: no code');
+  return j.code;
+}
 
 export function playerId(): string {
   try {

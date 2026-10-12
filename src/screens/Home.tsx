@@ -7,7 +7,8 @@ import { LANGS } from '../i18n';
 
 interface Props {
   onPlay: () => void; onResume: (() => void) | null; onRules: () => void; onProfile: () => void; onAuth: () => void;
-  onCreateRoom: () => void; onJoinRoom: (code: string) => void;
+  onCreateRoom: () => void; onJoinRoom: (code: string) => void; onQuick: () => Promise<void>;
+  onLegal: (k: 'privacy' | 'terms') => void; onLeaders: () => void;
 }
 
 function useWide() {
@@ -16,7 +17,7 @@ function useWide() {
   return wide;
 }
 
-export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom }: Props) {
+export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders }: Props) {
   const app = useApp();
   const { t, lang } = app;
   const wide = useWide();
@@ -54,6 +55,13 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
   });
 
   const [code, setCode] = useState('');
+  const [qBusy, setQBusy] = useState(false);
+  const [qErr, setQErr] = useState(false);
+  const quick = async () => {
+    if (qBusy) return;
+    setQBusy(true); setQErr(false);
+    try { await onQuick(); } catch { setQErr(true); setQBusy(false); }
+  };
 
   const title = (
     <motion.h1 className="serif brand" initial="h" animate="s" style={{ fontSize: wide ? 104 : Math.min(60, vw * 0.15) }}
@@ -78,9 +86,10 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
       <Backdrop mx={mx} my={my} />
 
       <header className="topnav">
-        <div className="logo"><span className="mark">♠</span><span className="serif">Bridge <b>125</b></span></div>
+        <a className="logo" href="/" aria-label="Bridge 125" onClick={e => e.preventDefault()}><img className="mark" src="/logo-mark.svg" alt="" width="40" height="40" /><span className="word">BRIDGE <b>125</b></span></a>
         <nav>
           {wide && <button className="navlink" onClick={onRules}>{t.nav.howToPlay}</button>}
+          {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
           {wide && langPills}
           {app.session ? (
             <button className="who" onClick={onProfile}>
@@ -98,7 +107,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
       <main className={`homegrid ${wide ? 'wide' : ''}`}>
         <section className="hero" onPointerEnter={() => setSpread(true)} onPointerLeave={() => setSpread(false)}>
           <HeroCards cw={cw} lang={lang} mx={mx} my={my} spread={spread} />
-          <div style={{ textAlign: wide ? 'left' : 'center', marginTop: wide ? 8 : -6, position: 'relative', zIndex: 2 }}>
+          <div className="herotext" style={{ marginTop: wide ? 18 : -6 }}>
             {title}
             <motion.p className="heroline" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>{t.heroLine}</motion.p>
           </div>
@@ -106,7 +115,13 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
 
         <motion.section className="panel playcard" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, type: 'spring', stiffness: 120, damping: 18 }}>
           {onResume && <button className="btn ghost" style={{ width: '100%', marginBottom: 10 }} onClick={onResume}>↺ {t.continueGame}</button>}
-          <button className="btn acc big" onClick={onPlay}><span className="suitspin">♠</span>{t.vsBots}</button>
+          <button className="btn quickbtn" onClick={quick} disabled={qBusy} aria-busy={qBusy}>
+            <span className="qdot" aria-hidden><i /></span>
+            <span className="qtxt"><b>{qBusy ? t.quick.finding : t.quick.play}</b><small>{t.quick.sub}</small></span>
+            {qBusy ? <span className="spinner" /> : <span className="qarrow" aria-hidden>→</span>}
+          </button>
+          {qErr && <div className="qerr" role="alert">{t.quick.error}</div>}
+          <button className="btn acc big" style={{ marginTop: 10 }} onClick={onPlay}><span className="suitspin">♠</span>{t.vsBots}</button>
           <div className="opts">
             <div>
               <div className="label">{t.opponents}</div>
@@ -128,13 +143,23 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
             </form>
           </div>
 
-          {!wide && <button className="btn ghost" style={{ width: '100%', marginTop: 12 }} onClick={onRules}>{t.howToPlay}</button>}
+          {!wide && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
+              <button className="btn ghost" style={{ whiteSpace: 'nowrap' }} onClick={onRules}>{t.howToPlay}</button>
+              <button className="btn ghost" style={{ whiteSpace: 'nowrap' }} onClick={onLeaders}><span aria-hidden style={{ fontSize: 15 }}>🏆</span>{t.lb.open}</button>
+            </div>
+          )}
           <ul className="features">
             {t.features.map(f => <li key={f}>{f}</li>)}
           </ul>
           {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>{langPills}</div>}
         </motion.section>
       </main>
+      <footer className="homefoot">
+        <button onClick={() => onLegal('privacy')}>{t.legal.privacy}</button><span>·</span>
+        <button onClick={() => onLegal('terms')}>{t.legal.terms}</button><span>·</span>
+        <span>© {new Date().getFullYear()} Bridge 125</span>
+      </footer>
     </div>
   );
 }

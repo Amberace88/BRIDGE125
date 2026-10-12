@@ -1,40 +1,55 @@
-import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { AppProvider } from './store';
 import { Home } from './screens/Home';
 import { LocalGame, loadSavedGame } from './screens/LocalGame';
 import { OnlineRoom } from './screens/OnlineRoom';
 import { ProfileSheet } from './screens/Sheets';
 import { AuthSheet } from './screens/AuthSheet';
-import { Guide } from './screens/Guide';
-import { newRoomCode } from './online/useRoom';
+import type { LegalKind } from './screens/Legal';
+
+const Guide = lazy(() => import('./screens/Guide').then(m => ({ default: m.Guide })));
+const Legal = lazy(() => import('./screens/Legal').then(m => ({ default: m.Legal })));
+const Leaderboard = lazy(() => import('./screens/Leaderboard').then(m => ({ default: m.Leaderboard })));
+import { findQuickMatch, newRoomCode } from './online/useRoom';
 import type { GameState } from './engine/engine';
 
 type Route = { name: 'home' } | { name: 'local'; resume: GameState | null; key: number } | { name: 'room'; code: string };
+type Overlay = 'rules' | LegalKind | null;
 
-function parse(): Route {
-  const m = location.pathname.match(/^\/r\/([A-Za-z0-9]{4,6})\/?$/);
-  if (m) return { name: 'room', code: m[1].toUpperCase() };
-  return { name: 'home' };
+function parse(): { route: Route; overlay: Overlay } {
+  const p = location.pathname;
+  const m = p.match(/^\/r\/([A-Za-z0-9]{4,6})\/?$/);
+  if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
+  const o = p.match(/^\/(rules|privacy|terms)\/?$/);
+  return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
 
 function Shell() {
-  const [route, setRoute] = useState<Route>(parse);
-  const [sheet, setSheet] = useState<'profile' | 'auth' | null>(null);
-  const [guide, setGuide] = useState(false);
+  const [route, setRoute] = useState<Route>(() => parse().route);
+  const [overlay, setOverlay] = useState<Overlay>(() => parse().overlay);
+  const [sheet, setSheet] = useState<'profile' | 'auth' | 'leaders' | null>(null);
 
   useEffect(() => {
-    const f = () => setRoute(parse());
+    const f = () => { const p = parse(); setRoute(r => (r.name === 'local' && p.route.name === 'home' ? r : p.route)); setOverlay(p.overlay); };
     window.addEventListener('popstate', f);
     return () => window.removeEventListener('popstate', f);
   }, []);
 
-  const go = (r: Route, path = '/') => {
-    if (location.pathname !== path) history.pushState(null, '', path);
-    setRoute(r);
+  const go = (r: Route, path = '/', replace = false) => {
+    if (location.pathname !== path) history[replace ? 'replaceState' : 'pushState'](null, '', path);
+    setRoute(r); setOverlay(null);
   };
   const home = () => go({ name: 'home' }, '/');
+  const openOverlay = (o: Exclude<Overlay, null>) => { history.pushState(null, '', '/' + o); setOverlay(o); };
+  const closeOverlay = () => { if (route.name === 'home' && location.pathname !== '/') history.pushState(null, '', '/'); setOverlay(null); };
   const saved = route.name === 'home' ? loadSavedGame() : null;
+
+  /** Matchmaking: resolves when we are on our way to a table; rejects so the button can show an error. */
+  const quick = async (skip = '') => {
+    const code = await findQuickMatch(skip);
+    go({ name: 'room', code }, `/r/${code}`, route.name === 'room');
+  };
 
   return (
     <div className={`app ${route.name === 'home' ? 'is-home' : ''}`}>
@@ -44,7 +59,10 @@ function Shell() {
             <Home
               onPlay={() => go({ name: 'local', resume: null, key: Date.now() })}
               onResume={saved ? () => go({ name: 'local', resume: saved, key: Date.now() }) : null}
-              onRules={() => setGuide(true)}
+              onQuick={() => quick()}
+              onRules={() => openOverlay('rules')}
+              onLegal={k => openOverlay(k)}
+              onLeaders={() => setSheet('leaders')}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
               onCreateRoom={() => { const c = newRoomCode(); go({ name: 'room', code: c }, `/r/${c}`); }}
@@ -60,21 +78,27 @@ function Shell() {
         {route.name === 'room' && (
           <motion.div key={'room' + route.code} style={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center' }}
             initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-            <OnlineRoom code={route.code} onExit={home} />
+            <OnlineRoom code={route.code} onExit={home} onQuickAgain={skip => quick(skip).catch(home)} />
           </motion.div>
         )}
       </AnimatePresence>
+      <Suspense fallback={null}>
       <AnimatePresence>
-        {guide && <Guide key="g" onClose={() => setGuide(false)} onPractice={() => { setGuide(false); go({ name: 'local', resume: null, key: Date.now() }); }} />}
+        {overlay === 'rules' && <Guide key="g" onClose={closeOverlay} onPractice={() => go({ name: 'local', resume: null, key: Date.now() })} />}
+        {(overlay === 'privacy' || overlay === 'terms') && (
+          <Legal key="l" kind={overlay} onClose={closeOverlay} onSwitch={k => { history.replaceState(null, '', '/' + k); setOverlay(k); }} />
+        )}
       </AnimatePresence>
       <AnimatePresence>
-        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
-        {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} />}
+        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} />}
+        {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} onLegal={k => { setSheet(null); openOverlay(k); }} />}
+        {sheet === 'leaders' && <Leaderboard key="lb" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
       </AnimatePresence>
+      </Suspense>
     </div>
   );
 }
 
 export default function App() {
-  return <AppProvider><Shell /></AppProvider>;
+  return <MotionConfig reducedMotion="user"><AppProvider><Shell /></AppProvider></MotionConfig>;
 }
