@@ -16,6 +16,7 @@ import { removeAvatar, useAvatarUrl } from '../media/avatar';
 import { initMusic, useMusic } from '../media/music';
 import { useStrings } from '../i18n/pick';
 import { MEDIA } from '../i18n/media';
+import { AudioSettings } from '../voice/AudioControls';
 
 initMusic();
 
@@ -197,11 +198,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
               <div className="label">{t.language}</div>
               <LangPicker variant="field" />
 
-              <div className="prow">
-                <span>{t.sound}</span>
-                <button className={`switch ${app.sound ? 'on' : ''}`} role="switch" aria-checked={app.sound} onClick={() => app.set({ sound: !app.sound })}><i /></button>
-              </div>
-              <MusicRows />
+              <AudioSettings music={<MusicRows />} />
               {signedIn && <><div className="label">🏅</div><AchievementsList /></>}
             </div>
           )}

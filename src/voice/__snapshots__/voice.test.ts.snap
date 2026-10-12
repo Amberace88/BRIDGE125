@@ -1,0 +1,409 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`voice phrases — all 17 languages > az: sample phrases 1`] = `
+{
+  "ace": "Marina gedişi buraxır",
+  "add12": "Sizə 12 xal əlavə olundu",
+  "add21": "Sizə 21 xal əlavə olundu",
+  "answer8": "İki kart götürün və ya səkkizliklə cavab verin",
+  "called": "Ürək sifariş olundu",
+  "chain": "Zəncir! Oleg dörd kart götürür",
+  "kings": "Dörd kral! Hamının xalı sıfırlanır",
+  "queenHit": "Marina beş kart götürür və gedişi buraxır",
+  "queenSpades": "Pika daması",
+  "queenYou": "Siz beş kart götürürsünüz və gedişi buraxırsınız",
+  "reset": "Düz 125! Sizin xalınız sıfıra düşür",
+  "seven": "Marina bir kart götürür",
+  "sixClubs": "Xaç altılığı",
+  "threeSixes": "Üç altılıq",
+  "transfer": "Ötürüldü! Oleg altı kart götürür və pika altılığını örtür",
+  "turn": "Sizin gedişiniz: ürək və ya yeddilik",
+  "twoKings": "İki kral",
+  "twoQueens": "İki dama",
+  "win": "Marina qalib gəlir!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > be: sample phrases 1`] = `
+{
+  "ace": "Marina прапускае ход",
+  "add12": "Вам налічана 12 ачкоў",
+  "add21": "Вам налічана 21 ачко",
+  "answer8": "Вазьміце дзве карты або адкажыце васьмёркай",
+  "called": "Заказаны чырвы",
+  "chain": "Ланцужок! Oleg бярэ чатыры карты",
+  "kings": "Чатыры каралі! Лік ва ўсіх абнуляецца",
+  "queenHit": "Marina бярэ пяць карт і прапускае ход",
+  "queenSpades": "Дама пік",
+  "queenYou": "Вы бераце пяць карт і прапускаеце ход",
+  "reset": "Роўна сто дваццаць пяць! Ваш лік згарае да нуля",
+  "seven": "Marina бярэ адну карту",
+  "sixClubs": "Шасцёрка трэф",
+  "threeSixes": "Тры шасцёркі",
+  "transfer": "Перавод! Oleg бярэ шэсць карт і накрывае шасцёрку пік",
+  "turn": "Ваш ход: чырвы або сямёрка",
+  "twoKings": "Два каралі",
+  "twoQueens": "Дзве дамы",
+  "win": "Перамагае Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > bg: sample phrases 1`] = `
+{
+  "ace": "Marina пропуска ход",
+  "add12": "Получаваш 12 точки",
+  "add21": "Получаваш 21 точки",
+  "answer8": "Изтегли две карти или отговори с осмица",
+  "called": "Иска се купа",
+  "chain": "Верига! Oleg тегли четири карти",
+  "kings": "Четири попа! Точките на всички падат на нула",
+  "queenHit": "Marina тегли пет карти и пропуска ход",
+  "queenSpades": "Дама пика",
+  "queenYou": "Теглиш пет карти и пропускаш ход",
+  "reset": "Точно 125! Връщаш се на нула",
+  "seven": "Marina тегли една карта",
+  "sixClubs": "Шестица спатия",
+  "threeSixes": "Три шестици",
+  "transfer": "Прехвърлено! Oleg тегли шест карти и покрива шестицата пика",
+  "turn": "Твой ход: купа или седмица",
+  "twoKings": "Два попа",
+  "twoQueens": "Две дами",
+  "win": "Marina печели играта!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > de: sample phrases 1`] = `
+{
+  "ace": "Marina setzt aus",
+  "add12": "Du bekommst 12 Punkte",
+  "add21": "Du bekommst 21 Punkte",
+  "answer8": "Nimm zwei Karten oder antworte mit einer Acht",
+  "called": "Herz gewünscht",
+  "chain": "Kette! Oleg zieht vier Karten",
+  "kings": "Vier Könige! Alle Punkte zurück auf null",
+  "queenHit": "Marina zieht fünf Karten und setzt aus",
+  "queenSpades": "Pik-Dame",
+  "queenYou": "Du ziehst fünf Karten und setzt aus",
+  "reset": "Genau 125! Du fällst zurück auf null",
+  "seven": "Marina zieht eine Karte",
+  "sixClubs": "Kreuz-Sechs",
+  "threeSixes": "Drei Sechsen",
+  "transfer": "Weitergegeben! Oleg zieht sechs Karten und deckt die Pik-Sechs ab",
+  "turn": "Du bist dran: Herz oder Sieben",
+  "twoKings": "Zwei Könige",
+  "twoQueens": "Zwei Damen",
+  "win": "Marina gewinnt das Spiel!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > en: sample phrases 1`] = `
+{
+  "ace": "Marina skips a turn",
+  "add12": "You add 12 points",
+  "add21": "You add 21 points",
+  "answer8": "Take two, or answer with an eight",
+  "called": "Hearts called",
+  "chain": "Chain! Oleg takes four",
+  "kings": "Four kings! Everyone goes back to zero",
+  "queenHit": "Marina takes five and misses a turn",
+  "queenSpades": "Queen of spades",
+  "queenYou": "You take five and miss a turn",
+  "reset": "Exactly 125! You burn back to zero",
+  "seven": "Marina draws one",
+  "sixClubs": "Six of clubs",
+  "threeSixes": "Three sixes",
+  "transfer": "Passed on! Oleg takes six and must cover it",
+  "turn": "Your turn — match hearts or a seven",
+  "twoKings": "Two kings",
+  "twoQueens": "Two queens",
+  "win": "Marina wins the game!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > es: sample phrases 1`] = `
+{
+  "ace": "Marina pierde el turno",
+  "add12": "Sumas 12 puntos",
+  "add21": "Sumas 21 puntos",
+  "answer8": "Roba dos cartas o responde con un ocho",
+  "called": "Se piden corazones",
+  "chain": "¡Cadena! Oleg roba cuatro cartas",
+  "kings": "¡Cuatro reyes! Todos vuelven a cero",
+  "queenHit": "Marina roba cinco cartas y pierde el turno",
+  "queenSpades": "Reina de picas",
+  "queenYou": "Robas cinco cartas y pierdes el turno",
+  "reset": "¡Exactamente 125! Vuelves a cero",
+  "seven": "Marina roba una carta",
+  "sixClubs": "Seis de tréboles",
+  "threeSixes": "Tres seises",
+  "transfer": "¡Pasada! Oleg roba seis cartas y cubre el seis de picas",
+  "turn": "Tu turno: corazones o un siete",
+  "twoKings": "Dos reyes",
+  "twoQueens": "Dos reinas",
+  "win": "¡Marina gana la partida!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > et: sample phrases 1`] = `
+{
+  "ace": "Marina jätab käigu vahele",
+  "add12": "Sulle lisandub 12 punkti",
+  "add21": "Sulle lisandub 21 punkti",
+  "answer8": "Võta kaks kaarti või vasta kaheksaga",
+  "called": "Tellitud mast: ärtu",
+  "chain": "Kett! Oleg võtab neli kaarti",
+  "kings": "Neli kuningat! Kõigi punktid lähevad nulli",
+  "queenHit": "Marina võtab viis kaarti ja jätab käigu vahele",
+  "queenSpades": "Poti emand",
+  "queenYou": "Sa võtad viis kaarti ja jätad käigu vahele",
+  "reset": "Täpselt 125! Sinu punktid põlevad nulli",
+  "seven": "Marina võtab ühe kaardi",
+  "sixClubs": "Risti kuus",
+  "threeSixes": "Kolm kuut",
+  "transfer": "Edasi antud! Oleg võtab kuus kaarti ja katab poti kuue",
+  "turn": "Sinu käik: ärtu või seitse",
+  "twoKings": "Kaks kuningat",
+  "twoQueens": "Kaks emandat",
+  "win": "Võidab Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > hy: sample phrases 1`] = `
+{
+  "ace": "Marina բաց է թողնում քայլը",
+  "add12": "Ձեզ ավելացավ 12 միավոր",
+  "add21": "Ձեզ ավելացավ 21 միավոր",
+  "answer8": "Վերցրեք երկու քարտ կամ պատասխանեք ութնոցով",
+  "called": "Պատվիրված է սիրտ",
+  "chain": "Շղթա! Oleg վերցնում է չորս քարտ",
+  "kings": "Չորս թագավոր! Բոլորի միավորները զրոյանում են",
+  "queenHit": "Marina վերցնում է հինգ քարտ և բաց է թողնում քայլը",
+  "queenSpades": "Պիկի դամա",
+  "queenYou": "Դուք վերցնում եք հինգ քարտ և բաց եք թողնում քայլը",
+  "reset": "Ուղիղ 125! Ձեր միավորները այրվում են մինչև զրո",
+  "seven": "Marina վերցնում է մեկ քարտ",
+  "sixClubs": "Խաչի վեցնոց",
+  "threeSixes": "Երեք վեցնոց",
+  "transfer": "Փոխանցված է! Oleg վերցնում է վեց քարտ և ծածկում է պիկի վեցնոցը",
+  "turn": "Ձեր քայլն է — սիրտ կամ յոթնոց",
+  "twoKings": "Երկու թագավոր",
+  "twoQueens": "Երկու դամա",
+  "win": "Հաղթում է Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > ka: sample phrases 1`] = `
+{
+  "ace": "Marina ტოვებს სვლას",
+  "add12": "თქვენ გემატებათ 12 ქულა",
+  "add21": "თქვენ გემატებათ 21 ქულა",
+  "answer8": "აიღეთ ორი კარტი ან უპასუხეთ რვიანით",
+  "called": "შეკვეთილია გული",
+  "chain": "ჯაჭვი! Oleg იღებს ოთხ კარტს",
+  "kings": "ოთხი მეფე! ყველას ქულები ნულდება",
+  "queenHit": "Marina იღებს ხუთ კარტს და ტოვებს სვლას",
+  "queenSpades": "ყვავის ქალი",
+  "queenYou": "თქვენ იღებთ ხუთ კარტს და ტოვებთ სვლას",
+  "reset": "ზუსტად 125! თქვენი ქულები ნულამდე იწვის",
+  "seven": "Marina იღებს ერთ კარტს",
+  "sixClubs": "ჯვრის ექვსიანი",
+  "threeSixes": "სამი ექვსიანი",
+  "transfer": "გადაცემულია! Oleg იღებს ექვს კარტს და ფარავს ყვავის ექვსიანს",
+  "turn": "თქვენი სვლა: გული ან შვიდიანი",
+  "twoKings": "ორი მეფე",
+  "twoQueens": "ორი ქალი",
+  "win": "იგებს Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > kk: sample phrases 1`] = `
+{
+  "ace": "Marina жүрісті өткізіп жібереді",
+  "add12": "Сізге 12 ұпай қосылды",
+  "add21": "Сізге 21 ұпай қосылды",
+  "answer8": "Екі карта алыңыз немесе сегіздікпен жауап беріңіз",
+  "called": "Черви тапсырылды",
+  "chain": "Тізбек! Oleg төрт карта алады",
+  "kings": "Төрт король! Барлығының ұпайы нөлге түседі",
+  "queenHit": "Marina бес карта алады және жүрісті өткізіп жібереді",
+  "queenSpades": "Пики дамасы",
+  "queenYou": "Сіз бес карта аласыз және жүрісті өткізіп жібересіз",
+  "reset": "Дәл 125! Сіздің ұпайыңыз нөлге түседі",
+  "seven": "Marina бір карта алады",
+  "sixClubs": "Трефы алтылығы",
+  "threeSixes": "Үш алтылық",
+  "transfer": "Ауыстырылды! Oleg алты карта алады және пики алтылығын жабады",
+  "turn": "Сіздің жүрісіңіз: черви немесе жетілік",
+  "twoKings": "Екі король",
+  "twoQueens": "Екі дама",
+  "win": "Marina жеңеді!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > lt: sample phrases 1`] = `
+{
+  "ace": "Marina praleidžia ėjimą",
+  "add12": "Gauni 12 taškų",
+  "add21": "Gauni 21 tašką",
+  "answer8": "Imk dvi kortas arba atsakyk aštuonake",
+  "called": "Užsakyta rūšis — širdys",
+  "chain": "Grandinė! Oleg ima keturias kortas",
+  "kings": "Keturi karaliai! Visų taškai grįžta į nulį",
+  "queenHit": "Marina ima penkias kortas ir praleidžia ėjimą",
+  "queenSpades": "Vynų dama",
+  "queenYou": "Tu imi penkias kortas ir praleidi ėjimą",
+  "reset": "Lygiai 125! Tu grįžti į nulį",
+  "seven": "Marina ima vieną kortą",
+  "sixClubs": "Kryžių šešakė",
+  "threeSixes": "Trys šešakės",
+  "transfer": "Perduota! Oleg ima šešias kortas ir uždengia vynų šešakę",
+  "turn": "Tavo ėjimas: širdys arba septynakė",
+  "twoKings": "Du karaliai",
+  "twoQueens": "Dvi damos",
+  "win": "Laimi Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > lv: sample phrases 1`] = `
+{
+  "ace": "Marina izlaiž gājienu",
+  "add12": "Tev pieskaitīti 12 punkti",
+  "add21": "Tev pieskaitīts 21 punkts",
+  "answer8": "Ņem divas kārtis vai atbildi ar astoņnieku",
+  "called": "Pasūtīts ercens",
+  "chain": "Ķēde! Oleg ņem četras kārtis",
+  "kings": "Četri kungi! Visiem punkti atpakaļ uz nulli",
+  "queenHit": "Marina ņem piecas kārtis un izlaiž gājienu",
+  "queenSpades": "Pīķa dāma",
+  "queenYou": "Tu ņem piecas kārtis un izlaid gājienu",
+  "reset": "Tieši 125! Tu atpakaļ uz nulli",
+  "seven": "Marina velk vienu kārti",
+  "sixClubs": "Kreiča sešinieks",
+  "threeSixes": "Trīs sešinieki",
+  "transfer": "Pārsūtīts! Oleg ņem sešas kārtis un nosedz pīķa sešinieku",
+  "turn": "Tavs gājiens — liec ercenu vai septiņnieku",
+  "twoKings": "Divi kungi",
+  "twoQueens": "Divas dāmas",
+  "win": "Uzvar Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > pl: sample phrases 1`] = `
+{
+  "ace": "Marina traci kolejkę",
+  "add12": "Dostajesz 12 punktów",
+  "add21": "Dostajesz 21 punktów",
+  "answer8": "Weź dwie karty albo odpowiedz ósemką",
+  "called": "Zamówiono kier",
+  "chain": "Łańcuch! Oleg bierze cztery karty",
+  "kings": "Cztery króle! Wszystkim wynik wraca do zera",
+  "queenHit": "Marina bierze pięć kart i traci kolejkę",
+  "queenSpades": "Dama pik",
+  "queenYou": "Bierzesz pięć kart i tracisz kolejkę",
+  "reset": "Równo sto dwadzieścia pięć! Twój wynik spada do zera",
+  "seven": "Marina bierze jedną kartę",
+  "sixClubs": "Szóstka trefl",
+  "threeSixes": "Trzy szóstki",
+  "transfer": "Przekazane! Oleg bierze sześć kart i przykrywa szóstkę pik",
+  "turn": "Twój ruch: kier albo siódemka",
+  "twoKings": "Dwa króle",
+  "twoQueens": "Dwie damy",
+  "win": "Wygrywa Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > ro: sample phrases 1`] = `
+{
+  "ace": "Marina stă o tură",
+  "add12": "Primești 12 puncte",
+  "add21": "Primești 21 de puncte",
+  "answer8": "Ia două cărți sau răspunde cu un opt",
+  "called": "S-a cerut inimă roșie",
+  "chain": "Lanț! Oleg ia patru cărți",
+  "kings": "Patru regi! Scorul tuturor revine la zero",
+  "queenHit": "Marina ia cinci cărți și stă o tură",
+  "queenSpades": "Dama de pică",
+  "queenYou": "Iei cinci cărți și stai o tură",
+  "reset": "Exact 125! Revii la zero",
+  "seven": "Marina ia o carte",
+  "sixClubs": "Șase de treflă",
+  "threeSixes": "Trei cărți de șase",
+  "transfer": "Transferat! Oleg ia șase cărți și acoperă șasele de pică",
+  "turn": "Rândul tău: inimă roșie sau șapte",
+  "twoKings": "Doi regi",
+  "twoQueens": "Două dame",
+  "win": "Marina câștigă jocul!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > ru: sample phrases 1`] = `
+{
+  "ace": "Marina пропускает ход",
+  "add12": "Вам начислено 12 очков",
+  "add21": "Вам начислено 21 очко",
+  "answer8": "Возьмите две карты или ответьте восьмёркой",
+  "called": "Заказаны черви",
+  "chain": "Цепочка! Oleg берёт четыре карты",
+  "kings": "Четыре короля! Счёт у всех обнуляется",
+  "queenHit": "Marina берёт пять карт и пропускает ход",
+  "queenSpades": "Дама пик",
+  "queenYou": "Вы берёте пять карт и пропускаете ход",
+  "reset": "Ровно сто двадцать пять! Ваш счёт сгорает до нуля",
+  "seven": "Marina берёт одну карту",
+  "sixClubs": "Шестёрка треф",
+  "threeSixes": "Три шестёрки",
+  "transfer": "Перевод! Oleg берёт шесть карт и закрывает шестёрку пик",
+  "turn": "Ваш ход: черви или семёрка",
+  "twoKings": "Два короля",
+  "twoQueens": "Две дамы",
+  "win": "Побеждает Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > uk: sample phrases 1`] = `
+{
+  "ace": "Marina пропускає хід",
+  "add12": "Вам нараховано 12 очок",
+  "add21": "Вам нараховано 21 очко",
+  "answer8": "Візьміть дві карти або відповідайте вісімкою",
+  "called": "Замовлено: черви",
+  "chain": "Ланцюжок! Oleg бере чотири карти",
+  "kings": "Чотири королі! Рахунок у всіх обнуляється",
+  "queenHit": "Marina бере п’ять карт і пропускає хід",
+  "queenSpades": "Дама пік",
+  "queenYou": "Ви берете п’ять карт і пропускаєте хід",
+  "reset": "Рівно сто двадцять п’ять! Ваш рахунок згоряє до нуля",
+  "seven": "Marina бере одну карту",
+  "sixClubs": "Шістка треф",
+  "threeSixes": "Три шістки",
+  "transfer": "Переведено! Oleg бере шість карт і закриває шістку пік",
+  "turn": "Ваш хід: черви або сімка",
+  "twoKings": "Два королі",
+  "twoQueens": "Дві дами",
+  "win": "Перемагає Marina!",
+}
+`;
+
+exports[`voice phrases — all 17 languages > uz: sample phrases 1`] = `
+{
+  "ace": "Marina yurishni oʻtkazib yuboradi",
+  "add12": "Sizga 12 ochko qoʻshildi",
+  "add21": "Sizga 21 ochko qoʻshildi",
+  "answer8": "Ikkita karta oling yoki sakkizlik bilan javob bering",
+  "called": "Chervi buyurildi",
+  "chain": "Zanjir! Oleg toʻrtta karta oladi",
+  "kings": "Toʻrtta qirol! Hammaning ochkosi nolga tushadi",
+  "queenHit": "Marina beshta karta oladi va yurishni oʻtkazib yuboradi",
+  "queenSpades": "Pika damasi",
+  "queenYou": "Siz beshta karta olasiz va yurishni oʻtkazib yuborasiz",
+  "reset": "Roppa-rosa 125! Sizning ochkongiz nolga tushadi",
+  "seven": "Marina bitta karta oladi",
+  "sixClubs": "Krest oltiligi",
+  "threeSixes": "Uchta oltilik",
+  "transfer": "Oʻtkazildi! Oleg oltita karta oladi va pika oltiligini yopadi",
+  "turn": "Sizning yurishingiz: chervi yoki yettilik",
+  "twoKings": "Ikkita qirol",
+  "twoQueens": "Ikkita dama",
+  "win": "Marina gʻalaba qozonadi!",
+}
+`;

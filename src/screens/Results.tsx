@@ -69,7 +69,17 @@ export function Results({ g, me = 0, onNext, onRematch, onHome }: { g: GameState
   const over = g.phase === 'gameOver';
   const iWon = over && g.winners.includes(me);
   const name = (i: number) => (i === me ? t.you : g.players[i].name);
-  useEffect(() => { if (over) (iWon ? sfx.big : sfx.alert)(); }, [over, iWon]);
+  const iWentOut = !over && r.winner === me;
+  useEffect(() => {
+    const tms: ReturnType<typeof setTimeout>[] = [];
+    if (over) (iWon ? sfx.fanfare : sfx.alert)();
+    else if (r.mult > 1) tms.push(setTimeout(() => sfx.stamp(), 330));
+    const mine = r.rows.findIndex(x => x.p === me);
+    const row = r.rows[mine];
+    if (row?.reset) tms.push(setTimeout(() => sfx.burn(), (0.35 + mine * 0.12 + 0.75) * 1000));
+    else if (iWentOut) tms.push(setTimeout(() => sfx.coin(), 450));
+    return () => tms.forEach(clearTimeout);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rows = over ? [...r.rows].sort((a, b) => a.after - b.after) : r.rows;
   const afters = r.rows.map(x => x.after);
@@ -97,6 +107,7 @@ export function Results({ g, me = 0, onNext, onRematch, onHome }: { g: GameState
   return (
     <motion.div className="rsum" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-modal="true" aria-label={title}>
       {iWon && <Confetti />}
+      {(iWon || iWentOut) && <div className={`rays ${iWon ? 'big' : ''}`} aria-hidden />}
       <motion.div className="rsum-in" initial={{ y: 40, opacity: 0, rotateX: 12 }} animate={{ y: 0, opacity: 1, rotateX: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 22 }}
         style={{ transformPerspective: 900 }}>
         {over && iWon && (
@@ -109,7 +120,8 @@ export function Results({ g, me = 0, onNext, onRematch, onHome }: { g: GameState
         {over && <div className="subt">{t.gameOverSub}</div>}
 
         {r.mult > 1 && (
-          <motion.div className="mult" initial={{ scale: 0.3, opacity: 0, rotate: -14 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ delay: 0.25, type: 'spring', stiffness: 260, damping: 11 }}>
+          <motion.div className="mult" initial={{ scale: 2.6, opacity: 0, rotate: -14 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ delay: 0.25, type: 'spring', stiffness: 300, damping: 13 }}>
+            <i className="mring" aria-hidden /><i className="mring two" aria-hidden />
             <b>×{r.mult}</b>
             <span>{t.jacksFinish(r.jacks)}</span>
           </motion.div>
@@ -130,6 +142,11 @@ export function Results({ g, me = 0, onNext, onRematch, onHome }: { g: GameState
                   {tags.map(tg => <span key={tg.cls} className={`tag ${tg.cls}`}>{tg.text}</span>)}
                 </div>
                 <div className="rtot">
+                  {row.reset && (
+                    <div className="rflame" aria-hidden style={{ ['--d' as string]: `${d + 0.7}s` }}>
+                      {Array.from({ length: 6 }, (_, k) => <i key={k} style={{ left: `${8 + k * 15}%`, animationDelay: `calc(var(--d) + ${(k % 3) * 0.07}s)` }} />)}
+                    </div>
+                  )}
                   <div className={`n ${tone}`}>
                     {row.reset ? <CountUp from={row.before} value={0} delay={d + 0.9} duration={0.6} /> : <CountUp from={row.before} value={row.after} delay={d + 0.15} />}
                   </div>
