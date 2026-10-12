@@ -6,6 +6,9 @@ import {
 import { CardView, type Flight, type Pose } from '../components/CardView';
 import { useApp } from '../store';
 import { buzz, sfx } from '../sound';
+import { QuickAudio } from '../voice/AudioControls';
+import { StageFx, type Fx, type FxItem, type P as FxP } from '../voice/StageFx';
+import { useNarrator } from '../voice/useNarrator';
 import { CountUp, Results, ScoreBar, scoreTone } from './Results';
 import { useStrings } from '../i18n/pick';
 import { TABLE_STRINGS } from '../i18n/table';
@@ -39,6 +42,8 @@ type Opts = ReturnType<typeof options> & { canChallenge?: boolean };
 type LooseEvent = { t: string; p?: number; by?: number };
 const bluffOn = (s: GameState) => !!(s as GameState & { rules?: { bluff?: boolean } }).rules?.bluff;
 
+/** A played card reaches the pile about this long after the state changes — strong-card effects start then. */
+const LAND_MS = 300;
 const HINT_KEY = 'b125.deckHint';
 const readHint = () => { try { return Number(localStorage.getItem(HINT_KEY) || 0); } catch { return 9; } };
 const bumpHint = () => { try { localStorage.setItem(HINT_KEY, String(readHint() + 1)); } catch { /* */ } };
@@ -52,11 +57,6 @@ const dealSig = (s: GameState) => `${s.round}:${s.pile[0]?.id}:${s.players.map(p
 
 /* ---------- glyphs (no frames, just the mark) ---------- */
 const IconMenu = () => (<svg viewBox="0 0 24 24" aria-hidden><path d="M4 7h16M4 12h11M4 17h16" /></svg>);
-const IconSound = ({ on }: { on: boolean }) => (
-  <svg viewBox="0 0 24 24" aria-hidden><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" className="fillme" />
-    {on ? <><path d="M15.5 9a4.2 4.2 0 0 1 0 6" /><path d="M18 6.5a7.8 7.8 0 0 1 0 11" /></> : <path d="M16 9.5l5 5M21 9.5l-5 5" />}
-  </svg>
-);
 const IconSmile = () => (<svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="8.5" /><path d="M8.5 14.2c1.9 2.2 5.1 2.2 7 0" /><circle cx="9.2" cy="10" r=".9" className="fillme" /><circle cx="14.8" cy="10" r=".9" className="fillme" /></svg>);
 const IconClose = () => (<svg viewBox="0 0 24 24" aria-hidden><path d="M7 7l10 10M17 7L7 17" /></svg>);
 const IconTap = () => (
@@ -186,6 +186,25 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
 
   const nameOf = useCallback((i: number) => (i === me ? t.you : vg.players[i]?.name ?? '?'), [vg.players, t.you, me]);
 
+  /* ---------- voice assistant ---------- */
+  useNarrator(vg, me, !dealing, lang);
+
+  /* ---------- cinematic effects (positions come from the layout computed below, via a ref) ---------- */
+  const [fx, setFx] = useState<FxItem[]>([]);
+  const [shake, setShake] = useState<{ id: number; lvl: 1 | 2 } | null>(null);
+  const fxId = useRef(0);
+  const geo = useRef<{ pile: FxP; deck: FxP; suit: FxP; center: FxP; seat: (i: number) => FxP }>({
+    pile: { x: 0, y: 0 }, deck: { x: 0, y: 0 }, suit: { x: 0, y: 0 }, center: { x: 0, y: 0 }, seat: () => ({ x: 0, y: 0 }),
+  });
+  const fxDone = useCallback((id: number) => setFx(list => list.filter(f => f.id !== id)), []);
+  const quake = useCallback((lvl: 1 | 2) => { if (!reduce) setShake({ id: ++fxId.current, lvl }); }, [reduce]);
+  useEffect(() => {
+    if (!shake) return;
+    const id = shake.id;
+    const tm = setTimeout(() => setShake(x => (x?.id === id ? null : x)), shake.lvl === 2 ? 470 : 340);
+    return () => clearTimeout(tm);
+  }, [shake]);
+
   /* ---------- events → sound, haptics, banners ---------- */
   const bannerId = useRef(0);
   useEffect(() => {
@@ -193,17 +212,32 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
     if (!ev?.length) return;
     let b: Omit<Banner, 'id'> | null = null;
     const cur = { p: 0 };
+    const G = geo.current;
+    const add: Fx[] = [];
+    const pend: (() => void)[] = [];
+    const later = (f: () => void) => { pend.push(f); };
+    const playEv = (ev as GameEvent[]).find((e): e is Extract<GameEvent, { t: 'play' }> => e.t === 'play');
+    const last = playEv?.cards[playEv.cards.length - 1];
+    const has = (k: GameEvent['t']) => (ev as GameEvent[]).some(e => e.t === k);
+    if (playEv && last) {
+      if ((last.r === 'J' || last.r === '9') && !has('roundEnd')) { add.push({ k: 'wild', at: G.pile, suit: last.s }); later(() => sfx.prism()); }
+      if (last.r === '6' && has('mustCover') && !has('transfer')) { add.push({ k: 'six', at: G.pile }); later(() => sfx.shield()); }
+      if (last.r === 'A') {
+        const targets = (ev as GameEvent[]).filter((e): e is Extract<GameEvent, { t: 'skip' }> => e.t === 'skip').map(e => G.seat(e.p));
+        if (targets.length) { add.push({ k: 'ace', from: G.seat(playEv.p), targets }); later(() => sfx.whoosh(playEv.p === me ? 1 : -1)); }
+      }
+    }
     const pick = (cand: Omit<Banner, 'id'>, pri: number) => { if (pri > cur.p) { b = cand; cur.p = pri; } };
     for (const e of ev as GameEvent[]) {
       const le = e as unknown as LooseEvent;
       if (le.t === 'bluffCaught') {
-        sfx.alert(); buzz([40, 30, 40]);
+        later(() => sfx.reveal(le.p !== me)); buzz([40, 30, 40]); add.push({ k: 'bluff', at: G.pile, good: le.p !== me }); later(() => quake(1));
         const by = le.by ?? -1, p = le.p ?? -1;
         pick({ text: s.bluffCaught, sub: s.bluffCaughtSub(by === me ? t.you : nameOf(by), p === me ? t.you : nameOf(p)), tone: p === me ? 'bad' : 'good' }, 11);
         continue;
       }
       if (le.t === 'bluffWrong') {
-        sfx.alert(); if (le.p === me) buzz([30, 40, 30]);
+        later(() => sfx.reveal(le.p !== me)); if (le.p === me) buzz([30, 40, 30]); add.push({ k: 'bluff', at: G.pile, good: le.p !== me });
         pick({ text: s.bluffWrong, sub: s.bluffWrongSub, tone: 'bad' }, 11);
         continue;
       }
@@ -211,19 +245,35 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
         case 'play': sfx.play(); break;
         case 'draw': sfx.draw(); break;
         case 'reshuffle': sfx.shuffle(); pick({ text: t.ev.reshuffle, tone: 'info' }, 1); break;
-        case 'queen': sfx.alert(); if (e.target === me) buzz([30, 40, 30]); pick({ text: e.target === me ? t.ev.queenYou : t.ev.queen(nameOf(e.target)), sub: t.ev.queenSub, tone: 'bad' }, 8); break;
-        case 'transfer': sfx.alert(); if (e.target === me) buzz([30, 40, 30]); pick({ text: e.target === me ? t.ev.transferYou : t.ev.transfer(nameOf(e.target)), tone: 'bad' }, 9); break;
-        case 'eight': sfx.alert(); pick({ text: '8 · ' + (e.target === me ? t.ev.youTake(e.amount) : t.ev.eight(nameOf(e.target), e.amount)), tone: 'bad' }, 6); break;
-        case 'seven': pick({ text: '7 · ' + (e.target === me ? t.ev.youTake(e.amount) : t.ev.seven(nameOf(e.target), e.amount)), tone: 'info' }, 4); break;
+        case 'queen': later(() => sfx.slam()); later(() => quake(2)); add.push({ k: 'queen', at: G.pile, target: G.seat(e.target) }); if (e.target === me) buzz([30, 40, 60]); pick({ text: e.target === me ? t.ev.queenYou : t.ev.queen(nameOf(e.target)), sub: t.ev.queenSub, tone: 'bad' }, 8); break;
+        case 'transfer': later(() => sfx.mirror()); later(() => quake(1)); add.push({ k: 'transfer', at: G.pile, from: G.seat(e.p), target: G.seat(e.target) }); if (e.target === me) buzz([30, 40, 30]); pick({ text: e.target === me ? t.ev.transferYou : t.ev.transfer(nameOf(e.target)), tone: 'bad' }, 9); break;
+        case 'eight': {
+          const lvl = Math.max(1, Math.round(e.amount / 2));
+          later(() => sfx.chain(lvl)); if (lvl >= 2) later(() => quake(1)); if (e.target === me) buzz(20 + lvl * 10);
+          add.push({ k: 'eight', at: G.pile, target: G.seat(e.target), amount: e.amount, level: lvl });
+          pick({ text: '8 · ' + (e.target === me ? t.ev.youTake(e.amount) : t.ev.eight(nameOf(e.target), e.amount)), tone: 'bad' }, 6); break;
+        }
+        case 'seven': later(() => sfx.flick()); add.push({ k: 'seven', from: G.deck, target: G.seat(e.target), amount: e.amount }); pick({ text: '7 · ' + (e.target === me ? t.ev.youTake(e.amount) : t.ev.seven(nameOf(e.target), e.amount)), tone: 'info' }, 4); break;
         case 'skip': pick({ text: e.p === me ? t.ev.youSkip : t.ev.skip(nameOf(e.p)), tone: 'info' }, 3); break;
-        case 'suit': pick({ text: t.ev.suit(nameOf(e.p), `${SUIT_GLYPH[e.s]} ${t.suitNames[e.s]}`), tone: 'info' }, 5); break;
-        case 'kings': sfx.big(); buzz(80); pick({ text: t.ev.kings, sub: t.ev.kingsSub, tone: 'good' }, 10); break;
-        case 'reset125': sfx.big(); pick({ text: t.ev.reset125(nameOf(e.p)), tone: 'good' }, 10); break;
-        case 'roundEnd': if (e.winner === me) sfx.good(); break;
+        case 'suit': later(() => sfx.good()); add.push({ k: 'bloom', at: G.pile, suit: e.s }); pick({ text: t.ev.suit(nameOf(e.p), `${SUIT_GLYPH[e.s]} ${t.suitNames[e.s]}`), tone: 'info' }, 5); break;
+        case 'kings': later(() => sfx.fanfare()); later(() => quake(2)); buzz(80); add.push({ k: 'kings', at: G.pile, seats: vg.players.map((_, i) => G.seat(i)) }); pick({ text: t.ev.kings, sub: t.ev.kingsSub, tone: 'good' }, 10); break;
+        case 'reset125': later(() => sfx.burn()); add.push({ k: 'burn', at: G.seat(e.p) }); pick({ text: t.ev.reset125(nameOf(e.p)), tone: 'good' }, 10); break;
+        case 'roundEnd':
+          if (e.mult > 1) { later(() => sfx.slam()); later(() => quake(2)); add.push({ k: 'mult', at: G.center, mult: e.mult }); later(() => setTimeout(() => sfx.coin(), 380)); }
+          else if (e.winner === me) later(() => sfx.coin());
+          break;
         default: break;
       }
     }
     if (b) setBanner({ ...(b as Omit<Banner, 'id'>), id: ++bannerId.current });
+    // the strong-card moment lands with the card: wait for its flight to the pile
+    const fire = () => {
+      pend.forEach(f => f());
+      if (add.length) setFx(list => [...list.slice(-6), ...add.map(f => ({ ...f, id: ++fxId.current }) as FxItem)]);
+    };
+    if (!pend.length && !add.length) return;
+    if (playEv && !reduce) { const tm = setTimeout(fire, LAND_MS); return () => { clearTimeout(tm); fire(); }; }
+    fire();
   }, [vg.seq]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!banner) return;
@@ -481,6 +531,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
     status = t.waiting(nameOf(vg.current));
   }
 
+  const avSize = desk ? 46 : 40;
   const remaining = deadline ? Math.max(0, deadline - Date.now()) : 0;
   const ring = (sz: number) => deadline && playing ? (
     <svg key={deadline} className="tring" width={sz + 10} height={sz + 10} style={{ position: 'absolute', left: -5, top: -5, transform: 'rotate(-90deg)', pointerEvents: 'none' }}>
@@ -496,12 +547,18 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       ))}
     </AnimatePresence>
   );
+  const myLeft = desk ? Math.max(18, cx - 430) : 12;
+  geo.current = {
+    pile: { x: pilePos.x, y: tableY }, deck: { x: deckPos.x, y: tableY },
+    suit: { x: Math.min(W - 34, pilePos.x + cw * 0.98), y: tableY },
+    center: { x: cx, y: tableY - ch * 0.15 },
+    seat: (i: number) => (i === me ? { x: myLeft + avSize / 2, y: myRowY + 2 } : { x: seatOf(i).x, y: seatOf(i).y - 6 + avSize / 2 }),
+  };
   const lr = vg.lastResult;
   const burnedSet = new Set(reveal && lr ? lr.rows.filter(r => r.reset).map(r => r.p) : []);
-  const avSize = desk ? 46 : 40;
 
   return (
-    <div className={`stage tbl ${desk ? 'desk' : ''} ${dealing ? 'is-dealing' : ''}`} ref={stageRef} onPointerMove={onPointerMove}
+    <div className={`stage tbl ${desk ? 'desk' : ''} ${dealing ? 'is-dealing' : ''} ${shake ? `fxshake-${shake.lvl}` : ''}`} ref={stageRef} onPointerMove={onPointerMove}
       onPointerDownCapture={() => { if (dealing) skipDeal(); }}
       style={{ ['--cw' as string]: `${cw}px` }}>
 
@@ -527,7 +584,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
             <span><i className="lg130" />{s.rule130}</span>
           </div>
         </div>
-        <button className="glyph" aria-label={app.sound ? s.soundOn : s.soundOff} aria-pressed={app.sound} title={app.sound ? s.soundOn : s.soundOff} onClick={() => app.set({ sound: !app.sound })}><IconSound on={app.sound} /></button>
+        <QuickAudio />
       </div>
 
       {/* opponents */}
@@ -605,6 +662,9 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
         <button className="glyph cancelsel" style={{ left: pilePos.x + cw / 2 + 6, top: tableY + ch / 2 - 12 }} aria-label={s.cancel} title={s.cancel} onClick={() => setSel([])}><IconClose /></button>
       )}
 
+      {/* cinematic effects for strong cards */}
+      <StageFx items={fx} reduce={!!reduce} cw={cw} w={W} h={H} onDone={fxDone} />
+
       {/* bluff call-out */}
       <AnimatePresence>
         {live && o.canChallenge && (
@@ -641,7 +701,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       </div>
 
       {/* my seat */}
-      <div className="myrow" style={{ top: myRowY - 24, left: desk ? Math.max(18, cx - 430) : 12, right: desk ? Math.max(18, cx - 430) : 12 }}>
+      <div className="myrow" style={{ top: myRowY - 24, left: myLeft, right: myLeft }}>
         <SeatBadge mine name={app.name || t.you} face={app.avatar || (mine.name || t.you).slice(0, 1).toUpperCase()} score={mine.score} count={hn}
           turn={o.mine && !dealing} offline={false} ring={vg.current === me && !dealing ? ring(avSize) : null} emote={emoteBubble(me)}
           burned={burnedSet.has(me)} ptsLabel={s.pts} />

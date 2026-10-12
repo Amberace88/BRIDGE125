@@ -246,5 +246,31 @@
 .rsum .confetti i { position: absolute; top: -20px; width: 8px; height: 13px; border-radius: 2px; }
 .rsum .rsum-in > * { position: relative; z-index: 1; }
 
+/* ---------- Results: cinematic accents (match the table effects) ---------- */
+.rsum .rays { position: absolute; left: 50%; top: 26%; width: 760px; height: 760px; margin: -380px 0 0 -380px; z-index: 0; pointer-events: none; border-radius: 50%; opacity: .5;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--acc-hi) 26%, transparent) 0deg 5deg, transparent 5deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 0, rgba(0,0,0,.6) 25%, transparent 62%); mask: radial-gradient(circle, #000 0, rgba(0,0,0,.6) 25%, transparent 62%);
+  animation: rsumrays 22s linear infinite, rsumraysin 1.1s ease-out both; }
+.rsum .rays.big { opacity: .8; }
+@keyframes rsumrays { to { rotate: 360deg; } }
+@keyframes rsumraysin { from { scale: .3; opacity: 0; } }
+.rsum .mult { position: relative; }
+.rsum .mult .mring { position: absolute; left: 50%; top: 40px; width: 90px; height: 90px; margin: -45px; border-radius: 50%; border: 3px solid var(--acc-hi); opacity: 0;
+  animation: rsumring .8s .32s cubic-bezier(.15,.7,.3,1) both; pointer-events: none; }
+.rsum .mult .mring.two { border-color: #fff; animation-delay: .44s; }
+@keyframes rsumring { from { transform: scale(.3); opacity: .95; } to { transform: scale(2.6); opacity: 0; } }
+.rsum .rtot { position: relative; }
+.rsum .rflame { position: absolute; left: -14px; right: -14px; bottom: 6px; height: 44px; pointer-events: none; }
+.rsum .rflame i { position: absolute; bottom: 0; width: 15px; height: 40px; margin-left: -7px; border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%; transform-origin: 50% 100%; opacity: 0;
+  background: linear-gradient(0deg, rgba(255,240,170,.95), rgba(255,140,30,.85) 45%, rgba(255,50,0,0)); animation: rsumflame 1.1s ease-out both; }
+@keyframes rsumflame {
+  0% { opacity: 0; transform: scaleY(.2); }
+  25% { opacity: 1; transform: scaleY(1.1) skewX(6deg); }
+  50% { transform: scaleY(1.35) skewX(-8deg); }
+  75% { opacity: .85; transform: scaleY(.9) skewX(4deg); }
+  100% { opacity: 0; transform: scaleY(.3) translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) { .rsum .rays, .rsum .rflame i, .rsum .mult .mring { animation: none; opacity: 0; } }
+
 /* cards are composited flat; each card's own 3D (tilt + turn-over) lives inside .hop */
 .tbl .card { transform-style: flat; }

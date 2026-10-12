@@ -18,6 +18,7 @@ import { AvatarFrame } from '../cosmetics/AvatarFrame';
 import { PlayerName, TitleBadge } from '../cosmetics/Badges';
 import { useCosmetics } from '../cosmetics/useCosmetics';
 import { bannerCss } from '../cosmetics/data';
+import { AudioSettings } from '../voice/AudioControls';
 
 initMusic();
 
@@ -161,11 +162,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
               <div className="label">{t.language}</div>
               <LangPicker variant="field" />
 
-              <div className="prow">
-                <span>{t.sound}</span>
-                <button className={`switch ${app.sound ? 'on' : ''}`} role="switch" aria-checked={app.sound} onClick={() => app.set({ sound: !app.sound })}><i /></button>
-              </div>
-              <MusicRows />
+              <AudioSettings music={<MusicRows />} />
               {signedIn && <><div className="label">🏅</div><AchievementsList /></>}
             </div>
           )}
