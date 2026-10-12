@@ -1,14 +1,15 @@
-import { motion, useAnimationFrame, useMotionValue, useSpring } from 'motion/react';
+import { AnimatePresence, motion, useAnimationFrame, useMotionValue, useSpring } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { HeroCards } from '../components/HeroCards';
 import { Backdrop } from '../components/Backdrop';
 import { LANGS } from '../i18n';
+import { useInstall } from '../install';
 
 interface Props {
   onPlay: () => void; onResume: (() => void) | null; onRules: () => void; onProfile: () => void; onAuth: () => void;
   onCreateRoom: () => void; onJoinRoom: (code: string) => void; onQuick: () => Promise<void>;
-  onLegal: (k: 'privacy' | 'terms') => void; onLeaders: () => void;
+  onLegal: (k: 'privacy' | 'terms') => void; onLeaders: () => void; onInstall: () => void;
 }
 
 function useWide() {
@@ -17,7 +18,10 @@ function useWide() {
   return wide;
 }
 
-export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders }: Props) {
+export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall }: Props) {
+  const ins = useInstall();
+  const [bannerOff, setBannerOff] = useState(() => { try { return localStorage.getItem('b125.installBanner') === 'off'; } catch { return false; } });
+  const hideBanner = () => { setBannerOff(true); try { localStorage.setItem('b125.installBanner', 'off'); } catch { /* */ } };
   const app = useApp();
   const { t, lang } = app;
   const wide = useWide();
@@ -90,6 +94,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
         <nav>
           {wide && <button className="navlink" onClick={onRules}>{t.nav.howToPlay}</button>}
           {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
+          {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
           {wide && langPills}
           {app.session ? (
             <button className="who" onClick={onProfile}>
@@ -112,6 +117,17 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
             <motion.p className="heroline" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>{t.heroLine}</motion.p>
           </div>
         </section>
+
+        <AnimatePresence>
+          {!wide && !ins.installed && !bannerOff && (
+            <motion.div className="installbanner" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, marginTop: -14 }} transition={{ delay: 1.2 }}>
+              <img src="/icon-192.png" alt="" width={40} height={40} />
+              <button className="ibtext" onClick={onInstall}><b>Bridge 125</b><span>{t.install.banner}</span></button>
+              <button className="btn acc sm" onClick={onInstall}>{t.install.button}</button>
+              <button className="ibx" aria-label={t.close} onClick={hideBanner}>×</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <motion.section className="panel playcard" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, type: 'spring', stiffness: 120, damping: 18 }}>
           {onResume && <button className="btn ghost" style={{ width: '100%', marginBottom: 10 }} onClick={onResume}>↺ {t.continueGame}</button>}

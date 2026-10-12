@@ -348,3 +348,37 @@ input { font: inherit; }
 .lbrow .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .lbrow b { color: var(--acc-hi); }
 .lbrow.me { background: color-mix(in srgb, var(--acc) 18%, transparent); border: 1px solid var(--line); }
+
+/* ---------------- INSTALL ---------------- */
+.installpill { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 999px; font-weight: 700; font-size: 14px;
+  color: var(--acc-hi); border: 1px solid var(--line); background: rgba(0,0,0,.25); transition: background .2s, transform .15s; }
+.installpill:hover { background: rgba(255,255,255,.08); transform: translateY(-1px); }
+.installbanner { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 18px; background: rgba(5,18,16,.78);
+  border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 10px 26px rgba(0,0,0,.3); overflow: hidden; }
+.installbanner img { border-radius: 10px; flex-shrink: 0; }
+.ibtext { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: 1.2; }
+.ibtext b { font-size: 14.5px; }
+.ibtext span { font-size: 12px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.installbanner .btn.sm { height: 36px; padding: 0 12px; font-size: 13px; white-space: nowrap; }
+.ibx { width: 28px; height: 28px; border-radius: 50%; color: var(--mute); font-size: 20px; line-height: 1; flex-shrink: 0; }
+.ibx:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.insthead { display: flex; align-items: center; gap: 16px; }
+.insticon { border-radius: 20px; box-shadow: 0 12px 28px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08); animation: floaty 4s ease-in-out infinite 1s; }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.insthead h2 { font-size: 30px; font-weight: 700; line-height: 1.05; }
+.instfree { font-size: 12.5px; margin-top: 5px; }
+.instsub { margin-top: 14px; font-size: 15px; line-height: 1.55; color: rgba(238,243,239,.85); }
+.instben { list-style: none; margin: 14px 0 18px; display: grid; gap: 8px; }
+.instben li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; }
+.inststeps { list-style: none; display: grid; gap: 8px; }
+.inststeps li { display: grid; grid-template-columns: 26px 40px 1fr; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); }
+.stepn { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: var(--acc-ink); background: linear-gradient(180deg, var(--acc-hi), var(--acc)); }
+.stepi { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.07); color: #7FB8FF; }
+.stepi .okdot { color: #4BE3A4; font-weight: 800; font-size: 18px; }
+.stept { font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+.instwarn { margin-top: 4px; padding: 10px 12px; border-radius: 12px; font-size: 13px; color: #ffd890; background: rgba(255,200,80,.08); border: 1px solid rgba(255,200,80,.25); }
+.instdone { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 16px; font-weight: 700; background: rgba(75,227,164,.1); border: 1px solid rgba(75,227,164,.35); }
+.instdone span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #4BE3A4; color: #06261b; font-size: 18px; flex-shrink: 0; }
+.instqr { display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 14px; border-radius: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); }
+.instqr .qr { width: 112px; height: 112px; flex-shrink: 0; border-radius: 10px; }
+.instqr b { font-size: 14.5px; line-height: 1.4; }

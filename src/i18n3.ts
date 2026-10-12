@@ -4,6 +4,10 @@ export interface Extra2 {
   quick: { play: string; sub: string; title: string; finding: string; startsIn: (s: number) => string; startNow: string; botsFill: string; error: string; starting: string };
   lb: { title: string; sub: string; wins: string; games: string; winRate: string; empty: string; you: string; signIn: string; error: string; open: string };
   legal: { privacy: string; terms: string; updated: string; contact: string; agree: [string, string, string, string] };
+  install: {
+    button: string; title: string; sub: string; benefits: string[]; cta: string; done: string; later: string; banner: string;
+    ios: string[]; iosOther: string; android: string[]; desktop: string[]; qr: string; free: string;
+  };
 }
 
 const en: Extra2 = {
@@ -17,6 +21,16 @@ const en: Extra2 = {
     empty: 'No ranked games yet — be the first!', you: 'You', signIn: 'Sign in to get on the leaderboard', error: 'Leaderboard is unavailable right now.', open: 'Top players',
   },
   legal: { privacy: 'Privacy', terms: 'Terms', updated: 'Last updated', contact: 'Contact', agree: ['By continuing you accept the', 'Terms', 'and', 'Privacy policy'] },
+  install: {
+    button: 'Install app', title: 'Install Bridge 125', sub: 'Play from your home screen like a real app — free, no app store needed.',
+    benefits: ['Opens full-screen in one tap', 'Play against bots even offline', 'Always the latest version, nothing to update'],
+    cta: 'Install now', done: 'Installed! Find Bridge 125 on your home screen.', later: 'Not now', banner: 'Get the app — free',
+    ios: ['Tap the Share button', 'Choose “Add to Home Screen”', 'Tap “Add” — done!'],
+    iosOther: 'On iPhone and iPad, open bridge125.com in Safari to install.',
+    android: ['Open the browser menu ⋮', 'Tap “Install app” or “Add to Home screen”', 'Confirm — done!'],
+    desktop: ['In Chrome or Edge, click the install icon in the address bar', 'Or open the menu ⋮ → “Install Bridge 125”', 'It opens in its own window, like any app'],
+    qr: 'Scan with your phone camera to install on your phone', free: 'Free · under 1 MB · iPhone, Android, Mac, Windows',
+  },
 };
 
 const lv: Extra2 = {
@@ -30,6 +44,16 @@ const lv: Extra2 = {
     empty: 'Vēl nav nevienas spēles — esi pirmais!', you: 'Tu', signIn: 'Ienāc, lai tiktu līderu tabulā', error: 'Līderu tabula šobrīd nav pieejama.', open: 'Līderi',
   },
   legal: { privacy: 'Privātums', terms: 'Noteikumi', updated: 'Atjaunots', contact: 'Kontakti', agree: ['Turpinot tu piekrīti', 'Noteikumiem', 'un', 'Privātuma politikai'] },
+  install: {
+    button: 'Instalēt lietotni', title: 'Instalē Bridge 125', sub: 'Spēlē no sākuma ekrāna kā īstā lietotnē — bez maksas un bez App Store.',
+    benefits: ['Atveras pilnekrānā ar vienu pieskārienu', 'Spēlē pret botiem arī bez interneta', 'Vienmēr jaunākā versija — nekas nav jāatjauno'],
+    cta: 'Instalēt tagad', done: 'Instalēts! Bridge 125 atradīsi sākuma ekrānā.', later: 'Ne tagad', banner: 'Lejuplādē lietotni — bez maksas',
+    ios: ['Pieskaries pogai “Kopīgot”', 'Izvēlies “Pievienot sākuma ekrānam”', 'Spied “Pievienot” — gatavs!'],
+    iosOther: 'iPhone un iPad ierīcēs atver bridge125.com pārlūkā Safari, lai instalētu.',
+    android: ['Atver pārlūka izvēlni ⋮', 'Spied “Instalēt lietotni” vai “Pievienot sākuma ekrānam”', 'Apstiprini — gatavs!'],
+    desktop: ['Chrome vai Edge adreses joslā spied instalēšanas ikonu', 'Vai izvēlne ⋮ → “Instalēt Bridge 125”', 'Atvērsies savā logā kā jebkura programma'],
+    qr: 'Noskenē ar telefona kameru, lai instalētu telefonā', free: 'Bez maksas · mazāk par 1 MB · iPhone, Android, Mac, Windows',
+  },
 };
 
 const ru: Extra2 = {
@@ -43,6 +67,16 @@ const ru: Extra2 = {
     empty: 'Пока нет ни одной игры — будьте первым!', you: 'Вы', signIn: 'Войдите, чтобы попасть в таблицу', error: 'Таблица лидеров сейчас недоступна.', open: 'Лидеры',
   },
   legal: { privacy: 'Конфиденциальность', terms: 'Условия', updated: 'Обновлено', contact: 'Контакты', agree: ['Продолжая, вы принимаете', 'Условия', 'и', 'Политику конфиденциальности'] },
+  install: {
+    button: 'Установить', title: 'Установите Bridge 125', sub: 'Играйте с главного экрана как в настоящем приложении — бесплатно, без App Store.',
+    benefits: ['Открывается на весь экран в одно касание', 'Игра с ботами даже без интернета', 'Всегда последняя версия — ничего обновлять не нужно'],
+    cta: 'Установить', done: 'Установлено! Bridge 125 — на главном экране.', later: 'Не сейчас', banner: 'Скачайте приложение — бесплатно',
+    ios: ['Нажмите кнопку «Поделиться»', 'Выберите «На экран «Домой»»', 'Нажмите «Добавить» — готово!'],
+    iosOther: 'На iPhone и iPad откройте bridge125.com в Safari, чтобы установить.',
+    android: ['Откройте меню браузера ⋮', 'Нажмите «Установить приложение» или «Добавить на главный экран»', 'Подтвердите — готово!'],
+    desktop: ['В Chrome или Edge нажмите значок установки в адресной строке', 'Или меню ⋮ → «Установить Bridge 125»', 'Откроется в отдельном окне, как обычная программа'],
+    qr: 'Отсканируйте камерой телефона, чтобы установить на телефон', free: 'Бесплатно · меньше 1 МБ · iPhone, Android, Mac, Windows',
+  },
 };
 
 const uk: Extra2 = {
@@ -56,6 +90,16 @@ const uk: Extra2 = {
     empty: 'Ще немає жодної гри — будьте першим!', you: 'Ви', signIn: 'Увійдіть, щоб потрапити до таблиці', error: 'Таблиця лідерів зараз недоступна.', open: 'Лідери',
   },
   legal: { privacy: 'Конфіденційність', terms: 'Умови', updated: 'Оновлено', contact: 'Контакти', agree: ['Продовжуючи, ви приймаєте', 'Умови', 'та', 'Політику конфіденційності'] },
+  install: {
+    button: 'Встановити', title: 'Встановіть Bridge 125', sub: 'Грайте з головного екрана як у справжньому застосунку — безкоштовно, без App Store.',
+    benefits: ['Відкривається на весь екран одним дотиком', 'Гра з ботами навіть без інтернету', 'Завжди остання версія — нічого оновлювати не треба'],
+    cta: 'Встановити', done: 'Встановлено! Bridge 125 — на головному екрані.', later: 'Не зараз', banner: 'Завантажте застосунок — безкоштовно',
+    ios: ['Натисніть кнопку «Поділитися»', 'Оберіть «На початковий екран»', 'Натисніть «Додати» — готово!'],
+    iosOther: 'На iPhone та iPad відкрийте bridge125.com у Safari, щоб встановити.',
+    android: ['Відкрийте меню браузера ⋮', 'Натисніть «Встановити застосунок» або «Додати на головний екран»', 'Підтвердіть — готово!'],
+    desktop: ['У Chrome чи Edge натисніть значок встановлення в адресному рядку', 'Або меню ⋮ → «Встановити Bridge 125»', 'Відкриється в окремому вікні, як звичайна програма'],
+    qr: 'Відскануйте камерою телефона, щоб встановити на телефон', free: 'Безкоштовно · менше 1 МБ · iPhone, Android, Mac, Windows',
+  },
 };
 
 export const EXTRA2: Record<Lang, Extra2> = { en, lv, ru, uk };

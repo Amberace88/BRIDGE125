@@ -4,6 +4,7 @@ import { useApp } from '../store';
 import { ACCENTS, TABLES } from '../theme';
 import { LANGS } from '../i18n';
 import { Seg } from './Home';
+import { useInstall } from '../install';
 
 export function Sheet({ children, onClose }: { children: ReactNode; onClose: () => void }) {
   const controls = useDragControls();
@@ -21,7 +22,8 @@ export function Sheet({ children, onClose }: { children: ReactNode; onClose: () 
   );
 }
 
-export function ProfileSheet({ onClose, onAuth, onLegal }: { onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void }) {
+export function ProfileSheet({ onClose, onAuth, onLegal, onInstall }: { onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void; onInstall: () => void }) {
+  const ins = useInstall();
   const app = useApp();
   const { t } = app;
   const [name, setName] = useState(app.name);
@@ -92,7 +94,8 @@ export function ProfileSheet({ onClose, onAuth, onLegal }: { onClose: () => void
         </div>
       </div>
 
-      {app.session && <button className="btn ghost" style={{ width: '100%', marginTop: 22 }} onClick={() => app.signOut()}>{t.signOut}</button>}
+      {!ins.installed && <button className="btn ghost" style={{ width: '100%', marginTop: 22 }} onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
+      {app.session && <button className="btn ghost" style={{ width: '100%', marginTop: ins.installed ? 22 : 10 }} onClick={() => app.signOut()}>{t.signOut}</button>}
       <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onClose}>{t.close}</button>
       <div className="homefoot insheet">
         <button onClick={() => onLegal('privacy')}>{t.legal.privacy}</button><span>·</span>

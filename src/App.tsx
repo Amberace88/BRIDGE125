@@ -11,6 +11,7 @@ import type { LegalKind } from './screens/Legal';
 const Guide = lazy(() => import('./screens/Guide').then(m => ({ default: m.Guide })));
 const Legal = lazy(() => import('./screens/Legal').then(m => ({ default: m.Legal })));
 const Leaderboard = lazy(() => import('./screens/Leaderboard').then(m => ({ default: m.Leaderboard })));
+const InstallSheet = lazy(() => import('./screens/InstallSheet').then(m => ({ default: m.InstallSheet })));
 import { findQuickMatch, newRoomCode } from './online/useRoom';
 import type { GameState } from './engine/engine';
 
@@ -28,7 +29,7 @@ function parse(): { route: Route; overlay: Overlay } {
 function Shell() {
   const [route, setRoute] = useState<Route>(() => parse().route);
   const [overlay, setOverlay] = useState<Overlay>(() => parse().overlay);
-  const [sheet, setSheet] = useState<'profile' | 'auth' | 'leaders' | null>(null);
+  const [sheet, setSheet] = useState<'profile' | 'auth' | 'leaders' | 'install' | null>(null);
 
   useEffect(() => {
     const f = () => { const p = parse(); setRoute(r => (r.name === 'local' && p.route.name === 'home' ? r : p.route)); setOverlay(p.overlay); };
@@ -44,6 +45,16 @@ function Shell() {
   const openOverlay = (o: Exclude<Overlay, null>) => { history.pushState(null, '', '/' + o); setOverlay(o); };
   const closeOverlay = () => { if (route.name === 'home' && location.pathname !== '/') history.pushState(null, '', '/'); setOverlay(null); };
   const saved = route.name === 'home' ? loadSavedGame() : null;
+
+  // app-icon shortcuts and deep links: /?play=bots, /?play=online, /?install=1
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    const play = q.get('play');
+    if (q.has('play') || q.has('install') || q.has('source')) history.replaceState(null, '', location.pathname);
+    if (play === 'bots') go({ name: 'local', resume: null, key: Date.now() }, '/', true);
+    else if (play === 'online') quick().catch(() => {});
+    else if (q.get('install') === '1') setSheet('install');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Matchmaking: resolves when we are on our way to a table; rejects so the button can show an error. */
   const quick = async (skip = '') => {
@@ -63,6 +74,7 @@ function Shell() {
               onRules={() => openOverlay('rules')}
               onLegal={k => openOverlay(k)}
               onLeaders={() => setSheet('leaders')}
+              onInstall={() => setSheet('install')}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
               onCreateRoom={() => { const c = newRoomCode(); go({ name: 'room', code: c }, `/r/${c}`); }}
@@ -90,9 +102,10 @@ function Shell() {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} />}
+        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} />}
         {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} onLegal={k => { setSheet(null); openOverlay(k); }} />}
         {sheet === 'leaders' && <Leaderboard key="lb" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
+        {sheet === 'install' && <InstallSheet key="in" onClose={() => setSheet(null)} />}
       </AnimatePresence>
       </Suspense>
     </div>
