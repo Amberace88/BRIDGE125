@@ -9,6 +9,14 @@ import { Sheet } from './Sheets';
 import { sfx } from '../sound';
 import { CONTACT_EMAIL } from '../i18n3';
 import type { Card } from '../engine/engine';
+import { UserAvatar } from '../media/UserAvatar';
+import { AvatarPhotoOption } from '../components/AvatarUpload';
+import { removeAvatar, useAvatarUrl } from '../media/avatar';
+import { initMusic, useMusic } from '../media/music';
+import { useStrings } from '../i18n/pick';
+import { MEDIA } from '../i18n/media';
+
+initMusic();
 
 const AVATARS = ['', '♠', '♥', '♦', '♣', '👑', '🃏', '🎩', '🦊', '🐺', '🦉', '🐻', '🌙', '⭐', '🔥', '💎'];
 type Tab = 'me' | 'look' | 'account';
@@ -23,13 +31,29 @@ function CountUp({ to, dur = 900 }: { to: number; dur?: number }) {
   return <>{v.toLocaleString('fr-FR')}</>;
 }
 
+/** Profile header avatar: photo → emoji → initial (see media/UserAvatar). */
 export function AvatarBadge({ size = 64, ring = true }: { size?: number; ring?: boolean }) {
-  const app = useApp();
-  const label = app.avatar || (app.name || app.session?.user.email || '?').slice(0, 1).toUpperCase();
+  return <UserAvatar size={size} ring={ring} />;
+}
+
+function MusicRows() {
+  const m = useMusic();
+  const s = useStrings(MEDIA);
   return (
-    <div className={`pavatar ${ring ? 'ring' : ''}`} style={{ width: size, height: size, fontSize: size * (app.avatar ? 0.46 : 0.4) }}>
-      <span>{label}</span>
-    </div>
+    <>
+      <div className="prow mrow" style={m.on ? { borderBottom: 0 } : undefined}>
+        <span>{s.music}{m.on && <span className="meq" aria-hidden><i /><i /><i /></span>}<small>{s.musicSub}</small></span>
+        <button className={`switch ${m.on ? 'on' : ''}`} role="switch" aria-checked={m.on} aria-label={s.music} onClick={m.toggle}><i /></button>
+      </div>
+      <AnimatePresence initial={false}>
+        {m.on && (
+          <motion.label className="mvol" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+            <span>{s.volume}</span>
+            <input type="range" min={0} max={1} step={0.01} value={m.vol} onChange={e => m.setVol(Number(e.target.value))} aria-label={s.volume} />
+          </motion.label>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -82,6 +106,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
   const toastTm = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prof = app.profile;
   const signedIn = !!app.session;
+  const photo = useAvatarUrl();
 
   // preview state (what the live preview shows) vs saved state (what the app uses)
   const [pv, setPv] = useState({ table: app.table, accent: app.accent, back: app.cardBack });
@@ -157,9 +182,10 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
 
               <div className="label">{p.avatar}</div>
               <div className="avgrid">
+                <AvatarPhotoOption onToast={flash} />
                 {AVATARS.map(a => (
-                  <motion.button key={a || 'init'} whileTap={{ scale: 0.88 }} className={`avopt ${app.avatar === a ? 'on' : ''}`} onClick={() => { app.saveProfile({ avatar: a }); sfx.tap(); }} aria-label={a || 'initial'}>
-                    {app.avatar === a && <motion.span layoutId="avsel" className="avsel" transition={{ type: 'spring', stiffness: 420, damping: 30 }} />}
+                  <motion.button key={a || 'init'} whileTap={{ scale: 0.88 }} className={`avopt ${app.avatar === a && !photo ? 'on' : ''}`} onClick={() => { app.saveProfile({ avatar: a }); if (photo) removeAvatar().catch(() => {}); sfx.tap(); }} aria-label={a || 'initial'}>
+                    {app.avatar === a && !photo && <motion.span layoutId="avsel" className="avsel" transition={{ type: 'spring', stiffness: 420, damping: 30 }} />}
                     <span className="avch">{a || (app.name || '?').slice(0, 1).toUpperCase()}</span>
                   </motion.button>
                 ))}
@@ -172,6 +198,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
                 <span>{t.sound}</span>
                 <button className={`switch ${app.sound ? 'on' : ''}`} role="switch" aria-checked={app.sound} onClick={() => app.set({ sound: !app.sound })}><i /></button>
               </div>
+              <MusicRows />
             </div>
           )}
 

@@ -26,6 +26,12 @@ const ROUND_PAUSE_MS = 14_000;
 const BOT_NAMES = ['Artem', 'Marina', 'Oleg', 'Ilze', 'Dmitri', 'Anna'];
 const QUICK_MIN_PLAYERS = 3;
 
+// media relay (WebRTC signalling) — payloads are opaque to the server
+interface RtcIn { to: number; data: unknown }
+interface MediaIn { cam?: unknown; mic?: unknown; sid?: unknown; av?: unknown }
+interface MediaState { cam: boolean; mic: boolean; sid: string; av: string }
+const RTC_MAX = 24_000;   // an SDP with a few m-lines is ~3–8 KB; candidates are tiny
+
 const hidden = (id: string): Card => ({ id, r: '6', s: 'S' });
 
 function viewFor(g: GameState, seat: number): GameState {
@@ -171,6 +177,9 @@ export class Room extends DurableObject<Env> {
         for (const w of this.ctx.getWebSockets()) { try { w.send(out); } catch { /* */ } }
         return;
       }
+      // ---- media: WebRTC signalling relay (one target seat only) + per-seat camera/mic state (kept on the socket, not in room storage)
+      case 'rtc': { this.relayRtc(s, seat, msg as unknown as RtcIn); return; }
+      case 'media': { this.mediaHello(ws, s, seat, msg as unknown as MediaIn); return; }
       default: return;
     }
     this.schedule();
@@ -238,6 +247,44 @@ export class Room extends DurableObject<Env> {
     this.schedule();
     await this.save();
     this.broadcast();
+  }
+
+  /**
+   * Media helpers. `rtc` forwards an opaque signalling blob (SDP / ICE candidate) to exactly one human seat.
+   * `media` records the sender's camera/mic state on its socket attachment (survives hibernation), tells the
+   * other sockets, and answers the sender with everybody's current state so late joiners can catch up.
+   */
+  private relayRtc(s: RoomState, from: number, m: RtcIn) {
+    if (from < 0 || !Number.isInteger(m.to) || m.to === from) return;
+    const target = s.seats[m.to];
+    if (!target || target.bot || !target.pid) return;
+    let data: string;
+    try { data = JSON.stringify(m.data ?? null); } catch { return; }
+    if (data.length > RTC_MAX) return;
+    const out = `{"t":"rtc","from":${from},"data":${data}}`;
+    for (const w of this.ctx.getWebSockets(target.pid)) { try { w.send(out); } catch { /* */ } }
+  }
+
+  private mediaHello(ws: WebSocket, s: RoomState, seat: number, m: MediaIn) {
+    if (seat < 0) return;
+    const st: MediaState = {
+      cam: m.cam === true, mic: m.mic === true,
+      sid: typeof m.sid === 'string' ? m.sid.replace(/[^\w-]/g, '').slice(0, 24) : '',
+      av: typeof m.av === 'string' && m.av.length <= 300 && /^https:\/\/[^\s"<>]+$/.test(m.av) ? m.av : '',
+    };
+    try { ws.serializeAttachment({ media: st }); } catch { /* */ }
+    const seatOf = new Map(s.seats.map((x, i) => [x.pid ?? '', i] as const));
+    const mine = JSON.stringify({ t: 'media', seat, ...st });
+    const all = new Map<number, MediaState & { seat: number }>();   // one entry per seat (a player may have two tabs)
+    for (const w of this.ctx.getWebSockets()) {
+      const i = seatOf.get(this.ctx.getTags(w)[0]) ?? -1;
+      if (w === ws || i < 0 || i === seat) continue;
+      try { w.send(mine); } catch { /* */ }
+      const a = w.deserializeAttachment() as { media?: MediaState } | null;
+      const prev = all.get(i);
+      if (a?.media && !(prev && (prev.cam || prev.mic))) all.set(i, { seat: i, ...a.media });
+    }
+    try { ws.send(JSON.stringify({ t: 'mediaAll', states: [...all.values()] })); } catch { /* */ }
   }
 
   private roomPayload() {

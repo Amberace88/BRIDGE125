@@ -5,6 +5,10 @@ import type { Emote } from '../screens/Table';
 export interface RoomSeat { name: string; bot: boolean; online: boolean; host: boolean }
 export interface RoomInfo { code: string; status: 'lobby' | 'playing'; maxSeats: number; seats: RoomSeat[]; quick?: boolean }
 
+/** Media/WebRTC traffic is handed to subscribers instead of React state (see src/media/mesh.ts). */
+export type MediaMsg = { t: 'open' | 'rtc' | 'media' | 'mediaAll'; [k: string]: unknown };
+const MEDIA_T = new Set(['rtc', 'media', 'mediaAll']);
+
 export const isQuickCode = (code: string) => code.length === 6 && code[0] === 'Q';
 
 /** Ask the matchmaker for a public table. `skip` avoids being sent back to a table that just turned us away. */
@@ -45,15 +49,18 @@ export function useRoom(code: string, name: string) {
   const retry = useRef(0);
   const closedByUs = useRef(false);
   const skew = useRef(0);
+  const mediaSubs = useRef(new Set<(m: MediaMsg) => void>());
+  const toMedia = (m: MediaMsg) => { for (const fn of mediaSubs.current) { try { fn(m); } catch { /* */ } } };
 
   const connect = useCallback(() => {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     const url = `${proto}://${location.host}/api/room/${code}/ws?pid=${encodeURIComponent(playerId())}&name=${encodeURIComponent(name)}`;
     const sock = new WebSocket(url);
     ws.current = sock;
-    sock.onopen = () => { setStatus('open'); retry.current = 0; };
+    sock.onopen = () => { setStatus('open'); retry.current = 0; toMedia({ t: 'open' }); };
     sock.onmessage = ev => {
       let m: any; try { m = JSON.parse(ev.data); } catch { return; }
+      if (MEDIA_T.has(m.t)) { toMedia(m); return; }
       if (m.t === 'state') {
         setRoom(m.room); setYou(m.you); setIsHost(m.isHost); setTurnMs(m.turnMs); setOffline(m.offline ?? []);
         setDeadline(m.deadline ? m.deadline - skew.current : null);
@@ -84,7 +91,8 @@ export function useRoom(code: string, name: string) {
 
   const send = useCallback((m: object) => { try { ws.current?.send(JSON.stringify(m)); } catch { /* */ } }, []);
   const act = useCallback((a: Action) => send({ t: 'act', a }), [send]);
+  const onMedia = useCallback((fn: (m: MediaMsg) => void) => { mediaSubs.current.add(fn); return () => { mediaSubs.current.delete(fn); }; }, []);
   const leave = useCallback(() => { send({ t: 'leave' }); closedByUs.current = true; }, [send]);
 
-  return { room, game, you, isHost, deadline, turnMs, offline, emotes, status, error, send, act, leave };
+  return { room, game, you, isHost, deadline, turnMs, offline, emotes, status, error, send, act, leave, onMedia };
 }
