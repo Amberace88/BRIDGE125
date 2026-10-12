@@ -16,6 +16,7 @@ import { removeAvatar, useAvatarUrl } from '../media/avatar';
 import { initMusic, useMusic } from '../media/music';
 import { useStrings } from '../i18n/pick';
 import { MEDIA } from '../i18n/media';
+import { RoleBadge } from '../components/RoleBadge';
 
 initMusic();
 
@@ -93,8 +94,10 @@ function LivePreview({ table, accent, back }: { table: string; accent: string; b
   );
 }
 
-export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop }: {
+export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop, onGod }: {
   onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void; onInstall: () => void; onAdmin: () => void; onShop?: () => void;
+  /** Opens the GOD MODE panel (admin + god only). */
+  onGod?: () => void;
 }) {
   const app = useApp();
   const { t } = app;
@@ -134,11 +137,12 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="pname">
             <h2 className="serif">{app.name || t.guest}</h2>
-            {app.isAdmin && <span className="pbadge admin">{p.admin}</span>}
+            <RoleBadge role={prof?.role} />
           </div>
           <div className="mute pemail">{app.session?.user.email ?? p.guestTitle}</div>
           {since && <div className="psince">{p.since(since)}</div>}
         </div>
+        {app.isPrivileged && onGod && <GodModeButton onClick={onGod} />}
       </div>
 
       {prof && (
@@ -300,6 +304,16 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
       </AnimatePresence>
       <button className="btn ghost" style={{ width: '100%', marginTop: 16 }} onClick={onClose}>{t.close}</button>
     </Sheet>
+  );
+}
+
+/** Header shortcut into GOD MODE (admin + god only). Styles: styles/role.css (.godbtn). */
+function GodModeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <motion.button className="godbtn" onClick={() => { sfx.tap(); onClick(); }} whileHover={{ y: -2 }} whileTap={{ scale: 0.93 }} aria-label="GOD MODE" title="GOD MODE">
+      <span className="godbtn-ico" aria-hidden>✦</span>
+      <span className="godbtn-txt"><b>GOD</b><b>MODE</b></span>
+    </motion.button>
   );
 }
 

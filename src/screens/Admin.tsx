@@ -2,6 +2,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { getSupabase } from '../supabase';
+import { RoleBadge } from '../components/RoleBadge';
+import { AvatarImg } from '../components/AvatarImg';
+import { adminInterest, type InterestRow } from '../merch/api';
+import { MERCH_STRINGS } from '../i18n/merch';
+import { SHOP_STRINGS } from '../i18n/shop';
+import '../styles/admin2.css';
 
 /* Admin panel — owner-only (Latvian UI). Every RPC re-checks is_admin() on the server. */
 
@@ -11,13 +17,16 @@ interface Overview {
   daily: { day: string; active: number; signups: number; games: number }[];
   modes: Record<string, number>; langs: Record<string, number>; platforms: Record<string, number>; top_events: Record<string, number>;
 }
+type Role = 'player' | 'admin' | 'god';
 interface UserRow {
-  id: string; email: string; username: string | null; role: 'player' | 'admin'; banned: boolean; bm: number; games_played: number; wins: number;
+  id: string; email: string; username: string | null; role: Role; banned: boolean; bm: number; games_played: number; wins: number;
   created_at: string; last_sign_in_at: string | null; last_seen_at: string | null; total: number;
+  /** migration 007: email confirmed, level, avatar emoji / photo url */
+  confirmed?: boolean; level?: number; avatar?: string | null; avatar_url?: string | null;
 }
 interface EventRow { at: string; name: string; who: string; props: Record<string, unknown> }
 
-type Tab = 'overview' | 'users' | 'events';
+type Tab = 'overview' | 'users' | 'shop' | 'merch' | 'events';
 const nf = (n: number) => (n ?? 0).toLocaleString('lv-LV');
 const ago = (iso: string | null) => {
   if (!iso) return '—';
@@ -69,9 +78,9 @@ function DayChart({ title, data, kind }: { title: string; data: { day: string; v
     const ro = new ResizeObserver(([e]) => setW(Math.max(260, Math.round(e.contentRect.width))));
     ro.observe(el); return () => ro.disconnect();
   }, []);
-  const H = 170, P = { l: 34, r: 8, t: 12, b: 22 };
   const max = Math.max(1, ...data.map(d => d.v));
   const nice = (() => { const p = Math.pow(10, Math.floor(Math.log10(max))); const m = max / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; })();
+  const H = 170, P = { l: Math.max(34, 12 + nf(nice).length * 6.2), r: 8, t: 12, b: 22 };   // room for "25 000"-wide ticks
   const x = (i: number) => P.l + (i + 0.5) * ((W - P.l - P.r) / data.length);
   const y = (v: number) => H - P.b - (v / nice) * (H - P.t - P.b);
   const bw = Math.max(3, (W - P.l - P.r) / data.length - 4);
@@ -149,6 +158,9 @@ const PLAT_LV: Record<string, string> = { ios: 'iPhone / iPad', android: 'Androi
 const EV_LV: Record<string, string> = {
   app_open: 'Atvēra', ping: 'Aktīvs', game_start: 'Sāka spēli', game_end: 'Pabeidza spēli', quick_match: 'Ātrā spēle', room_create: 'Izveidoja galdu',
   signup: 'Reģistrācija', login: 'Ienāca', app_installed: 'Instalēja', install_prompt: 'Instalēšanas logs', admin_action: 'Admina darbība',
+  shop_view: 'Atvēra veikalu', shop_buy: 'Nopirka veikalā', shop_equip: 'Uzlika preci', shop_notify: 'Gaida preci', daily_claim: 'Dienas balva',
+  achievement: 'Sasniegums', level_up: 'Jauns līmenis', god_tool: 'GOD MODE rīks', merch_view: 'Atvēra merch', merch_product: 'Skatīja merch preci',
+  merch_interest: 'Merch interese', merch_buy: 'Merch pirkums',
 };
 
 export function AdminPanel({ onClose }: { onClose: () => void }) {
@@ -181,7 +193,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
       <header className="adhead">
         <div className="adbrand"><img src="/logo-mark.svg" alt="" width={34} height={34} /><div><b>BRIDGE 125</b><span>Admina panelis</span></div></div>
         <nav className="adtabs" role="tablist">
-          {([['overview', 'Pārskats'], ['users', 'Spēlētāji'], ['events', 'Notikumi']] as const).map(([k, l]) => (
+          {([['overview', 'Pārskats'], ['users', 'Spēlētāji'], ['shop', 'Veikals'], ['merch', 'Merch'], ['events', 'Notikumi']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
               {tab === k && <motion.span layoutId="adtab" className="adpill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
               <b>{l}</b>
@@ -227,6 +239,8 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               )
             )}
             {tab === 'users' && <Users />}
+            {tab === 'shop' && <ShopStats />}
+            {tab === 'merch' && <MerchInterest />}
             {tab === 'events' && <Events />}
           </motion.div>
         </AnimatePresence>
@@ -264,7 +278,7 @@ function Users() {
   const exportCsv = async () => {
     try {
       const all = await rpc<UserRow[]>('admin_users', { q: q.trim(), lim: 500, off: 0 });
-      const head = ['email', 'username', 'role', 'banned', 'bm', 'games_played', 'wins', 'created_at', 'last_sign_in_at', 'last_seen_at'] as const;
+      const head = ['email', 'username', 'role', 'confirmed', 'banned', 'level', 'bm', 'games_played', 'wins', 'created_at', 'last_sign_in_at', 'last_seen_at'] as const;
       const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const csv = [head.join(','), ...all.map(r => head.map(h => esc(r[h])).join(','))].join('\n');
       const a = document.createElement('a');
@@ -290,18 +304,20 @@ function Users() {
       {err && <div className="aderr">{err}</div>}
       <div className="adtablewrap">
         <table className="adtable">
-          <thead><tr>{th('username', 'Spēlētājs')}{th('role', 'Loma')}{th('games_played', 'Spēles', true)}{th('wins', 'Uzv.', true)}{th('bm', 'BM', true)}{th('created_at', 'Reģistrējies')}{th('last_seen_at', 'Pēdējo reizi')}</tr></thead>
+          <thead><tr>{th('username', 'Spēlētājs')}{th('role', 'Loma')}{th('confirmed', 'E-pasts')}{th('level', 'Līm.', true)}{th('games_played', 'Spēles', true)}{th('wins', 'Uzv.', true)}{th('bm', 'BM', true)}{th('created_at', 'Reģistrējies')}{th('last_seen_at', 'Pēdējo reizi')}</tr></thead>
           <tbody>
-            {!rows && Array.from({ length: 6 }).map((_, i) => <tr key={i}><td colSpan={7}><div className="shimmerbar" style={{ height: 26 }} /></td></tr>)}
+            {!rows && Array.from({ length: 6 }).map((_, i) => <tr key={i}><td colSpan={9}><div className="shimmerbar" style={{ height: 26 }} /></td></tr>)}
             {sorted.map((r, i) => (
               <motion.tr key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(i, 20) * 0.015 }} onClick={() => setSel(r)} className={r.banned ? 'banned' : ''}>
-                <td><div className="ucell"><span className="uav">{(r.username || r.email || '?').slice(0, 1).toUpperCase()}</span><div><b>{r.username || '—'}{r.id === app.session?.user.id && <em> (tu)</em>}</b><span>{r.email}</span></div></div></td>
-                <td>{r.role === 'admin' ? <span className="rchip admin">Admins</span> : r.banned ? <span className="rchip ban">Bloķēts</span> : <span className="rchip">Spēlētājs</span>}</td>
+                <td><div className="ucell"><AvatarImg url={r.avatar_url} emoji={r.avatar} name={r.username || r.email} size={34} /><div><b>{r.username || '—'}{r.id === app.session?.user.id && <em> (tu)</em>}</b><span>{r.email}</span></div></div></td>
+                <td><RoleCell r={r} /></td>
+                <td><ConfirmChip ok={r.confirmed} /></td>
+                <td className="r"><span className="lvchip">{r.level ?? 1}</span></td>
                 <td className="r">{nf(r.games_played)}</td><td className="r">{nf(r.wins)}</td><td className="r">{nf(r.bm)}</td>
                 <td>{dfmt(r.created_at)}</td><td>{ago(r.last_seen_at ?? r.last_sign_in_at)}</td>
               </motion.tr>
             ))}
-            {rows && rows.length === 0 && <tr><td colSpan={7} className="mute" style={{ textAlign: 'center', padding: 30 }}>Nav atrasts neviens spēlētājs</td></tr>}
+            {rows && rows.length === 0 && <tr><td colSpan={9} className="mute" style={{ textAlign: 'center', padding: 30 }}>Nav atrasts neviens spēlētājs</td></tr>}
           </tbody>
         </table>
       </div>
@@ -317,21 +333,55 @@ function Users() {
   );
 }
 
+const ROLE_LV: Record<Role, string> = { player: 'Spēlētājs', god: 'GOD MODE', admin: 'Admins' };
+const ROLE_HINT: Record<Role, string> = {
+  player: 'Parasts spēlētājs — nekādu privilēģiju.',
+  god: 'Līdzautors / galvenais testētājs: visas preces bez maksas + GOD MODE testa rīki (bez admina paneļa).',
+  admin: 'Pilna piekļuve: admina panelis, spēlētāju pārvaldība + GOD MODE.',
+};
+
+function RoleCell({ r }: { r: UserRow }) {
+  return (
+    <span className="rolecell">
+      {r.role === 'player' ? <span className="rchip">Spēlētājs</span> : <RoleBadge role={r.role} size="xs" />}
+      {r.banned && <span className="rchip ban">Bloķēts</span>}
+    </span>
+  );
+}
+
+function ConfirmChip({ ok }: { ok?: boolean }) {
+  if (ok === undefined) return <span className="mute">—</span>;
+  return ok ? <span className="cchip ok" title="E-pasts apstiprināts">✓ Apstiprināts</span> : <span className="cchip no" title="E-pasts nav apstiprināts">⏳ Nav apstiprināts</span>;
+}
+
 function UserDrawer({ u, onClose, onChanged }: { u: UserRow; onClose: () => void; onChanged: () => void }) {
   const app = useApp();
   const [cur, setCur] = useState(u);
   const [amt, setAmt] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string; id: number } | null>(null);
   const self = u.id === app.session?.user.id;
 
-  const act = async (args: Record<string, unknown>, ok: string) => {
-    setBusy(true); setMsg(null);
+  const say = (ok: boolean, text: string) => setMsg({ ok, text, id: Date.now() });
+  const act = async (args: Record<string, unknown>, ok: string, key: string) => {
+    setBusy(key); setMsg(null);
     try {
-      const r = await rpc<{ bm: number; banned: boolean; role: 'player' | 'admin' }>('admin_update_user', { uid: u.id, ...args });
-      setCur(c => ({ ...c, ...r })); setMsg(ok); onChanged();
-    } catch (e) { setMsg('Kļūda: ' + (e as Error).message); }
-    setBusy(false);
+      const r = await rpc<{ bm: number; banned: boolean; role: Role }>('admin_update_user', { uid: u.id, ...args });
+      setCur(c => ({ ...c, ...r })); say(true, ok); onChanged();
+    } catch (e) { say(false, 'Kļūda: ' + (e as Error).message); }
+    setBusy(null);
+  };
+  const confirmEmail = async () => {
+    setBusy('confirm'); setMsg(null);
+    try {
+      await rpc<boolean>('admin_confirm_email', { uid: u.id });
+      setCur(c => ({ ...c, confirmed: true })); say(true, 'E-pasts apstiprināts — spēlētājs var ienākt'); onChanged();
+    } catch (e) { say(false, 'Kļūda: ' + (e as Error).message); }
+    setBusy(null);
+  };
+  const setRole = (r: Role) => {
+    if (r === cur.role || busy) return;
+    void act({ set_role: r }, r === 'admin' ? 'Piešķirtas admina tiesības' : r === 'god' ? 'Piešķirts GOD MODE (testētājs)' : 'Privilēģijas noņemtas', 'role');
   };
   const winRate = cur.games_played ? Math.round((cur.wins / cur.games_played) * 100) : 0;
 
@@ -340,41 +390,62 @@ function UserDrawer({ u, onClose, onChanged }: { u: UserRow; onClose: () => void
       <motion.div className="scrim" style={{ position: 'fixed', zIndex: 95 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
       <motion.aside className="udrawer" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 34 }}>
         <div className="udhead">
-          <span className="uav big">{(cur.username || cur.email).slice(0, 1).toUpperCase()}</span>
-          <div style={{ minWidth: 0 }}><h3>{cur.username || '—'}</h3><div className="mute" style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis' }}>{cur.email}</div></div>
+          <AvatarImg url={cur.avatar_url} emoji={cur.avatar} name={cur.username || cur.email} size={56} />
+          <div style={{ minWidth: 0 }}>
+            <h3>{cur.username || '—'}</h3>
+            <div className="mute" style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis' }}>{cur.email}</div>
+            <div className="udbadges"><RoleCell r={cur} /><span className="lvchip">Līm. {cur.level ?? 1}</span></div>
+          </div>
           <button className="iconbtn" onClick={onClose} aria-label="Aizvērt">✕</button>
         </div>
         <div className="udstats">
           {[['Spēles', cur.games_played], ['Uzvaras', cur.wins], ['Uzvaru %', winRate], ['BM', cur.bm]].map(([l, v]) => <div key={l as string}><b>{nf(v as number)}</b><span>{l}</span></div>)}
         </div>
+
+        {cur.confirmed === false && (
+          <motion.div className="udconfirm" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+            <div><b>⏳ E-pasts nav apstiprināts</b><span>Spēlētājs nevar ienākt, kamēr nav atvēris apstiprinājuma saiti. Vari apstiprināt manuāli.</span></div>
+            <button className="btn acc sm" disabled={!!busy} onClick={confirmEmail}>{busy === 'confirm' ? <span className="spinner" /> : '✓ Apstiprināt e-pastu'}</button>
+          </motion.div>
+        )}
+
         <dl className="udmeta">
-          <div><dt>Loma</dt><dd>{cur.role === 'admin' ? 'Administrators' : 'Spēlētājs'}{cur.banned ? ' · bloķēts' : ''}</dd></div>
+          <div><dt>E-pasts</dt><dd><ConfirmChip ok={cur.confirmed} /></dd></div>
           <div><dt>Reģistrējies</dt><dd>{dfmt(cur.created_at)}</dd></div>
           <div><dt>Pēdējā ienākšana</dt><dd>{ago(cur.last_sign_in_at)}</dd></div>
           <div><dt>Pēdējā aktivitāte</dt><dd>{ago(cur.last_seen_at)}</dd></div>
           <div><dt>ID</dt><dd className="mono">{cur.id}</dd></div>
         </dl>
 
+        <div className="label">Loma</div>
+        <div className={`rolesel ${self ? 'locked' : ''}`} role="radiogroup" aria-label="Loma">
+          {(['player', 'god', 'admin'] as const).map(r => (
+            <button key={r} role="radio" aria-checked={cur.role === r} className={`r-${r} ${cur.role === r ? 'on' : ''}`} disabled={self || !!busy} onClick={() => setRole(r)}>
+              {cur.role === r && <motion.span layoutId="rolepill" className="rolepill" transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
+              <b>{r === 'player' ? '👤' : r === 'god' ? '✦' : '♛'} {ROLE_LV[r]}</b>
+            </button>
+          ))}
+        </div>
+        <div className="rolehint">{busy === 'role' ? <span className="spinner" /> : ROLE_HINT[cur.role] ?? ''}</div>
+        {self && <div className="mute" style={{ fontSize: 12, marginTop: 4 }}>Sev lomu mainīt nevar.</div>}
+
         <div className="label">Bridge Money</div>
         <div className="udbm">
-          {[100, 1000, 5000].map(n => <button key={n} className="btn ghost sm" disabled={busy} onClick={() => act({ add_bm: n }, `+${nf(n)} BM pievienoti`)}>+{nf(n)}</button>)}
-          <form onSubmit={e => { e.preventDefault(); const n = parseInt(amt, 10); if (!Number.isFinite(n) || n === 0) return; act({ add_bm: n }, `${n > 0 ? '+' : ''}${nf(n)} BM`); setAmt(''); }}>
+          {[100, 1000, 5000].map(n => <button key={n} className="btn ghost sm" disabled={!!busy} onClick={() => act({ add_bm: n }, `+${nf(n)} BM pievienoti`, 'bm')}>+{nf(n)}</button>)}
+          <form onSubmit={e => { e.preventDefault(); const n = parseInt(amt, 10); if (!Number.isFinite(n) || n === 0) return; void act({ add_bm: n }, `${n > 0 ? '+' : ''}${nf(n)} BM`, 'bm'); setAmt(''); }}>
             <input className="field" inputMode="numeric" placeholder="± summa" value={amt} onChange={e => setAmt(e.target.value.replace(/[^\d-]/g, ''))} />
-            <button className="btn acc sm" disabled={busy} type="submit">OK</button>
+            <button className="btn acc sm" disabled={!!busy} type="submit">OK</button>
           </form>
         </div>
 
         <div className="label">Darbības</div>
         <div style={{ display: 'grid', gap: 8 }}>
-          <button className="btn ghost" disabled={busy || self} onClick={() => act({ set_role: cur.role === 'admin' ? 'player' : 'admin' }, cur.role === 'admin' ? 'Admina tiesības noņemtas' : 'Piešķirtas admina tiesības')}>
-            {cur.role === 'admin' ? '👤 Noņemt admina tiesības' : '👑 Padarīt par administratoru'}
-          </button>
-          <button className={`btn ${cur.banned ? 'ghost' : 'danger'}`} disabled={busy || self} onClick={() => act({ set_banned: !cur.banned }, cur.banned ? 'Atbloķēts' : 'Bloķēts')}>
+          <button className={`btn ${cur.banned ? 'ghost' : 'danger'}`} disabled={!!busy || self} onClick={() => act({ set_banned: !cur.banned }, cur.banned ? 'Atbloķēts' : 'Bloķēts', 'ban')}>
             {cur.banned ? '✓ Atbloķēt spēlētāju' : '⛔ Bloķēt spēlētāju'}
           </button>
-          {self && <div className="mute" style={{ fontSize: 12 }}>Sevi nevar bloķēt vai noņemt sev admina tiesības.</div>}
+          {self && <div className="mute" style={{ fontSize: 12 }}>Sevi nevar bloķēt.</div>}
         </div>
-        <AnimatePresence>{msg && <motion.div className={msg.startsWith('Kļūda') ? 'autherr' : 'okmsg'} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 12 }}>{msg}</motion.div>}</AnimatePresence>
+        <AnimatePresence>{msg && <motion.div key={msg.id} className={msg.ok ? 'okmsg' : 'autherr'} initial={{ opacity: 0, y: 6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }} style={{ marginTop: 12 }}>{msg.text}</motion.div>}</AnimatePresence>
       </motion.aside>
     </>
   );
@@ -423,5 +494,224 @@ function Events() {
         {rows && shown.length === 0 && <div className="mute" style={{ textAlign: 'center', padding: 30 }}>Vēl nav notikumu</div>}
       </div>
     </div>
+  );
+}
+
+/* ================================================================ v2: CSV, shop analytics, merch interest */
+
+function downloadCsv(name: string, head: string[], rows: unknown[][]) {
+  const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = [head.join(','), ...rows.map(r => r.map(esc).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+const ITEM_LV = SHOP_STRINGS.lv?.shop.items ?? SHOP_STRINGS.en.shop.items;
+const itemName = (id: string) => {
+  if (ITEM_LV[id]) return ITEM_LV[id];
+  const k = id.match(/^bm_(\d+)k$/);
+  if (k) return `${k[1]} 000 BM paka`;
+  return id === 'pass_s1' ? 'Sezonas caurlaide (S1)' : id;
+};
+const productName = (id: string) => (MERCH_STRINGS.lv ?? MERCH_STRINGS.en).products[id]?.name ?? MERCH_STRINGS.en.products[id]?.name ?? id;
+const pctOf = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
+
+interface ShopStatsData {
+  days: number; purchases_total: number; purchases_period: number; purchases_7d: number; purchases_today: number; admin_grants: number;
+  bm_spent_total: number; bm_spent_period: number; buyers_total: number; buyers_period: number; players_total: number; bm_balance_total: number;
+  claims_today: number; claims_7d: number; claims_period: number; claim_streak_7: number;
+  shop_viewers: number; shop_buyers_ev: number; notify_clicks: number; equips: number;
+  top_items: { id: string; cnt: number; bm: number; buyers: number; last_at: string }[];
+  notify_items: Record<string, number>;
+  daily: { day: string; purchases: number; bm: number; claims: number }[];
+  recent: { at: string; item_id: string; price_bm: number; admin: boolean; who: string }[];
+}
+
+function MissingRpc({ fn, file }: { fn: string; file: string }) {
+  return (
+    <div className="admiss">
+      <b>Vajag datubāzes atjauninājumu</b>
+      <span>Funkcija <code>{fn}</code> vēl nav datubāzē. Palaid <code>{file}</code> Supabase SQL redaktorā un atjauno šo cilni.</span>
+    </div>
+  );
+}
+const isMissing = (e: string) => /could not find the function|does not exist|PGRST202/i.test(e);
+
+function ShopStats() {
+  const [d, setD] = useState<ShopStatsData | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const load = useCallback(async () => {
+    setLoading(true); setErr(null);
+    try { setD(await rpc<ShopStatsData>('admin_shop_stats', { days: 30 })); } catch (e) { setErr((e as Error).message); }
+    setLoading(false);
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  if (err) return isMissing(err) ? <MissingRpc fn="admin_shop_stats" file="supabase/migration_009_admin2.sql" /> : <div className="aderr">Neizdevās ielādēt: {err} <button className="alink" onClick={load}>Mēģināt vēlreiz</button></div>;
+  if (!d) return <div className="adskel">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="shimmerbar" style={{ height: 96 }} />)}</div>;
+
+  const maxN = Math.max(1, ...d.top_items.map(t => t.cnt));
+  const conv = pctOf(d.shop_buyers_ev, d.shop_viewers);
+  return (
+    <>
+      <div className="adtool">
+        <div className="adsub" style={{ margin: 0, flex: 1 }}>Pēdējās {d.days} dienas · admina/GOD bezmaksas “pirkumi” netiek skaitīti</div>
+        <button className="btn ghost sm" onClick={load} disabled={loading}>{loading ? <span className="spinner" /> : '↻ Atjaunot'}</button>
+        <button className="btn ghost sm" onClick={() => downloadCsv('bridge125-veikals', ['item_id', 'nosaukums', 'pirkumi', 'bm', 'pirceji', 'pedejais'], d.top_items.map(t => [t.id, itemName(t.id), t.cnt, t.bm, t.buyers, t.last_at]))}>⤓ CSV</button>
+      </div>
+      <div className="kpis">
+        <Kpi i={0} label="Pirkumi · 30 d" value={d.purchases_period} sub={`šodien ${nf(d.purchases_today)} · 7 d ${nf(d.purchases_7d)} · kopā ${nf(d.purchases_total)}`} />
+        <Kpi i={1} label="BM iztērēti · 30 d" value={d.bm_spent_period} sub={`kopā ${nf(d.bm_spent_total)} BM`} />
+        <Kpi i={2} label="Pircēji · 30 d" value={d.buyers_period} sub={`${pctOf(d.buyers_total, d.players_total)}% no ${nf(d.players_total)} spēlētājiem (kopā)`} />
+        <Kpi i={3} label="Konversija, %" value={conv} sub={`${nf(d.shop_buyers_ev)} pirka no ${nf(d.shop_viewers)} skatītājiem`} />
+        <Kpi i={4} label="Dienas balvas šodien" value={d.claims_today} live sub={`7 d: ${nf(d.claims_7d)} · 30 d: ${nf(d.claims_period)}`} />
+        <Kpi i={5} label="7+ dienu sērijā" value={d.claim_streak_7} sub="spēlētāji ar aktīvu 7 dienu sēriju" />
+        <Kpi i={6} label="BM apritē" value={d.bm_balance_total} sub="visu aktīvo kontu bilance" />
+        <Kpi i={7} label="Testa piešķīrumi" value={d.admin_grants} sub={`admin/GOD · ${nf(d.equips)} uzlikšanas · ${nf(d.notify_clicks)} “paziņot”`} />
+      </div>
+      <div className="acharts">
+        <DayChart title="Pirkumi dienā" kind="bars" data={d.daily.map(x => ({ day: x.day, v: x.purchases }))} />
+        <DayChart title="Iztērētie BM dienā" kind="area" data={d.daily.map(x => ({ day: x.day, v: x.bm }))} />
+        <DayChart title="Dienas balvas dienā" kind="bars" data={d.daily.map(x => ({ day: x.day, v: x.claims }))} />
+      </div>
+      <div className="shopgrid">
+        <div className="abreak">
+          <b className="abt">Populārākās preces · visu laiku</b>
+          {d.top_items.length === 0 && <div className="mute" style={{ fontSize: 13, padding: '10px 0' }}>Vēl neviens nav nopircis</div>}
+          {d.top_items.slice(0, 12).map((t, i) => (
+            <div key={t.id} className="toprow">
+              <span className="toprk">{i + 1}</span>
+              <span className="topnm"><b>{itemName(t.id)}</b><em>{nf(t.buyers)} pircēji · {ago(t.last_at)}</em></span>
+              <span className="abbar"><motion.i initial={{ width: 0 }} animate={{ width: `${(t.cnt / maxN) * 100}%` }} transition={{ delay: i * 0.05, duration: 0.6 }} /></span>
+              <span className="topv"><b>{nf(t.cnt)}</b><em>{nf(t.bm)} BM</em></span>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
+          <Breakdown title="“Paziņot, kad pieejams” · 30 d" data={d.notify_items} labels={Object.fromEntries(Object.keys(d.notify_items).map(k => [k, itemName(k)]))} />
+          <div className="abreak">
+            <b className="abt">Pēdējie pirkumi</b>
+            {d.recent.length === 0 && <div className="mute" style={{ fontSize: 13, padding: '10px 0' }}>Vēl nav pirkumu</div>}
+            <div className="recent">
+              {d.recent.map((r, i) => (
+                <motion.div key={r.at + r.item_id + i} className="recrow" initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(i, 12) * 0.03 }}>
+                  <span className="evt">{ago(r.at)}</span>
+                  <span className="recwho">{r.who}</span>
+                  <span className="recit">{itemName(r.item_id)}</span>
+                  <span className="recp">{r.admin ? <span className="rchip">tests</span> : `${nf(r.price_bm)} BM`}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MerchInterest() {
+  const [rows, setRows] = useState<InterestRow[] | null>(null);
+  const [err, setErr] = useState(false);
+  const [q, setQ] = useState('');
+  const [prod, setProd] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    setErr(false);
+    try { const r = await adminInterest(); if (r) setRows(r); else setErr(true); } catch { setErr(true); }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  const stats = useMemo(() => {
+    const all = rows ?? [];
+    const by = new Map<string, { n: number; variants: Map<string, number>; emails: Set<string>; last: string }>();
+    const langs: Record<string, number> = {};
+    const week = Date.now() - 7 * 86400_000;
+    for (const r of all) {
+      let p = by.get(r.product_id);
+      if (!p) { p = { n: 0, variants: new Map(), emails: new Set(), last: r.at }; by.set(r.product_id, p); }
+      p.n++; p.emails.add(r.email); if (r.at > p.last) p.last = r.at;
+      const v = r.variant || '—'; p.variants.set(v, (p.variants.get(v) ?? 0) + 1);
+      const l = r.lang || '?'; langs[l] = (langs[l] ?? 0) + 1;
+    }
+    const products = [...by.entries()].map(([id, p]) => ({ id, ...p, variants: [...p.variants.entries()].sort((a, b) => b[1] - a[1]) })).sort((a, b) => b.n - a.n);
+    return {
+      total: all.length, emails: new Set(all.map(r => r.email)).size, week: all.filter(r => new Date(r.at).getTime() >= week).length,
+      signedIn: all.filter(r => r.user_id).length, products, langs,
+    };
+  }, [rows]);
+
+  const filtered = useMemo(() => (rows ?? []).filter(r => (!prod || r.product_id === prod) && (!q || r.email.includes(q.toLowerCase().trim()))), [rows, prod, q]);
+  const maxN = Math.max(1, ...stats.products.map(p => p.n));
+  const exportCsv = () => downloadCsv('bridge125-merch-interese', ['at', 'email', 'product_id', 'product', 'variant', 'lang', 'user_id'],
+    filtered.map(r => [r.at, r.email, r.product_id, productName(r.product_id), r.variant, r.lang, r.user_id]));
+
+  if (err) return <MissingRpc fn="admin_merch_interest" file="supabase/migration_005_merch.sql" />;
+  if (!rows) return <div className="adskel">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmerbar" style={{ height: 96 }} />)}</div>;
+
+  return (
+    <>
+      <div className="kpis">
+        <Kpi i={0} label="Pieteikumi kopā" value={stats.total} sub="“paziņot / priekšpasūtīt”" />
+        <Kpi i={1} label="Unikāli e-pasti" value={stats.emails} sub={`${nf(stats.signedIn)} no reģistrētiem spēlētājiem`} />
+        <Kpi i={2} label="Pēdējās 7 d" value={stats.week} live />
+        <Kpi i={3} label="Preces ar interesi" value={stats.products.length} sub={stats.products[0] ? `Top: ${productName(stats.products[0].id)}` : undefined} />
+      </div>
+
+      <div className="shopgrid" style={{ marginTop: 12 }}>
+        <div className="abreak">
+          <b className="abt">Interese pēc preces un varianta</b>
+          {stats.products.length === 0 && <div className="mute" style={{ fontSize: 13, padding: '10px 0' }}>Vēl nav pieteikumu</div>}
+          {stats.products.map((p, i) => (
+            <div key={p.id} className={`mprod ${open === p.id ? 'open' : ''}`}>
+              <button className="toprow" onClick={() => setOpen(o => (o === p.id ? null : p.id))} aria-expanded={open === p.id}>
+                <span className="toprk">{i + 1}</span>
+                <span className="topnm"><b>{productName(p.id)}</b><em>{p.variants.length} varianti · {nf(p.emails.size)} e-pasti · {ago(p.last)}</em></span>
+                <span className="abbar"><motion.i initial={{ width: 0 }} animate={{ width: `${(p.n / maxN) * 100}%` }} transition={{ delay: i * 0.05, duration: 0.6 }} /></span>
+                <span className="topv"><b>{nf(p.n)}</b><em>{open === p.id ? '▲ slēpt' : '▼ varianti'}</em></span>
+              </button>
+              <AnimatePresence initial={false}>
+                {open === p.id && (
+                  <motion.div className="mvars" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                    {p.variants.map(([v, n]) => <span key={v} className="mvar"><b>{v}</b><em>{nf(n)}</em></span>)}
+                    <button className="alink" onClick={() => setProd(p.id)}>Rādīt pieteikumus ↓</button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+        <Breakdown title="Valoda" data={stats.langs} />
+      </div>
+
+      <div className="adtool" style={{ marginTop: 16 }}>
+        <div className="adsearch"><span>⌕</span><input value={q} onChange={e => setQ(e.target.value)} placeholder="Meklēt e-pastu…" /></div>
+        <select className="field adselect" value={prod} onChange={e => setProd(e.target.value)}>
+          <option value="">Visas preces</option>
+          {stats.products.map(p => <option key={p.id} value={p.id}>{productName(p.id)} ({p.n})</option>)}
+        </select>
+        <span className="mute" style={{ fontSize: 13 }}>{nf(filtered.length)} pieteikumi</span>
+        <button className="btn ghost sm" onClick={exportCsv} disabled={!filtered.length}>⤓ Eksportēt CSV</button>
+      </div>
+      <div className="adtablewrap">
+        <table className="adtable plain">
+          <thead><tr><th>Laiks</th><th>E-pasts</th><th>Prece</th><th>Variants</th><th>Valoda</th><th>Konts</th></tr></thead>
+          <tbody>
+            {filtered.slice(0, 300).map((r, i) => (
+              <motion.tr key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(i, 20) * 0.015 }}>
+                <td title={new Date(r.at).toLocaleString('lv-LV')}>{ago(r.at)}</td>
+                <td><a className="alink" href={`mailto:${r.email}`}>{r.email}</a></td>
+                <td>{productName(r.product_id)}</td><td>{r.variant || '—'}</td><td>{(r.lang || '—').toUpperCase()}</td>
+                <td>{r.user_id ? <span className="cchip ok">✓ spēlētājs</span> : <span className="mute">viesis</span>}</td>
+              </motion.tr>
+            ))}
+            {filtered.length === 0 && <tr><td colSpan={6} className="mute" style={{ textAlign: 'center', padding: 30 }}>Nav pieteikumu</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      {filtered.length > 300 && <div className="adsub" style={{ marginTop: 8 }}>Rādīti 300 jaunākie — CSV satur visus {nf(filtered.length)}.</div>}
+    </>
   );
 }

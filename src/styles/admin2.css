@@ -1,0 +1,72 @@
+/* ============================================================ Admin panel v2 additions */
+.adtabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.adtabs::-webkit-scrollbar { display: none; }
+.adtabs button { white-space: nowrap; }
+@media (max-width: 720px) { .adtabs button { padding: 0 4px; font-size: 13px; } }
+
+.rolecell { display: inline-flex; align-items: center; gap: 6px; }
+.lvchip { display: inline-grid; place-items: center; min-width: 26px; height: 20px; padding: 0 7px; border-radius: 999px; font-size: 11.5px; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--acc-hi); background: color-mix(in srgb, var(--acc) 16%, transparent); border: 1px solid color-mix(in srgb, var(--acc) 32%, transparent); }
+.cchip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.cchip.ok { color: #b7f7da; background: rgba(75,227,164,.12); }
+.cchip.no { color: #ffd9a0; background: rgba(255,170,60,.14); border: 1px solid rgba(255,170,60,.3); }
+.ucell .avi { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent); }
+
+.udhead .avi { box-shadow: 0 0 0 2px #0c1412, 0 0 0 3.5px color-mix(in srgb, var(--acc) 60%, transparent), 0 8px 18px rgba(0,0,0,.5); }
+.udbadges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+.udconfirm { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px; border-radius: 16px; background: rgba(255,170,60,.08); border: 1px solid rgba(255,170,60,.3); }
+.udconfirm div { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.udconfirm b { font-size: 13.5px; color: #ffd9a0; }
+.udconfirm span { font-size: 12px; color: var(--mute); line-height: 1.35; }
+.udconfirm .btn { flex-shrink: 0; }
+@media (max-width: 400px) { .udconfirm { flex-direction: column; align-items: stretch; } }
+
+.rolesel { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 15px; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.08); }
+.rolesel button { position: relative; height: 42px; border-radius: 11px; font-size: 13.5px; color: var(--mute); }
+.rolesel button[disabled] { cursor: not-allowed; }
+.rolesel.locked { opacity: .55; }
+.rolesel b { position: relative; z-index: 1; }
+.rolesel button.on { color: #1b1203; }
+.rolepill { position: absolute; inset: 0; border-radius: 11px; background: rgba(255,255,255,.85); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+.rolesel .r-admin .rolepill { background: linear-gradient(180deg, #F7E7B0, #D9B866 52%, #A9852F); }
+.rolesel .r-god .rolepill { background: linear-gradient(115deg, #ff7ac8, #ffcf6b 22%, #7bf5d0 44%, #6bb6ff 66%, #c48bff 86%); background-size: 200% 100%; animation: rb-iri 6s linear infinite; }
+.rolesel .r-god.on { color: #fff; text-shadow: 0 1px 2px rgba(20,0,40,.6); }
+.rolehint { min-height: 34px; margin-top: 6px; font-size: 12px; color: var(--mute); line-height: 1.4; }
+
+.admiss { max-width: 560px; margin: 8vh auto 0; padding: 18px; border-radius: 16px; display: grid; gap: 6px; background: rgba(255,170,60,.07); border: 1px solid rgba(255,170,60,.28); }
+.admiss b { color: #ffd9a0; }
+.admiss span { font-size: 13.5px; color: var(--mute); line-height: 1.5; }
+.admiss code { font-family: ui-monospace, monospace; font-size: 12.5px; color: var(--text); background: rgba(255,255,255,.07); padding: 1px 6px; border-radius: 6px; }
+
+.shopgrid { display: grid; gap: 10px; margin-top: 12px; align-items: start; }
+@media (min-width: 1000px) { .shopgrid { grid-template-columns: 1.4fr 1fr; } }
+.toprow { width: 100%; display: grid; grid-template-columns: 24px minmax(0, 1.4fr) minmax(60px, 1fr) 92px; align-items: center; gap: 10px; padding: 8px 0; text-align: left; border-bottom: 1px solid rgba(255,255,255,.04); }
+.toprk { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--mute); text-align: center; font-variant-numeric: lining-nums; }
+.topnm { display: grid; min-width: 0; line-height: 1.25; }
+.topnm b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topnm em, .topv em { font-style: normal; font-size: 11.5px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topv { display: grid; text-align: right; line-height: 1.2; }
+.topv b { font-family: var(--serif); font-size: 20px; color: var(--acc-hi); font-variant-numeric: lining-nums tabular-nums; }
+@media (max-width: 560px) {
+  .toprow { grid-template-columns: 22px minmax(0, 1fr) 84px; row-gap: 6px; }
+  .toprow .abbar { grid-row: 2; grid-column: 2 / 4; }
+  .toprow .toprk { grid-row: 1 / 3; }
+  .mvars { padding-left: 32px; }
+}
+.mprod.open .toprow { border-bottom-color: transparent; }
+.mvars { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; overflow: hidden; padding: 0 0 10px 34px; }
+.mvar { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); }
+.mvar em { font-style: normal; font-weight: 800; color: var(--acc-hi); }
+.recent { display: grid; gap: 2px; max-height: 380px; overflow-y: auto; }
+.recrow { display: grid; grid-template-columns: 74px minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 7px 4px; font-size: 12.5px; border-bottom: 1px solid rgba(255,255,255,.04); }
+.recwho { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recit { color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recp { font-weight: 700; color: var(--acc-hi); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.adtable.plain tbody tr { cursor: default; }
+.adtable .alink { color: var(--acc-hi); text-decoration: none; }
+
+/* event colours for the new events */
+.evn.n-shop_buy, .evn.n-merch_interest, .evn.n-merch_buy { background: rgba(75,227,164,.16); color: #b7f7da; }
+.evn.n-daily_claim, .evn.n-level_up, .evn.n-achievement { background: rgba(124,192,255,.16); color: #cfe6ff; }
+.evn.n-god_tool { color: #fff; background: linear-gradient(115deg, #ff7ac8, #ffcf6b 25%, #7bf5d0 50%, #6bb6ff 75%, #c48bff); text-shadow: 0 1px 2px rgba(20,0,40,.55); }
+.evn.n-shop_view, .evn.n-shop_equip, .evn.n-shop_notify, .evn.n-merch_view, .evn.n-merch_product { background: color-mix(in srgb, var(--acc) 14%, transparent); color: var(--acc-hi); }

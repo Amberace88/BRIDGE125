@@ -1,0 +1,45 @@
+/* RoleBadge — ADMIN (brass) / GOD MODE (iridescent) */
+.rbadge { position: relative; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; height: 22px; padding: 0 9px 0 7px; border-radius: 999px;
+  font: 800 10.5px/1 var(--sans); letter-spacing: .14em; white-space: nowrap; overflow: hidden; isolation: isolate; vertical-align: middle; }
+.rbadge i { font-style: normal; font-size: 11px; letter-spacing: 0; }
+.rbadge.xs { height: 18px; padding: 0 7px 0 5px; font-size: 9px; gap: 4px; letter-spacing: .12em; }
+.rbadge.xs i { font-size: 9.5px; }
+
+.rbadge.admin { color: #2b1e03; background: linear-gradient(180deg, #F7E7B0, #D9B866 52%, #A9852F);
+  box-shadow: 0 0 0 1px rgba(255,240,200,.35) inset, 0 2px 10px rgba(235,211,142,.35), 0 1px 0 rgba(0,0,0,.4); }
+.rbadge.admin::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.65) 50%, transparent 65%);
+  transform: translateX(-130%); animation: rb-sheen 5s ease-in-out infinite 1s; }
+
+.rbadge.god { color: #fff; text-shadow: 0 1px 2px rgba(20,0,40,.55);
+  background: linear-gradient(115deg, #ff7ac8, #ffcf6b 22%, #7bf5d0 44%, #6bb6ff 66%, #c48bff 86%, #ff7ac8);
+  background-size: 240% 100%; animation: rb-iri 6s linear infinite;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.45) inset, 0 0 14px rgba(196,139,255,.45), 0 0 22px rgba(123,245,208,.18), 0 1px 0 rgba(0,0,0,.4); }
+.rbadge.god::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.7) 50%, transparent 70%);
+  transform: translateX(-130%); animation: rb-sheen 3.6s ease-in-out infinite .4s; }
+
+@keyframes rb-iri { to { background-position: 240% 0; } }
+@keyframes rb-sheen { 0%, 55% { transform: translateX(-130%); } 80%, 100% { transform: translateX(130%); } }
+@media (prefers-reduced-motion: reduce) { .rbadge, .rbadge::after { animation: none !important; } }
+
+/* AvatarImg — any player's face: photo → emoji → initial */
+.avi { position: relative; flex-shrink: 0; display: inline-grid; place-items: center; border-radius: 50%; overflow: hidden; line-height: 1; font-weight: 800; color: var(--acc-hi);
+  background: radial-gradient(circle at 35% 28%, #2a3a34, #0b1512 70%); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent), inset 0 -6px 12px rgba(0,0,0,.35); }
+.avi img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; }
+.avi.photo::after { content: ''; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), inset 0 -8px 14px rgba(0,0,0,.25); pointer-events: none; }
+.avi.emoji span { filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+
+/* Profile header → GOD MODE button (privileged only): a compact gold tile, label under the icon */
+.phead .pname { flex-wrap: wrap; row-gap: 4px; }
+.phead .pname h2 { flex: 0 1 auto; max-width: 100%; }
+.godbtn { position: relative; flex-shrink: 0; align-self: center; display: grid; justify-items: center; align-content: center; gap: 5px; width: 66px; height: 66px; border-radius: 18px; overflow: hidden; isolation: isolate;
+  color: #fff6d6; background: radial-gradient(120% 120% at 20% 0%, rgba(255,214,120,.28), transparent 60%), linear-gradient(180deg, #1d1606, #0a0803);
+  border: 1px solid rgba(255,214,120,.45); box-shadow: inset 0 1px 0 rgba(255,240,200,.25), 0 8px 20px -6px rgba(240,180,60,.45), 0 0 0 1px rgba(0,0,0,.4); }
+.godbtn::before { content: ''; position: absolute; inset: -40%; z-index: -1; background: conic-gradient(#ff8ad1, #ffd27a, #86f7d6, #7cc0ff, #c79bff, #ff8ad1); opacity: .22; animation: godbtn-spin 6s linear infinite; }
+.godbtn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%); transform: translateX(-130%); animation: rb-sheen 3.8s ease-in-out infinite; pointer-events: none; }
+@keyframes godbtn-spin { to { transform: rotate(360deg); } }
+.godbtn-ico { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; color: #2a1a02;
+  background: linear-gradient(160deg, #fff4cc, #f0c75e 50%, #8a5a12); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 0 14px rgba(240,190,80,.55); }
+.godbtn-txt { display: flex; gap: 3px; line-height: 1; }
+.godbtn-txt b { font-size: 8.5px; font-weight: 900; letter-spacing: .1em;
+  background: linear-gradient(100deg, #f7e08a, #fff7d6 30%, #e3ad3c 60%, #fffbe8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@media (prefers-reduced-motion: reduce) { .godbtn::before, .godbtn::after { animation: none; } }
