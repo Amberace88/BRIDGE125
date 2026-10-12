@@ -40,8 +40,8 @@ function ensureValid(st: GameState, p: number, a: Action): Action {
   if (st.phase === 'chooseSuit') cands.push({ type: 'suit', suit: bestSuit(st.players[p]?.hand ?? []) });
   if (o.canAccept) cands.push({ type: 'accept' });
   for (const c of legalSingles(st, p, true)) cands.push(play([c]));
-  if (o.canDraw) cands.push({ type: 'draw' });
   if (o.canPass) cands.push({ type: 'pass' });
+  if (o.canDraw) cands.push({ type: 'draw' });
   for (const c of o.legal) cands.push(play([c]));
   if (o.canChallenge) cands.push({ type: 'challenge' });
   for (const c of cands) if (accepted(st, p, c)) return c;
@@ -91,6 +91,8 @@ function decide(st: GameState, p: number, level: BotLevel): Action {
   const smart = level === 'hard' || level === 'expert';
   if (st.phase === 'chooseSuit') return { type: 'suit', suit: smart ? smartSuit(st, p, level === 'expert') : bestSuit(hand) };
   const o = options(st, p);
+  // bots keep the classic tempo: at most one voluntary draw per turn (players may draw freely)
+  if (st.drawnThisTurn && !st.mustCover) o.canDraw = false;
   if (o.canChallenge && wantsChallenge(st, level)) return { type: 'challenge' };
   if (st.aceSkip || st.lastPlay?.out) return { type: 'pass' };
 

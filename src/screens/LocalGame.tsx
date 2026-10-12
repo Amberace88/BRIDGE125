@@ -4,6 +4,7 @@ import { botAction } from '../engine/bot';
 import { useApp } from '../store';
 import { Table } from './Table';
 import { track } from '../analytics';
+import { useGodFlags } from '../god/flags';
 import { useGameAchievements } from '../progress/useProgress';
 
 const SAVE_KEY = 'b125.game.v1';
@@ -21,6 +22,7 @@ export function LocalGame({ resume, onExit }: { resume: GameState | null; onExit
   ], { bluff: !!app.bluff });
   const [g, setG] = useState<GameState>(() => resume ?? fresh());
   useGameAchievements(g, 0);
+  const god = useGodFlags();
   const recorded = useRef(false);
 
   useEffect(() => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(g)); } catch { /* */ } }, [g]);
@@ -37,7 +39,7 @@ export function LocalGame({ resume, onExit }: { resume: GameState | null; onExit
     if (g.phase !== 'play' && g.phase !== 'chooseSuit') return;
     if (!g.players[g.current].bot) return;
     const heavy = g.events.some(e => ['queen', 'transfer', 'kings', 'reset125', 'eight'].includes(e.t));
-    const delay = (g.phase === 'chooseSuit' ? 650 : 820) + (heavy ? 650 : 0) + Math.random() * 350;
+    const delay = ((g.phase === 'chooseSuit' ? 650 : 820) + (heavy ? 650 : 0) + Math.random() * 350) * god.botDelay;
     const seq = g.seq;
     const tm = setTimeout(() => {
       setG(cur => {
@@ -51,7 +53,7 @@ export function LocalGame({ resume, onExit }: { resume: GameState | null; onExit
   }, [g.seq]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Table g={g} me={0}
+    <Table g={g} me={0} xray={god.xray}
       onAct={a => setG(cur => apply(cur, 0, a))}
       onNextRound={() => setG(cur => nextRound(cur))}
       onRematch={() => { recorded.current = false; track('game_start', { mode: 'bots', players: g.players.length, rematch: true }); setG(newGame(g.players.map(p => ({ name: p.name, bot: p.bot })), { bluff: !!g.rules?.bluff })); }}

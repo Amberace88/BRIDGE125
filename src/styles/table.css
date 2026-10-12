@@ -274,3 +274,8 @@
 
 /* cards are composited flat; each card's own 3D (tilt + turn-over) lives inside .hop */
 .tbl .card { transform-style: flat; }
+
+/* end-turn glyph under the deck (free drawing: tap the deck again to draw more, or pass here) */
+.tbl .passglyph { position: absolute; z-index: 60; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 0; background: none;
+  color: var(--acc-hi); font-weight: 800; font-size: 13px; letter-spacing: .04em; text-shadow: 0 2px 8px rgba(0,0,0,.6); cursor: pointer; }
+.tbl .passglyph svg { filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }

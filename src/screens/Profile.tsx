@@ -180,7 +180,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
                   <div className="prow"><span>{p.email}</span><b className="mute" style={{ fontWeight: 600 }}>{app.session?.user.email}</b></div>
                   <ChangePassword />
                   {app.isAdmin && <button className="btn acc" style={{ width: '100%', marginTop: 14 }} onClick={onAdmin}>📊 {p.adminPanel}</button>}
-                  {!ins.installed && <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onInstall}>⬇ {t.install.button}</button>}
+                  {ins.available && <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onInstall}>⬇ {t.install.button}</button>}
                   <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={() => app.signOut()}>{t.signOut}</button>
                   <div className="dzone">
                     <div className="label" style={{ marginTop: 0 }}>{p.danger}</div>
@@ -191,7 +191,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
               ) : (
                 <>
                   <button className="btn acc big" onClick={onAuth}>{t.nav.signIn}</button>
-                  {!ins.installed && <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onInstall}>⬇ {t.install.button}</button>}
+                  {ins.available && <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onInstall}>⬇ {t.install.button}</button>}
                 </>
               )}
               <div className="homefoot insheet">

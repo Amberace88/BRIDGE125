@@ -128,7 +128,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
           {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
           {wide && <button className="navlink" onClick={shop}>{h.shop.title}</button>}
           {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
-          {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
+          {wide && ins.available && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
           {wide && <LangPicker />}
           <DailyRewardButton />
           {wide && <LevelBadge size={34} onClick={onProfile} />}
@@ -226,7 +226,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
           </motion.section>
 
           <AnimatePresence>
-            {!wide && !ins.installed && !bannerOff && (
+            {!wide && ins.available && !bannerOff && (
               <motion.div className="installbanner" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, marginTop: -14 }} transition={{ delay: 1.2 }}>
                 <img src="/icon-192.png" alt="" width={40} height={40} />
                 <button className="ibtext" onClick={onInstall}><b>Bridge 125</b><span>{t.install.banner}</span></button>

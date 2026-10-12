@@ -12,8 +12,13 @@ const emit = () => subs.forEach(f => f());
 /** Call once, as early as possible (before React mounts), so the event is never missed. */
 export function captureInstallPrompt() {
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e as BIPEvent; emit(); });
-  window.addEventListener('appinstalled', () => { deferred = null; installedNow = true; emit(); track('app_installed', { platform: detectPlatform() }); });
+  window.addEventListener('appinstalled', () => { deferred = null; installedNow = true; markInstalled(); emit(); track('app_installed', { platform: detectPlatform() }); });
 }
+
+const INST_KEY = 'b125.installed';
+const markInstalled = () => { try { localStorage.setItem(INST_KEY, '1'); } catch { /* */ } };
+const wasInstalled = () => { try { return localStorage.getItem(INST_KEY) === '1'; } catch { return false; } };
+if (typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone)) markInstalled();
 
 export type Platform = 'ios' | 'android' | 'desktop';
 
@@ -38,6 +43,12 @@ export function useInstall() {
   return {
     installed,
     canPrompt: !!deferred && !installed,
+    /**
+     * Whether to advertise installing at all. Chromium only fires `beforeinstallprompt` while the app is NOT
+     * installed, so no event = already installed (or not installable) → hide the button. iOS Safari has no
+     * such event, so there we show the manual "Add to Home Screen" guide unless running standalone.
+     */
+    available: !installed && (!!deferred || (detectPlatform() === 'ios' && isIosSafari() && !wasInstalled())),
     platform: detectPlatform(),
     /** Returns true when the user accepted the browser's install dialog. */
     prompt: async () => {
@@ -46,7 +57,7 @@ export function useInstall() {
       await ev.prompt();
       const { outcome } = await ev.userChoice;
       track('install_prompt', { outcome });
-      if (outcome === 'accepted') { deferred = null; installedNow = true; emit(); }
+      if (outcome === 'accepted') { deferred = null; installedNow = true; markInstalled(); emit(); }
       return outcome === 'accepted';
     },
   };

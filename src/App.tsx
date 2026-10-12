@@ -8,11 +8,13 @@ import { ProfileSheet } from './screens/Profile';
 import { AuthSheet } from './screens/AuthSheet';
 import type { LegalKind } from './screens/Legal';
 import { RewardsLayer } from './screens/Rewards';
+import { CosmeticsSync } from './cosmetics/useCosmetics';
 
 const Guide = lazy(() => import('./screens/Guide').then(m => ({ default: m.Guide })));
 const Legal = lazy(() => import('./screens/Legal').then(m => ({ default: m.Legal })));
 const Leaderboard = lazy(() => import('./screens/Leaderboard').then(m => ({ default: m.Leaderboard })));
 const AdminPanel = lazy(() => import('./screens/Admin').then(m => ({ default: m.AdminPanel })));
+const GodPanel = lazy(() => import('./screens/GodPanel').then(m => ({ default: m.GodPanel })));
 const ShopScreen = lazy(() => import('./screens/Shop').then(m => ({ default: m.ShopScreen })));
 const MerchScreen = lazy(() => import('./screens/Merch').then(m => ({ default: m.MerchScreen })));
 const InstallSheet = lazy(() => import('./screens/InstallSheet').then(m => ({ default: m.InstallSheet })));
@@ -22,13 +24,13 @@ import { detectPlatform, isStandalone } from './install';
 import type { GameState } from './engine/engine';
 
 type Route = { name: 'home' } | { name: 'local'; resume: GameState | null; key: number } | { name: 'room'; code: string };
-type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | LegalKind | null;
+type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | LegalKind | null;
 
 function parse(): { route: Route; overlay: Overlay } {
   const p = location.pathname;
   const m = p.match(/^\/r\/([A-Za-z0-9]{4,6})\/?$/);
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
-  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch)\/?$/);
+  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
 
@@ -115,17 +117,19 @@ function Shell() {
         {overlay === 'admin' && <AdminPanel key="adm" onClose={closeOverlay} />}
         {overlay === 'shop' && <ShopScreen key="shop" onClose={closeOverlay} onAuth={() => { closeOverlay(); setSheet('auth'); }} />}
         {overlay === 'merch' && <MerchScreen key="merch" onClose={closeOverlay} />}
+        {overlay === 'god' && <GodPanel key="god" onClose={closeOverlay} />}
         {(overlay === 'privacy' || overlay === 'terms') && (
           <Legal key="l" kind={overlay} onClose={closeOverlay} onSwitch={k => { history.replaceState(null, '', '/' + k); setOverlay(k); }} />
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} onAdmin={() => { setSheet(null); openOverlay('admin'); }} onShop={() => { setSheet(null); openOverlay('shop'); }} />}
+        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} onAdmin={() => { setSheet(null); openOverlay('admin'); }} onShop={() => { setSheet(null); openOverlay('shop'); }} onGod={() => { setSheet(null); openOverlay('god'); }} />}
         {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} onLegal={k => { setSheet(null); openOverlay(k); }} />}
         {sheet === 'leaders' && <Leaderboard key="lb" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
         {sheet === 'install' && <InstallSheet key="in" onClose={() => setSheet(null)} />}
       </AnimatePresence>
       </Suspense>
+      <CosmeticsSync />
       <RewardsLayer autoDaily={route.name === 'home' && !overlay && !sheet} onAuth={() => setSheet('auth')} />
     </div>
   );

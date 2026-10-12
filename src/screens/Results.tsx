@@ -1,3 +1,5 @@
+import { VictoryEffect } from '../cosmetics/VictoryEffect';
+import { useCosmetics } from '../cosmetics/useCosmetics';
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect, useMemo } from 'react';
 import { type GameState, GAME_OVER_AT, RESET_AT } from '../engine/engine';
@@ -68,6 +70,7 @@ export function Results({ g, me = 0, onNext, onRematch, onHome }: { g: GameState
   const r = g.lastResult!;
   const over = g.phase === 'gameOver';
   const iWon = over && g.winners.includes(me);
+  const victory = useCosmetics().equipped.victory;
   const name = (i: number) => (i === me ? t.you : g.players[i].name);
   const iWentOut = !over && r.winner === me;
   useEffect(() => {
@@ -107,6 +110,7 @@ export function Results({ g, me = 0, onNext, onRematch, onHome }: { g: GameState
   return (
     <motion.div className="rsum" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-modal="true" aria-label={title}>
       {iWon && <Confetti />}
+      {iWon && <VictoryEffect id={victory} />}
       {(iWon || iWentOut) && <div className={`rays ${iWon ? 'big' : ''}`} aria-hidden />}
       <motion.div className="rsum-in" initial={{ y: 40, opacity: 0, rotateX: 12 }} animate={{ y: 0, opacity: 1, rotateX: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 22 }}
         style={{ transformPerspective: 900 }}>

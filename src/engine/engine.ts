@@ -52,7 +52,7 @@ export type GameEvent =
   | { t: 'bluffWrong'; p: number };                              // bluff mode: p challenged a legal play
 
 /** Optional table rules. Missing on old saved games → treat as `{ bluff: false }`. */
-export interface GameRules { bluff: boolean }
+export interface GameRules { bluff: boolean; /** default true: a player may draw any number of cards on their turn */ multiDraw?: boolean }
 
 /**
  * Bluff mode: the most recent play, kept only while the next player may still challenge it.
@@ -337,8 +337,10 @@ export function apply(prev: GameState, p: number, a: Action, rng: Rng = Math.ran
       if (!got) { st.mustCover = false; endTurn(st); }
       return finish(st);
     }
-    if (st.drawnThisTurn) return prev;
-    drawCards(st, p, 1);
+    // House rule (owner): on your own turn you may keep drawing as many cards as you like.
+    if (st.drawnThisTurn && !multiDraw(st)) return prev;
+    if (st.deck.length + st.pile.length <= 1) return prev;
+    if (!drawCards(st, p, 1)) return prev;
     st.drawnThisTurn = true;
     return finish(st);
   }
@@ -599,6 +601,9 @@ export interface PlayerOptions {
   canChallenge: boolean;
 }
 
+/** Free drawing: unless a game explicitly turns it off, a player may draw any number of cards on their turn. */
+export const multiDraw = (st: GameState) => st.rules?.multiDraw ?? true;
+
 /** What the current player is allowed to do right now (for UI). */
 export function options(st: GameState, p: number): PlayerOptions {
   const mine = st.current === p && st.phase === 'play';
@@ -618,7 +623,7 @@ export function options(st: GameState, p: number): PlayerOptions {
     mine,
     legal,
     canAccept: mine && !!pend,
-    canDraw: mine && !pend && (st.mustCover ? realCovers.length === 0 : !st.drawnThisTurn),
+    canDraw: mine && !pend && (st.mustCover ? realCovers.length === 0 : (!st.drawnThisTurn || multiDraw(st)) && st.deck.length + st.pile.length > 1),
     canPass: mine && !pend && !st.mustCover && (st.drawnThisTurn || st.deck.length + st.pile.length <= 1),
     forcedDraw,
     combo: mine && !pend && !!qs && !!s6 && validatePlay(st, p, [qs.id, s6.id]) === null,
