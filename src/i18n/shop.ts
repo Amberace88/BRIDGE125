@@ -37,7 +37,7 @@ export interface ShopStrings {
 
 const en: ShopStrings = {
   shop: {
-    title: 'Shop', sub: 'Tables, card backs & colours', balance: 'Balance', collection: (n, t) => `${n}/${t} owned`,
+    title: 'Shop', sub: 'Tables, decks, frames, effects & more', balance: 'Balance', collection: (n, t) => `${n}/${t} owned`,
     tabs: { featured: 'Featured', tables: 'Tables', backs: 'Card backs', colours: 'Colours', bundles: 'BM bundles' },
     rarity: { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' },
     tags: { new: 'New', hot: 'Popular' },
@@ -98,7 +98,7 @@ const en: ShopStrings = {
 
 const lv: ShopStrings = {
   shop: {
-    title: 'Veikals', sub: 'Galdi, kāršu muguras un krāsas', balance: 'Bilance', collection: (n, t) => `${n}/${t} iegūti`,
+    title: 'Veikals', sub: 'Galdi, kārtis, rāmji, efekti un vēl', balance: 'Bilance', collection: (n, t) => `${n}/${t} iegūti`,
     tabs: { featured: 'Izceltie', tables: 'Galdi', backs: 'Kāršu muguras', colours: 'Krāsas', bundles: 'BM komplekti' },
     rarity: { common: 'Parasts', rare: 'Rets', epic: 'Episks', legendary: 'Leģendārs' },
     tags: { new: 'Jauns', hot: 'Populārs' },
@@ -159,7 +159,7 @@ const lv: ShopStrings = {
 
 const ru: ShopStrings = {
   shop: {
-    title: 'Магазин', sub: 'Столы, рубашки и цвета', balance: 'Баланс', collection: (n, t) => `${n}/${t} в коллекции`,
+    title: 'Магазин', sub: 'Столы, колоды, рамки, эффекты и не только', balance: 'Баланс', collection: (n, t) => `${n}/${t} в коллекции`,
     tabs: { featured: 'Главное', tables: 'Столы', backs: 'Рубашки', colours: 'Цвета', bundles: 'Пакеты BM' },
     rarity: { common: 'Обычный', rare: 'Редкий', epic: 'Эпический', legendary: 'Легендарный' },
     tags: { new: 'Новинка', hot: 'Популярное' },
@@ -220,7 +220,7 @@ const ru: ShopStrings = {
 
 const uk: ShopStrings = {
   shop: {
-    title: 'Магазин', sub: 'Столи, сорочки й кольори', balance: 'Баланс', collection: (n, t) => `${n}/${t} у колекції`,
+    title: 'Магазин', sub: 'Столи, колоди, рамки, ефекти й не тільки', balance: 'Баланс', collection: (n, t) => `${n}/${t} у колекції`,
     tabs: { featured: 'Головне', tables: 'Столи', backs: 'Сорочки', colours: 'Кольори', bundles: 'Пакети BM' },
     rarity: { common: 'Звичайний', rare: 'Рідкісний', epic: 'Епічний', legendary: 'Легендарний' },
     tags: { new: 'Новинка', hot: 'Популярне' },
