@@ -67,3 +67,7 @@ const uk: TableStrings = {
 };
 
 export const TABLE_STRINGS: Strings<TableStrings> = { en, lv, ru, uk };
+
+// lt et pl de be kk uz az ka hy ro bg es: src/i18n/locales/<lang>.ts, deep-merged over English on load
+import { registerStrings } from './pick';
+registerStrings('table', TABLE_STRINGS);

@@ -5,6 +5,7 @@ import { LANGS, type Lang, type LangInfo } from '../i18n';
 import { loadLocale, preloadLocale } from '../locales';
 import { useApp } from '../store';
 import { useStrings, type Strings } from '../i18n/pick';
+import { Flag } from './Flag';
 import '../styles/lang.css';
 
 const S: Strings<{ search: string; empty: string; clear: string }> = {
@@ -29,9 +30,10 @@ const S: Strings<{ search: string; empty: string; clear: string }> = {
 
 /**
  * Language picker: a searchable listbox. Desktop → popover anchored to the trigger; phones / touch → bottom sheet.
- *  - `compact`: globe + code (top navigation)
- *  - `pill`:    globe + native name
- *  - `field`:   full-width row (settings)
+ *  - `compact`: flag + code (top navigation)
+ *  - `pill`:    flag + native name
+ *  - `field`:   full-width row with flag (settings)
+ * Every row shows the country flag (inline SVG, ./Flag.tsx), the native name, and the English name + code (searchable).
  */
 export function LangPicker({ variant = 'compact' }: { variant?: 'compact' | 'pill' | 'field' }) {
   const app = useApp();
@@ -57,7 +59,10 @@ export function LangPicker({ variant = 'compact' }: { variant?: 'compact' | 'pil
     <>
       <button ref={trigger} type="button" className={`lp-trigger ${variant}`} aria-haspopup="dialog" aria-expanded={open}
         aria-label={`${t.language}: ${current.label}`} title={t.language} onClick={() => setOpen(o => !o)}>
-        <Globe />
+        <motion.span key={current.id} className="lp-tflag" initial={{ scale: 0.6, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 520, damping: 22 }}>
+          <Flag lang={current.id} size={variant === 'field' ? 20 : 15} />
+        </motion.span>
         {variant === 'compact' && <span className="lp-code">{current.id.toUpperCase()}</span>}
         {variant === 'pill' && <span className="lp-name">{current.label}</span>}
         {variant === 'field' && (
@@ -99,6 +104,7 @@ interface PanelProps {
 
 function Panel({ anchor, lang, title, closeLabel, onPick, onClose }: PanelProps) {
   const sheet = useSheetMode();
+  const sheetFlag = sheet ? 22 : 19;
   const s = useStrings(S);
   const drag = useDragControls();
   const uid = useId();
@@ -203,8 +209,8 @@ function Panel({ anchor, lang, title, closeLabel, onPick, onClose }: PanelProps)
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 12) * 0.014, duration: 0.18 }}
               onPointerMove={() => { if (!act) setActive(i); }} onClick={() => pick(l)}>
               {act && <motion.span layoutId={`${uid}-hl`} className="lp-hl" transition={{ type: 'spring', stiffness: 520, damping: 40 }} />}
-              <span className="lp-code2" aria-hidden>{l.id}</span>
-              <span className="lp-txt"><b>{l.label}</b>{l.en !== l.label && <small lang="en">{l.en}</small>}</span>
+              <Flag lang={l.id} size={sheetFlag} className="lp-oflag" />
+              <span className="lp-txt"><b>{l.label}</b><small lang="en">{l.en !== l.label ? `${l.en} · ` : ''}<span className="lp-code3">{l.id}</span></small></span>
               {busy === l.id ? <span className="lp-spin" aria-hidden /> : on ? <Check /> : null}
             </motion.li>
           );
@@ -241,11 +247,6 @@ function Panel({ anchor, lang, title, closeLabel, onPick, onClose }: PanelProps)
 
 // ------------------------------------------------------------------------------------------------ icons
 
-const Globe = () => (
-  <svg className="lp-globe" viewBox="0 0 24 24" width="16" height="16" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
-    <circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z" />
-  </svg>
-);
 const Chevron = ({ open }: { open: boolean }) => (
   <motion.svg className="lp-chev" viewBox="0 0 12 12" width="11" height="11" aria-hidden animate={{ rotate: open ? 180 : 0 }} transition={{ type: 'spring', stiffness: 400, damping: 26 }}>
     <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />

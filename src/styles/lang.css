@@ -1,3 +1,13 @@
+/* ---------------------------------------------------------------- flags (components/Flag.tsx) */
+.flag { position: relative; display: inline-block; flex-shrink: 0; vertical-align: middle; overflow: hidden; border-radius: 3.5px; line-height: 0;
+  background: #1a2421; box-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 0 .5px rgba(0,0,0,.35); isolation: isolate; }
+.flag.circle { border-radius: 50%; }
+.flag svg { display: block; width: 100%; height: 100%; }
+/* hairline inner border + soft top-left sheen and bottom shade: reads as a crisp printed tile on dark UI */
+.flag::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+  background: linear-gradient(155deg, rgba(255,255,255,.24) 0%, rgba(255,255,255,.05) 36%, rgba(255,255,255,0) 50%, rgba(0,0,0,.14) 100%); }
+
 /* ---------------------------------------------------------------- language picker (components/LangPicker.tsx) */
 
 /* trigger */
@@ -6,13 +16,14 @@
 @media (hover: hover) { .lp-trigger:hover { background: rgba(255,255,255,.07); border-color: var(--line); color: #fff; } }
 .lp-trigger:active { transform: scale(.97); }
 .lp-trigger[aria-expanded='true'] { border-color: var(--line); color: var(--acc-hi); background: color-mix(in srgb, var(--acc) 14%, rgba(0,0,0,.3)); }
-.lp-globe { flex-shrink: 0; color: var(--acc-hi); opacity: .95; }
+.lp-tflag { display: inline-flex; flex-shrink: 0; }
+.lp-tflag .flag { border-radius: 3px; }
 .lp-chev { flex-shrink: 0; opacity: .7; }
 .lp-code { letter-spacing: .06em; font-size: 12px; }
 .lp-name { font-size: 13.5px; font-weight: 600; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
 
 .lp-trigger.field { display: flex; width: 100%; height: 54px; padding: 0 16px; border-radius: 14px; gap: 12px; text-align: left; background: rgba(0,0,0,.35); border-color: var(--line); }
-.lp-trigger.field .lp-globe { width: 20px; height: 20px; }
+.lp-trigger.field .lp-tflag .flag { border-radius: 4px; }
 .lp-fieldtxt { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 10px; overflow: hidden; }
 .lp-fieldtxt b { font-size: 15.5px; font-weight: 600; color: var(--text); white-space: nowrap; }
 .lp-fieldtxt small { font-size: 12.5px; font-weight: 500; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -38,9 +49,10 @@
 .lp-opt { position: relative; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 12px 6px 10px; border-radius: 12px; cursor: pointer; isolation: isolate; }
 .lp-hl { position: absolute; inset: 0; z-index: -1; border-radius: 12px; background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
 .lp-opt.on .lp-txt b { color: var(--acc-hi); }
-.lp-opt.on .lp-code2 { color: var(--acc-ink); background: linear-gradient(180deg, var(--acc-hi), var(--acc)); border-color: transparent; }
-.lp-code2 { flex-shrink: 0; width: 34px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--mute); background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.08); font-family: var(--sans); }
+.lp-oflag { border-radius: 4px; transition: transform .25s cubic-bezier(.3,1.6,.5,1), box-shadow .2s; }
+.lp-opt.act .lp-oflag { transform: scale(1.08) rotate(-2deg); }
+.lp-opt.on .lp-oflag { box-shadow: 0 0 0 1.5px #0b1312, 0 0 0 3px var(--acc-hi), 0 4px 12px rgba(0,0,0,.45); }
+.lp-code3 { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
 .lp-txt { flex: 1; min-width: 0; display: grid; gap: 1px; line-height: 1.25; }
 .lp-txt b { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lp-txt small { font-size: 12px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -68,7 +80,7 @@
 .lp-grabzone { padding: 10px 0 12px; cursor: grab; touch-action: none; }
 .lp-grab { width: 42px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.22); margin: 0 auto; }
 
-@media (prefers-reduced-motion: reduce) { .lp-spin { animation-duration: 2s; } }
+@media (prefers-reduced-motion: reduce) { .lp-spin { animation-duration: 2s; } .lp-oflag { transition: none; } .lp-opt.act .lp-oflag { transform: none; } }
 
 /* ---------------------------------------------------------------- layout guards for longer translations */
 /* the Join button beside the table-code field shrank below its label (even "Join" in English); let the field give way instead */

@@ -227,3 +227,7 @@ const uk: HomeStrings = {
 };
 
 export const HOME: Strings<HomeStrings> = { en, lv, ru, uk };
+
+// lt et pl de be kk uz az ka hy ro bg es: src/i18n/locales/<lang>.ts, deep-merged over English on load
+import { registerStrings } from './pick';
+registerStrings('home', HOME);
