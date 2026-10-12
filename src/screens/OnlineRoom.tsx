@@ -5,6 +5,13 @@ import { useRoom, playerId, isQuickCode } from '../online/useRoom';
 import { Table } from './Table';
 import { sfx } from '../sound';
 import { track } from '../analytics';
+import { useMesh } from '../media/useMesh';
+import { useAvatarUrl } from '../media/avatar';
+import { FaceAvatar } from '../media/UserAvatar';
+import { VideoDock, LobbyMedia, SeatLive } from '../components/VideoDock';
+import { initMusic } from '../media/music';
+
+initMusic();
 
 export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExit: () => void; onQuickAgain: (skip: string) => void }) {
   const app = useApp();
@@ -14,6 +21,10 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
   const r = useRoom(code, app.name || fallbackName);
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/r/${code}`;
+  const myAvatar = useAvatarUrl();
+  const media = useMesh(r, myAvatar);
+  const seatName = (seat: number) => r.room?.seats[seat]?.name ?? '?';
+  const peerAv = (seat: number) => media.snap.peers.find(p => p.seat === seat)?.av ?? '';
 
   const leave = () => { r.leave(); onExit(); };
   const quick = isQuickCode(code);
@@ -74,6 +85,7 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
           deadline={r.deadline} turnMs={r.turnMs} offline={r.offline}
           emotes={r.emotes} onEmote={e => r.send({ t: 'emote', e })}
           topCenter={<div className="roomchip">{code}</div>} />
+        <VideoDock api={media} nameOf={seatName} myAvatar={myAvatar} />
         <ConnBadge status={r.status} t={t} />
       </>
     );
@@ -124,7 +136,11 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
             <motion.div key={i} layout className={`seatrow ${s ? '' : 'empty'}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
               {s ? (
                 <>
-                  <div className="avatar sm">{s.bot ? '🤖' : s.name.slice(0, 1).toUpperCase()}</div>
+                  {i !== r.you && !s.bot && media.snap.peers.some(p => p.seat === i && (p.cam || p.mic))
+                    ? <SeatLive api={media} seat={i} name={s.name} />
+                    : !s.bot && (i === r.you ? myAvatar : peerAv(i))
+                    ? <div className="avatar sm" style={{ padding: 0, overflow: 'hidden' }}><FaceAvatar url={i === r.you ? myAvatar : peerAv(i)} name={s.name} size={29} /></div>
+                    : <div className="avatar sm">{s.bot ? '🤖' : s.name.slice(0, 1).toUpperCase()}</div>}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 15 }}>{s.name}{i === r.you ? ` (${t.you})` : ''}</div>
                     <div className="mute" style={{ fontSize: 12 }}>{s.bot ? t.room.bot : s.host ? t.room.host : s.online ? t.room.online : '…'}</div>
@@ -146,7 +162,9 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
         </form>
       )}
 
-      <div style={{ flex: 1 }} />
+      {r.you >= 0 && <LobbyMedia api={media} myAvatar={myAvatar} myName={name || fallbackName} />}
+
+      <div style={{ flex: 1, minHeight: 14 }} />
       {quick ? (
         <div style={{ display: 'grid', gap: 10 }}>
           <div className="mute" style={{ fontSize: 12.5, textAlign: 'center' }}>{t.quick.botsFill}</div>
