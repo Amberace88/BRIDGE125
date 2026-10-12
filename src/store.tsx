@@ -9,8 +9,8 @@ import { setSound } from './sound';
 import { getSupabase, hasSupabase, type Profile } from './supabase';
 import type { BotLevel } from './engine/bot';
 
-interface Prefs { lang: Lang; accent: string; table: string; cardBack: string; avatar: string; sound: boolean; name: string; level: BotLevel; opponents: number }
-const DEFAULTS: Prefs = { lang: 'en', accent: 'brass', table: 'malachite', cardBack: 'match', avatar: '', sound: true, name: '', level: 'normal', opponents: 1 };
+interface Prefs { lang: Lang; accent: string; table: string; cardBack: string; avatar: string; sound: boolean; name: string; level: BotLevel; opponents: number; bluff: boolean; mode: 'bots' | 'online' | 'friends' }
+const DEFAULTS: Prefs = { lang: 'en', accent: 'brass', table: 'malachite', cardBack: 'match', avatar: '', sound: true, name: '', level: 'normal', opponents: 1, bluff: false, mode: 'bots' };
 const KEY = 'pikovaya.prefs.v1';
 
 function load(): Prefs {
