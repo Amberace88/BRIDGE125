@@ -96,19 +96,19 @@ export class Room extends DurableObject<Env> {
   }
 
   /** Start the game; quick tables top up with bots so nobody plays a lonely 1-on-1 against an empty room. */
-  private startGame(fillTo = 2) {
+  private startGame(fillTo = 2, bluff = false) {
     const s = this.s!;
     while (s.seats.length < Math.min(fillTo, MAX_SEATS)) s.seats.push({ pid: null, name: this.botName(), bot: true });
     s.status = 'playing';
     s.startAt = null;
-    s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })));
+    s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })), { bluff });
   }
 
   async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer) {
     const s = await this.load();
     const pid = this.ctx.getTags(ws)[0];
     const seat = s.seats.findIndex(x => x.pid === pid);
-    let msg: { t: string; a?: Action; e?: string; name?: string };
+    let msg: { t: string; a?: Action; e?: string; name?: string; bluff?: boolean };
     try { msg = JSON.parse(typeof raw === 'string' ? raw : new TextDecoder().decode(raw)); } catch { return; }
     const isHost = pid === s.hostPid || !this.online().has(s.hostPid ?? '');
 
@@ -131,7 +131,7 @@ export class Room extends DurableObject<Env> {
       }
       case 'start': {
         if (!isHost || s.status !== 'lobby' || (s.seats.length < 2 && !s.quick)) return;
-        this.startGame(s.quick ? QUICK_MIN_PLAYERS : 2);
+        this.startGame(s.quick ? QUICK_MIN_PLAYERS : 2, msg.bluff === true);
         break;
       }
       case 'act': {
@@ -148,7 +148,7 @@ export class Room extends DurableObject<Env> {
       }
       case 'rematch': {
         if (!s.game || s.game.phase !== 'gameOver') return;
-        s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })));
+        s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })), { bluff: !!s.game.rules?.bluff });
         break;
       }
       case 'leave': {
@@ -228,7 +228,7 @@ export class Room extends DurableObject<Env> {
     if (g.phase === 'roundOver') s.game = nextRound(g);
     else if (g.phase === 'play' || g.phase === 'chooseSuit') {
       const p = g.current;
-      const a = botAction(g, p, 'normal');
+      const a = botAction(g, p, 'hard');
       let n = apply(g, p, a);
       if (n === g) n = apply(g, p, { type: 'draw' });
       if (n === g) n = apply(g, p, { type: 'pass' });
