@@ -1,6 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { AppProvider } from './store';
+import { AppProvider, useApp } from './store';
 import { Home } from './screens/Home';
 import { LocalGame, loadSavedGame } from './screens/LocalGame';
 import { OnlineRoom } from './screens/OnlineRoom';
@@ -30,6 +30,9 @@ function Shell() {
   const [route, setRoute] = useState<Route>(() => parse().route);
   const [overlay, setOverlay] = useState<Overlay>(() => parse().overlay);
   const [sheet, setSheet] = useState<'profile' | 'auth' | 'leaders' | 'install' | null>(null);
+  const app = useApp();
+  // arriving from a password-reset email → open the sheet on the "new password" step
+  useEffect(() => { if (app.recovery) setSheet('auth'); }, [app.recovery]);
 
   useEffect(() => {
     const f = () => { const p = parse(); setRoute(r => (r.name === 'local' && p.route.name === 'home' ? r : p.route)); setOverlay(p.overlay); };

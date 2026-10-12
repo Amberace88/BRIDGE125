@@ -8,6 +8,16 @@ export interface Extra2 {
     button: string; title: string; sub: string; benefits: string[]; cta: string; done: string; later: string; banner: string;
     ios: string[]; iosOther: string; android: string[]; desktop: string[]; qr: string; free: string;
   };
+  acct: {
+    tabIn: string; tabUp: string; titleIn: string; subIn: string; titleUp: string; subUp: string;
+    email: string; password: string; name: string; namePh: string; nameHint: string; show: string; hide: string;
+    forgot: string; signIn: string; signUp: string; or: string; useLink: string; usePassword: string;
+    noAccount: string; haveAccount: string; pwHint: string; strength: [string, string, string, string];
+    forgotTitle: string; forgotSub: string; sendReset: string; resetSent: (e: string) => string; back: string;
+    newTitle: string; newSub: string; newPw: string; repeatPw: string; savePw: string; pwSaved: string; mismatch: string;
+    welcomeNew: (n: string) => string; welcomeBack: string;
+    err: { badEmail: string; short: string; wrong: string; exists: string; weak: string; notConfirmed: string; tooMany: string; network: string; generic: string };
+  };
 }
 
 const en: Extra2 = {
@@ -30,6 +40,20 @@ const en: Extra2 = {
     android: ['Open the browser menu ⋮', 'Tap “Install app” or “Add to Home screen”', 'Confirm — done!'],
     desktop: ['In Chrome or Edge, click the install icon in the address bar', 'Or open the menu ⋮ → “Install Bridge 125”', 'It opens in its own window, like any app'],
     qr: 'Scan with your phone camera to install on your phone', free: 'Free · under 1 MB · iPhone, Android, Mac, Windows',
+  },
+  acct: {
+    tabIn: 'Sign in', tabUp: 'Create account', titleIn: 'Welcome back', subIn: 'Sign in to keep your stats, BM and table style.',
+    titleUp: 'Join Bridge 125', subUp: 'Free account in 20 seconds. Your progress follows you on every device.',
+    email: 'Email', password: 'Password', name: 'Nickname', namePh: 'e.g. Eddy', nameHint: 'Shown at the table and on the leaderboard', show: 'Show', hide: 'Hide',
+    forgot: 'Forgot password?', signIn: 'Sign in', signUp: 'Create account', or: 'or', useLink: 'Email me a sign-in link instead', usePassword: 'Sign in with password',
+    noAccount: 'New here?', haveAccount: 'Already have an account?', pwHint: 'At least 8 characters', strength: ['Too short', 'Weak', 'Good', 'Strong'],
+    forgotTitle: 'Reset password', forgotSub: 'Enter your email and we’ll send you a link to set a new password.', sendReset: 'Send reset link',
+    resetSent: e => `Check ${e} — open the link to choose a new password.`, back: 'Back to sign in',
+    newTitle: 'Set a new password', newSub: 'Choose a new password for your account.', newPw: 'New password', repeatPw: 'Repeat password', savePw: 'Save password',
+    pwSaved: 'Password saved — you are signed in.', mismatch: 'Passwords do not match',
+    welcomeNew: n => `Welcome to the table, ${n}!`, welcomeBack: 'Welcome back!',
+    err: { badEmail: 'Enter a valid email address', short: 'Password must be at least 8 characters', wrong: 'Wrong email or password', exists: 'An account with this email already exists — sign in instead.',
+      weak: 'Choose a stronger password', notConfirmed: 'Please confirm your email first', tooMany: 'Too many attempts — wait a minute and try again', network: 'No connection — check your internet', generic: 'Something went wrong. Please try again.' },
   },
 };
 
@@ -54,6 +78,20 @@ const lv: Extra2 = {
     desktop: ['Chrome vai Edge adreses joslā spied instalēšanas ikonu', 'Vai izvēlne ⋮ → “Instalēt Bridge 125”', 'Atvērsies savā logā kā jebkura programma'],
     qr: 'Noskenē ar telefona kameru, lai instalētu telefonā', free: 'Bez maksas · mazāk par 1 MB · iPhone, Android, Mac, Windows',
   },
+  acct: {
+    tabIn: 'Ienākt', tabUp: 'Reģistrēties', titleIn: 'Sveicināts atpakaļ', subIn: 'Ienāc, lai saglabātu statistiku, BM un galda stilu.',
+    titleUp: 'Pievienojies Bridge 125', subUp: 'Bezmaksas konts 20 sekundēs. Tavs progress būs pieejams jebkurā ierīcē.',
+    email: 'E-pasts', password: 'Parole', name: 'Segvārds', namePh: 'piem., Eddy', nameHint: 'Redzams pie galda un līderu tabulā', show: 'Rādīt', hide: 'Slēpt',
+    forgot: 'Aizmirsi paroli?', signIn: 'Ienākt', signUp: 'Izveidot kontu', or: 'vai', useLink: 'Ienākt ar saiti e-pastā', usePassword: 'Ienākt ar paroli',
+    noAccount: 'Pirmo reizi šeit?', haveAccount: 'Jau ir konts?', pwHint: 'Vismaz 8 rakstzīmes', strength: ['Par īsu', 'Vāja', 'Laba', 'Stipra'],
+    forgotTitle: 'Atjaunot paroli', forgotSub: 'Ieraksti e-pastu, un mēs atsūtīsim saiti jaunas paroles izveidei.', sendReset: 'Sūtīt saiti',
+    resetSent: e => `Pārbaudi ${e} — atver saiti un izvēlies jaunu paroli.`, back: 'Atpakaļ uz ienākšanu',
+    newTitle: 'Jauna parole', newSub: 'Izvēlies jaunu paroli savam kontam.', newPw: 'Jaunā parole', repeatPw: 'Atkārto paroli', savePw: 'Saglabāt paroli',
+    pwSaved: 'Parole saglabāta — tu esi ienācis.', mismatch: 'Paroles nesakrīt',
+    welcomeNew: n => `Laipni lūgts pie galda, ${n}!`, welcomeBack: 'Prieks tevi redzēt atkal!',
+    err: { badEmail: 'Ieraksti derīgu e-pasta adresi', short: 'Parolei jābūt vismaz 8 rakstzīmēm', wrong: 'Nepareizs e-pasts vai parole', exists: 'Konts ar šo e-pastu jau ir — vienkārši ienāc.',
+      weak: 'Izvēlies stiprāku paroli', notConfirmed: 'Vispirms apstiprini e-pastu', tooMany: 'Pārāk daudz mēģinājumu — pagaidi minūti', network: 'Nav savienojuma — pārbaudi internetu', generic: 'Kaut kas nogāja greizi. Mēģini vēlreiz.' },
+  },
 };
 
 const ru: Extra2 = {
@@ -77,6 +115,20 @@ const ru: Extra2 = {
     desktop: ['В Chrome или Edge нажмите значок установки в адресной строке', 'Или меню ⋮ → «Установить Bridge 125»', 'Откроется в отдельном окне, как обычная программа'],
     qr: 'Отсканируйте камерой телефона, чтобы установить на телефон', free: 'Бесплатно · меньше 1 МБ · iPhone, Android, Mac, Windows',
   },
+  acct: {
+    tabIn: 'Войти', tabUp: 'Регистрация', titleIn: 'С возвращением', subIn: 'Войдите, чтобы сохранить статистику, BM и стиль стола.',
+    titleUp: 'Присоединяйтесь к Bridge 125', subUp: 'Бесплатный аккаунт за 20 секунд. Прогресс доступен на любом устройстве.',
+    email: 'E-mail', password: 'Пароль', name: 'Ник', namePh: 'напр., Eddy', nameHint: 'Виден за столом и в таблице лидеров', show: 'Показать', hide: 'Скрыть',
+    forgot: 'Забыли пароль?', signIn: 'Войти', signUp: 'Создать аккаунт', or: 'или', useLink: 'Войти по ссылке из письма', usePassword: 'Войти с паролем',
+    noAccount: 'Впервые здесь?', haveAccount: 'Уже есть аккаунт?', pwHint: 'Минимум 8 символов', strength: ['Слишком короткий', 'Слабый', 'Хороший', 'Надёжный'],
+    forgotTitle: 'Восстановить пароль', forgotSub: 'Введите e-mail, и мы пришлём ссылку для нового пароля.', sendReset: 'Отправить ссылку',
+    resetSent: e => `Проверьте ${e} — откройте ссылку и задайте новый пароль.`, back: 'Назад ко входу',
+    newTitle: 'Новый пароль', newSub: 'Придумайте новый пароль для аккаунта.', newPw: 'Новый пароль', repeatPw: 'Повторите пароль', savePw: 'Сохранить пароль',
+    pwSaved: 'Пароль сохранён — вы вошли.', mismatch: 'Пароли не совпадают',
+    welcomeNew: n => `Добро пожаловать за стол, ${n}!`, welcomeBack: 'Рады видеть снова!',
+    err: { badEmail: 'Введите корректный e-mail', short: 'Пароль — минимум 8 символов', wrong: 'Неверный e-mail или пароль', exists: 'Аккаунт с этим e-mail уже есть — просто войдите.',
+      weak: 'Выберите пароль понадёжнее', notConfirmed: 'Сначала подтвердите e-mail', tooMany: 'Слишком много попыток — подождите минуту', network: 'Нет соединения — проверьте интернет', generic: 'Что-то пошло не так. Попробуйте ещё раз.' },
+  },
 };
 
 const uk: Extra2 = {
@@ -99,6 +151,20 @@ const uk: Extra2 = {
     android: ['Відкрийте меню браузера ⋮', 'Натисніть «Встановити застосунок» або «Додати на головний екран»', 'Підтвердіть — готово!'],
     desktop: ['У Chrome чи Edge натисніть значок встановлення в адресному рядку', 'Або меню ⋮ → «Встановити Bridge 125»', 'Відкриється в окремому вікні, як звичайна програма'],
     qr: 'Відскануйте камерою телефона, щоб встановити на телефон', free: 'Безкоштовно · менше 1 МБ · iPhone, Android, Mac, Windows',
+  },
+  acct: {
+    tabIn: 'Увійти', tabUp: 'Реєстрація', titleIn: 'З поверненням', subIn: 'Увійдіть, щоб зберегти статистику, BM і стиль столу.',
+    titleUp: 'Приєднуйтесь до Bridge 125', subUp: 'Безкоштовний акаунт за 20 секунд. Прогрес доступний на будь-якому пристрої.',
+    email: 'E-mail', password: 'Пароль', name: 'Нік', namePh: 'напр., Eddy', nameHint: 'Видно за столом і в таблиці лідерів', show: 'Показати', hide: 'Сховати',
+    forgot: 'Забули пароль?', signIn: 'Увійти', signUp: 'Створити акаунт', or: 'або', useLink: 'Увійти за посиланням з листа', usePassword: 'Увійти з паролем',
+    noAccount: 'Вперше тут?', haveAccount: 'Вже є акаунт?', pwHint: 'Щонайменше 8 символів', strength: ['Закороткий', 'Слабкий', 'Добрий', 'Надійний'],
+    forgotTitle: 'Відновити пароль', forgotSub: 'Введіть e-mail, і ми надішлемо посилання для нового пароля.', sendReset: 'Надіслати посилання',
+    resetSent: e => `Перевірте ${e} — відкрийте посилання та задайте новий пароль.`, back: 'Назад до входу',
+    newTitle: 'Новий пароль', newSub: 'Придумайте новий пароль для акаунта.', newPw: 'Новий пароль', repeatPw: 'Повторіть пароль', savePw: 'Зберегти пароль',
+    pwSaved: 'Пароль збережено — ви увійшли.', mismatch: 'Паролі не збігаються',
+    welcomeNew: n => `Ласкаво просимо до столу, ${n}!`, welcomeBack: 'Раді бачити знову!',
+    err: { badEmail: 'Введіть коректний e-mail', short: 'Пароль — щонайменше 8 символів', wrong: 'Неправильний e-mail або пароль', exists: 'Акаунт з цим e-mail вже є — просто увійдіть.',
+      weak: 'Оберіть надійніший пароль', notConfirmed: 'Спершу підтвердіть e-mail', tooMany: 'Забагато спроб — зачекайте хвилину', network: 'Немає з’єднання — перевірте інтернет', generic: 'Щось пішло не так. Спробуйте ще раз.' },
   },
 };
 
