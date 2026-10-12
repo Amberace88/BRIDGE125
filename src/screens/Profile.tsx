@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { ACCENTS, BACKS, TABLES, backCss } from '../theme';
-import { LANGS } from '../i18n';
+import { LangPicker } from '../components/LangPicker';
 import { CardFace } from '../components/CardView';
 import { useInstall } from '../install';
 import { Sheet } from './Sheets';
@@ -166,9 +166,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
               </div>
 
               <div className="label">{t.language}</div>
-              <div className="langgrid">
-                {LANGS.map(l => <button key={l.id} className={`btn sm ${app.lang === l.id ? 'acc' : 'ghost'}`} onClick={() => app.saveProfile({ lang: l.id })}>{l.label}</button>)}
-              </div>
+              <LangPicker variant="field" />
 
               <div className="prow">
                 <span>{t.sound}</span>

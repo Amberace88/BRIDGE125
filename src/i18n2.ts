@@ -1,4 +1,4 @@
-import type { Lang } from './i18n';
+import { withFallback, type Lang } from './i18n';
 
 export interface Extra {
   nav: { howToPlay: string; signIn: string; play: string };
@@ -31,7 +31,7 @@ export interface Extra {
 const en: Extra = {
   nav: { howToPlay: 'How to play', signIn: 'Sign in', play: 'Play' },
   heroLine: 'The classic Bridge card game — queen of spades, jacks ×5 and the famous 125.',
-  features: ['Play free in your browser', 'English, Latviešu, Русский, Українська', 'Install it like an app'],
+  features: ['Play free in your browser', 'Available in 17 languages', 'Install it like an app'],
   playFriends: 'Play with friends',
   guide: {
     title: 'How to play', intro: 'Get rid of your cards, dodge the penalties, keep your score low. Here is everything in five minutes.',
@@ -71,7 +71,7 @@ const en: Extra = {
 const lv: Extra = {
   nav: { howToPlay: 'Kā spēlēt', signIn: 'Ienākt', play: 'Spēlēt' },
   heroLine: 'Klasiskā Bridža kāršu spēle — pīķa dāma, kalpi ×5 un slavenie 125.',
-  features: ['Spēlē bez maksas pārlūkā', 'English, Latviešu, Русский, Українська', 'Uzstādi kā lietotni'],
+  features: ['Spēlē bez maksas pārlūkā', 'Pieejama 17 valodās', 'Uzstādi kā lietotni'],
   playFriends: 'Spēlēt ar draugiem',
   guide: {
     title: 'Kā spēlēt', intro: 'Atbrīvojies no kārtīm, izvairies no sodiem un turi punktus zemu. Viss, kas jāzina, piecās minūtēs.',
@@ -111,7 +111,7 @@ const lv: Extra = {
 const ru: Extra = {
   nav: { howToPlay: 'Как играть', signIn: 'Войти', play: 'Играть' },
   heroLine: 'Классический Бридж — дама пик, валеты ×5 и знаменитые 125.',
-  features: ['Играйте бесплатно в браузере', 'English, Latviešu, Русский, Українська', 'Устанавливается как приложение'],
+  features: ['Играйте бесплатно в браузере', 'Доступна на 17 языках', 'Устанавливается как приложение'],
   playFriends: 'Играть с друзьями',
   guide: {
     title: 'Как играть', intro: 'Избавьтесь от карт, уходите от штрафов и держите счёт низким. Всё самое важное за пять минут.',
@@ -151,7 +151,7 @@ const ru: Extra = {
 const uk: Extra = {
   nav: { howToPlay: 'Як грати', signIn: 'Увійти', play: 'Грати' },
   heroLine: 'Класичний Бридж — пікова дама, валети ×5 і знамениті 125.',
-  features: ['Грайте безкоштовно в браузері', 'English, Latviešu, Русский, Українська', 'Встановлюється як застосунок'],
+  features: ['Грайте безкоштовно в браузері', 'Доступна 17 мовами', 'Встановлюється як застосунок'],
   playFriends: 'Грати з друзями',
   guide: {
     title: 'Як грати', intro: 'Позбудьтеся карт, уникайте штрафів і тримайте рахунок низьким. Усе головне за п’ять хвилин.',
@@ -188,4 +188,4 @@ const uk: Extra = {
   },
 };
 
-export const EXTRA: Record<Lang, Extra> = { en, lv, ru, uk };
+export const EXTRA: Record<Lang, Extra> = withFallback({ en, lv, ru, uk });

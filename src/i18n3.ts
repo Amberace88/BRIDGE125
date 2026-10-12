@@ -1,4 +1,4 @@
-import type { Lang } from './i18n';
+import { withFallback, type Lang } from './i18n';
 
 export interface Extra2 {
   quick: { play: string; sub: string; title: string; finding: string; startsIn: (s: number) => string; startNow: string; botsFill: string; error: string; starting: string };
@@ -206,7 +206,7 @@ const uk: Extra2 = {
   },
 };
 
-export const EXTRA2: Record<Lang, Extra2> = { en, lv, ru, uk };
+export const EXTRA2: Record<Lang, Extra2> = withFallback({ en, lv, ru, uk });
 
 // ---------------------------------------------------------------- legal texts
 
@@ -214,7 +214,7 @@ export interface LegalDoc { title: string; intro: string; sections: { h: string;
 export const LEGAL_UPDATED = '2026-10-12';
 export const CONTACT_EMAIL = 'hello@bridge125.com';
 
-const privacy: Record<Lang, LegalDoc> = {
+const privacy: Record<'en' | 'lv' | 'ru' | 'uk', LegalDoc> = {
   en: {
     title: 'Privacy policy',
     intro: 'Bridge 125 is a free card game. We collect as little as possible and never sell your data.',
@@ -281,7 +281,7 @@ const privacy: Record<Lang, LegalDoc> = {
   },
 };
 
-const terms: Record<Lang, LegalDoc> = {
+const terms: Record<'en' | 'lv' | 'ru' | 'uk', LegalDoc> = {
   en: {
     title: 'Terms of use',
     intro: 'By playing Bridge 125 you agree to these simple rules.',
@@ -332,4 +332,4 @@ const terms: Record<Lang, LegalDoc> = {
   },
 };
 
-export const LEGAL = { privacy, terms };
+export const LEGAL = { privacy: withFallback(privacy), terms: withFallback(terms) };

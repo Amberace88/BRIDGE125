@@ -1,17 +1,63 @@
 import type { Rank, Suit } from './engine/engine';
 
-export type Lang = 'en' | 'lv' | 'ru' | 'uk';
-export const LANGS: { id: Lang; label: string }[] = [
-  { id: 'en', label: 'English' },
-  { id: 'lv', label: 'Latviešu' },
-  { id: 'ru', label: 'Русский' },
-  { id: 'uk', label: 'Українська' },
+/**
+ * Supported languages. en/lv/ru/uk live in this file (and i18n2/i18n3) and are bundled;
+ * every other language is a lazily loaded pack in src/locales/<code>.ts (see src/locales/index.ts).
+ */
+export type Lang = 'en' | 'lv' | 'ru' | 'uk' | 'lt' | 'et' | 'pl' | 'de' | 'be' | 'kk' | 'uz' | 'az' | 'ka' | 'hy' | 'ro' | 'bg' | 'es';
+export interface LangInfo {
+  id: Lang;
+  /** Native name, shown in the language picker. */
+  label: string;
+  /** English name — lets people search the picker in English ("German" finds Deutsch). */
+  en: string;
+  /** BCP 47 locale for Intl date/number formatting. */
+  intl: string;
+  flag?: string;
+}
+export const LANGS: LangInfo[] = [
+  { id: 'en', label: 'English', en: 'English', intl: 'en-GB' },
+  { id: 'lv', label: 'Latviešu', en: 'Latvian', intl: 'lv-LV' },
+  { id: 'ru', label: 'Русский', en: 'Russian', intl: 'ru-RU' },
+  { id: 'uk', label: 'Українська', en: 'Ukrainian', intl: 'uk-UA' },
+  { id: 'lt', label: 'Lietuvių', en: 'Lithuanian', intl: 'lt-LT' },
+  { id: 'et', label: 'Eesti', en: 'Estonian', intl: 'et-EE' },
+  { id: 'pl', label: 'Polski', en: 'Polish', intl: 'pl-PL' },
+  { id: 'de', label: 'Deutsch', en: 'German', intl: 'de-DE' },
+  { id: 'be', label: 'Беларуская', en: 'Belarusian', intl: 'be-BY' },
+  { id: 'kk', label: 'Қазақша', en: 'Kazakh', intl: 'kk-KZ' },
+  { id: 'uz', label: 'Oʻzbekcha', en: 'Uzbek', intl: 'uz-Latn-UZ' },
+  { id: 'az', label: 'Azərbaycanca', en: 'Azerbaijani', intl: 'az-Latn-AZ' },
+  { id: 'ka', label: 'ქართული', en: 'Georgian', intl: 'ka-GE' },
+  { id: 'hy', label: 'Հայերեն', en: 'Armenian', intl: 'hy-AM' },
+  { id: 'ro', label: 'Română', en: 'Romanian / Moldovan', intl: 'ro-RO' },
+  { id: 'bg', label: 'Български', en: 'Bulgarian', intl: 'bg-BG' },
+  { id: 'es', label: 'Español', en: 'Spanish', intl: 'es-ES' },
 ];
+
+export const isLang = (x: unknown): x is Lang => typeof x === 'string' && LANGS.some(l => l.id === x);
+/** Locale to pass to Intl / toLocale*String for a UI language. */
+export const intlLocale = (lang: Lang): string => LANGS.find(l => l.id === lang)?.intl ?? lang;
+
+/** Fill every language missing from `base` with English (lazily loaded packs replace these on load). */
+export function withFallback<T>(base: { en: T } & Partial<Record<Lang, T>>): Record<Lang, T> {
+  return Object.fromEntries(LANGS.map(l => [l.id, base[l.id] ?? base.en])) as Record<Lang, T>;
+}
+
+// Traditional card-corner letters (J Q K A) where a language has them; Latin JQKA otherwise.
+const CYR_RANKS = { J: 'В', Q: 'Д', K: 'К', A: 'Т' };
+const RANK_LETTERS: Partial<Record<Lang, Partial<Record<Rank, string>>>> = {
+  ru: CYR_RANKS, uk: CYR_RANKS, be: CYR_RANKS, kk: CYR_RANKS,
+  bg: { J: 'В', Q: 'Д', K: 'П', A: 'А' },   // вале, дама, поп, асо
+  de: { J: 'B', Q: 'D', K: 'K', A: 'A' },   // Bube, Dame, König, Ass
+  pl: { J: 'W', Q: 'D', K: 'K', A: 'A' },   // walet, dama, król, as
+  lt: { J: 'V', Q: 'D', K: 'K', A: 'T' },   // valetas, dama, karalius, tūzas
+  et: { J: 'P', Q: 'E', K: 'K', A: 'Ä' },   // poiss, emand, kuningas, äss
+};
 
 /** Card corner letters per language. */
 export function rankLabel(r: Rank, lang: Lang): string {
-  if (lang === 'ru' || lang === 'uk') return ({ J: 'В', Q: 'Д', K: 'К', A: 'Т' } as Record<string, string>)[r] ?? r;
-  return r;
+  return RANK_LETTERS[lang]?.[r] ?? r;
 }
 
 type Dict = {
@@ -188,13 +234,21 @@ const uk: Dict = {
   continueGame: 'Продовжити гру', menuQuit: 'Вийти з гри', botNames: ['Артем', 'Марина', 'Олег'],
 };
 
-export const DICTS: Record<Lang, Dict> = { en, lv, ru, uk };
+export const DICTS: Record<Lang, Dict> = withFallback({ en, lv, ru, uk });
 export type { Dict };
 
+/** Map a BCP 47 tag ("de-AT", "ro-MD", "mo") to a supported language, or null. */
+export function matchLang(tag: string): Lang | null {
+  const base = tag.trim().toLowerCase().split(/[-_]/)[0];
+  const id = base === 'mo' ? 'ro' : base;   // legacy code for Moldovan
+  return isLang(id) ? id : null;
+}
+
+/** First supported language from the browser's preference list, else English. */
 export function detectLang(): Lang {
   try {
-    const l = (navigator.language || 'en').slice(0, 2).toLowerCase();
-    if (l === 'lv' || l === 'ru' || l === 'uk') return l;
+    const prefs = navigator.languages?.length ? navigator.languages : [navigator.language];
+    for (const tag of prefs) { const l = tag && matchLang(tag); if (l) return l; }
   } catch { /* ignore */ }
   return 'en';
 }

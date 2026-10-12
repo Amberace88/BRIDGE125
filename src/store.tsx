@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { DICTS, type Dict, type Lang } from './i18n';
+import { DICTS, detectLang, isLang, type Dict, type Lang } from './i18n';
 import { EXTRA, type Extra } from './i18n2';
 import { EXTRA2, type Extra2 } from './i18n3';
+import { isLocaleLoaded, loadLocale } from './locales';
 import { applyTheme, isPremium } from './theme';
 import { track } from './analytics';
 import { setSound } from './sound';
@@ -14,9 +15,13 @@ const DEFAULTS: Prefs = { lang: 'en', accent: 'brass', table: 'malachite', cardB
 const KEY = 'pikovaya.prefs.v1';
 
 function load(): Prefs {
-  try { const raw = localStorage.getItem(KEY); if (raw) return { ...DEFAULTS, ...JSON.parse(raw) }; } catch { /* */ }
-  return DEFAULTS;
+  let p: Prefs = { ...DEFAULTS, lang: detectLang() };   // first visit: follow the browser's language list
+  try { const raw = localStorage.getItem(KEY); if (raw) p = { ...DEFAULTS, ...JSON.parse(raw) }; } catch { /* */ }
+  if (!isLang(p.lang)) p.lang = 'en';
+  return p;
 }
+/** Resolves once the starting language's strings are in memory — main.tsx waits for it before the first render. */
+export const localeReady = () => loadLocale(load().lang);
 function persist(p: Prefs) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* */ } }
 
 interface Ctx extends Prefs {
@@ -78,6 +83,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [prefs.accent, prefs.table, prefs.cardBack, canUse]);
   useEffect(() => { setSound(prefs.sound); }, [prefs.sound]);
   useEffect(() => { document.documentElement.lang = prefs.lang; }, [prefs.lang]);
+  // lazily loaded languages: re-render once their strings arrive (English is shown meanwhile)
+  const [localeRev, setLocaleRev] = useState(0);
+  useEffect(() => { if (!isLocaleLoaded(prefs.lang)) loadLocale(prefs.lang).then(() => setLocaleRev(r => r + 1)); }, [prefs.lang]);
 
   // auth
   useEffect(() => {
@@ -175,7 +183,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     canPersonalize: !!session, isAdmin, canUse, saveProfile, signIn, verifyCode, signOut, recordGame,
     signInPassword, signUpPassword, resetPassword, updatePassword, recovery, endRecovery: () => setRecovery(false),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [prefs, session, profile, recovery]);
+  }), [prefs, session, profile, recovery, localeRev]);
 
   return <C.Provider value={value}>{children}</C.Provider>;
 }

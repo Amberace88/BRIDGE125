@@ -5,7 +5,7 @@ import { HeroCards } from '../components/HeroCards';
 import { Backdrop } from '../components/Backdrop';
 import { Intro, shouldShowIntro } from '../components/Intro';
 import { RulesPanel } from '../components/RulesPanel';
-import { LANGS } from '../i18n';
+import { LangPicker } from '../components/LangPicker';
 import { useInstall } from '../install';
 import { useStrings } from '../i18n/pick';
 import { HOME } from '../i18n/home';
@@ -109,13 +109,6 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
     </motion.h1>
   );
 
-  const langPills = (
-    <div className="langs" role="radiogroup" aria-label={t.language}>
-      {LANGS.map(l => (
-        <button key={l.id} role="radio" aria-checked={lang === l.id} className={lang === l.id ? 'on' : ''} onClick={() => app.saveProfile({ lang: l.id })}>{l.id.toUpperCase()}</button>
-      ))}
-    </div>
-  );
 
   const shop = onShop ?? onProfile;
 
@@ -134,7 +127,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
           {wide && <button className="navlink" onClick={shop}>{h.shop.title}</button>}
           {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
           {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
-          {wide && langPills}
+          {wide && <LangPicker />}
           {app.session ? (
             <button className="who" onClick={onProfile}>
               <span className="avatar sm">{app.avatar || (app.name || app.session.user.email || '?').slice(0, 1).toUpperCase()}</span>
@@ -225,7 +218,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
                 <button className="btn ghost" onClick={onLeaders}><span aria-hidden style={{ fontSize: 15 }}>🏆</span>{t.lb.open}</button>
               </div>
             )}
-            {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>{langPills}</div>}
+            {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}><LangPicker variant="pill" /></div>}
           </motion.section>
 
           <AnimatePresence>
