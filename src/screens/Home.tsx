@@ -1,33 +1,49 @@
-import { AnimatePresence, motion, useAnimationFrame, useMotionValue, useSpring } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useAnimationFrame, useMotionValue, useSpring, useTransform, type MotionValue } from 'motion/react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '../store';
 import { HeroCards } from '../components/HeroCards';
 import { Backdrop } from '../components/Backdrop';
+import { Intro, shouldShowIntro } from '../components/Intro';
+import { RulesPanel } from '../components/RulesPanel';
 import { LANGS } from '../i18n';
 import { useInstall } from '../install';
+import { useStrings } from '../i18n/pick';
+import { HOME } from '../i18n/home';
+import type { BotLevel } from '../engine/bot';
+import '../styles/home.css';
 
 interface Props {
   onPlay: () => void; onResume: (() => void) | null; onRules: () => void; onProfile: () => void; onAuth: () => void;
   onCreateRoom: () => void; onJoinRoom: (code: string) => void; onQuick: () => Promise<void>;
   onLegal: (k: 'privacy' | 'terms') => void; onLeaders: () => void; onInstall: () => void; onAdmin: () => void;
+  /** Cosmetics & bonuses store. Falls back to the profile's "look" section when not provided. */
+  onShop?: () => void;
+  /** Physical merch store. The entry is hidden when not provided. */
+  onMerch?: () => void;
 }
 
-function useWide() {
-  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 920);
-  useEffect(() => { const f = () => setWide(window.innerWidth >= 920); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
-  return wide;
+// typed locally so it compiles before the engine adds hard/expert to BotLevel
+type Level = 'easy' | 'normal' | 'hard' | 'expert';
+type Mode = 'bots' | 'online' | 'friends';
+
+function useViewport() {
+  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1024));
+  useEffect(() => { const f = () => setVw(window.innerWidth); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
+  return vw;
 }
 
-export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin }: Props) {
+export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin, onShop, onMerch }: Props) {
   const ins = useInstall();
   const [bannerOff, setBannerOff] = useState(() => { try { return localStorage.getItem('b125.installBanner') === 'off'; } catch { return false; } });
   const hideBanner = () => { setBannerOff(true); try { localStorage.setItem('b125.installBanner', 'off'); } catch { /* */ } };
   const app = useApp();
   const { t, lang } = app;
-  const wide = useWide();
-  const [vw, setVw] = useState(() => window.innerWidth);
-  useEffect(() => { const f = () => setVw(window.innerWidth); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
+  const h = useStrings(HOME);
+  const vw = useViewport();
+  const wide = vw >= 920;
   const cw = wide ? 150 : Math.round(Math.min(104, vw * 0.235));
+  const [intro, setIntro] = useState(shouldShowIntro);
+  const scroller = useRef<HTMLDivElement>(null);
 
   // pointer → tilt (springs); idle drift when the pointer is still or on touch devices
   const rawX = useMotionValue(0), rawY = useMotionValue(0);
@@ -58,6 +74,9 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
     rawY.set(Math.cos(time / 3300) * 0.3);
   });
 
+  // quick start state
+  const mode: Mode = app.mode ?? 'bots';
+  const level = (app.level ?? 'normal') as Level;
   const [code, setCode] = useState('');
   const [qBusy, setQBusy] = useState(false);
   const [qErr, setQErr] = useState(false);
@@ -66,9 +85,22 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
     setQBusy(true); setQErr(false);
     try { await onQuick(); } catch { setQErr(true); setQBusy(false); }
   };
+  const start = () => {
+    if (mode === 'online') void quick();
+    else if (mode === 'friends') onCreateRoom();
+    else onPlay();
+  };
+  const startLabel = mode === 'online' ? (qBusy ? t.quick.finding : t.quick.play) : mode === 'friends' ? t.room.create : t.vsBots;
+  const join = () => { if (code.trim().length >= 4) onJoinRoom(code.trim().toUpperCase()); };
+  const toRules = () => scroller.current?.querySelector('#rules')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // title tilts a touch less than the cards → depth between layers
+  const tRotY = useTransform(mx, [-1, 1], [-7, 7]);
+  const tRotX = useTransform(my, [-1, 1], [5, -5]);
+  const tX = useTransform(mx, [-1, 1], [-6, 6]);
 
   const title = (
-    <motion.h1 className="serif brand" initial="h" animate="s" style={{ fontSize: wide ? 104 : Math.min(60, vw * 0.15) }}
+    <motion.h1 className="serif brand" initial="h" animate="s" style={{ fontSize: wide ? 104 : Math.min(60, vw * 0.15), rotateX: tRotX, rotateY: tRotY, x: tX }}
       variants={{ s: { transition: { staggerChildren: 0.045, delayChildren: 0.55 } } }}>
       {'Bridge'.split('').map((ch, i) => (
         <motion.span key={i} style={{ display: 'inline-block' }} variants={{ h: { y: 30, opacity: 0, rotateX: -60 }, s: { y: 0, opacity: 1, rotateX: 0 } }}>{ch}</motion.span>
@@ -85,15 +117,21 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
     </div>
   );
 
+  const shop = onShop ?? onProfile;
+
   return (
-    <div className="home">
+    <div className="home h5" ref={scroller}>
       <Backdrop mx={mx} my={my} />
+      <Atmosphere mx={mx} my={my} dense={wide} />
+
+      <AnimatePresence>{intro && <Intro key="intro" onDone={() => setIntro(false)} />}</AnimatePresence>
 
       <header className="topnav">
         <a className="logo" href="/" aria-label="Bridge 125" onClick={e => e.preventDefault()}><img className="mark" src="/logo-mark.svg" alt="" width="40" height="40" /><span className="word">BRIDGE <b>125</b></span></a>
         <nav>
           {wide && <button className="navlink" onClick={onRules}>{t.nav.howToPlay}</button>}
           {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
+          {wide && <button className="navlink" onClick={shop}>{h.shop.title}</button>}
           {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
           {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
           {wide && langPills}
@@ -110,73 +148,202 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
         </nav>
       </header>
 
-      <main className={`homegrid ${wide ? 'wide' : ''}`}>
-        <section className="hero" onPointerEnter={() => setSpread(true)} onPointerLeave={() => setSpread(false)}>
-          <HeroCards cw={cw} lang={lang} mx={mx} my={my} spread={spread} />
-          <div className="herotext" style={{ marginTop: wide ? 18 : -6 }}>
-            {title}
-            <motion.p className="heroline" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>{t.heroLine}</motion.p>
-          </div>
-        </section>
-
-        <AnimatePresence>
-          {!wide && !ins.installed && !bannerOff && (
-            <motion.div className="installbanner" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, marginTop: -14 }} transition={{ delay: 1.2 }}>
-              <img src="/icon-192.png" alt="" width={40} height={40} />
-              <button className="ibtext" onClick={onInstall}><b>Bridge 125</b><span>{t.install.banner}</span></button>
-              <button className="btn acc sm" onClick={onInstall}>{t.install.button}</button>
-              <button className="ibx" aria-label={t.close} onClick={hideBanner}>×</button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.section className="panel playcard" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, type: 'spring', stiffness: 120, damping: 18 }}>
-          {onResume && <button className="btn ghost" style={{ width: '100%', marginBottom: 10 }} onClick={onResume}>↺ {t.continueGame}</button>}
-          <button className="btn quickbtn" onClick={quick} disabled={qBusy} aria-busy={qBusy}>
-            <span className="qdot" aria-hidden><i /></span>
-            <span className="qtxt"><b>{qBusy ? t.quick.finding : t.quick.play}</b><small>{t.quick.sub}</small></span>
-            {qBusy ? <span className="spinner" /> : <span className="qarrow" aria-hidden>→</span>}
-          </button>
-          {qErr && <div className="qerr" role="alert">{t.quick.error}</div>}
-          <button className="btn acc big" style={{ marginTop: 10 }} onClick={onPlay}><span className="suitspin">♠</span>{t.vsBots}</button>
-          <div className="opts">
-            <div>
-              <div className="label">{t.opponents}</div>
-              <Seg value={app.opponents} options={[1, 2, 3].map(n => ({ v: n, l: String(n) }))} onChange={v => app.set({ opponents: v })} />
+      {!intro && (
+        <main className={`homegrid ${wide ? 'wide' : ''}`}>
+          <section className="hero h5-hero" onPointerEnter={() => setSpread(true)} onPointerLeave={() => setSpread(false)}>
+            <Felt cw={cw} mx={mx} />
+            <HeroCards cw={cw} lang={lang} mx={mx} my={my} spread={spread} />
+            <div className="herotext" style={{ marginTop: wide ? 18 : -2 }}>
+              {title}
+              <motion.p className="heroline" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>{t.heroLine}</motion.p>
+              {wide && (
+                <motion.button className="h5-cue" onClick={toRules} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>
+                  {h.rulesCue}<span aria-hidden>↓</span>
+                </motion.button>
+              )}
             </div>
-            <div>
-              <div className="label">{t.level}</div>
-              <Seg value={app.level} options={[{ v: 'easy', l: t.easy }, { v: 'normal', l: t.normal }]} onChange={v => app.set({ level: v as 'easy' | 'normal' })} />
-            </div>
-          </div>
+          </section>
 
-          <div className="divider"><span>{t.playFriends}</span></div>
-          <div className="friends">
-            <button className="btn ghost" onClick={onCreateRoom}>＋ {t.room.create}</button>
-            <form className="joinform" onSubmit={e => { e.preventDefault(); if (code.trim().length >= 4) onJoinRoom(code.trim().toUpperCase()); }}>
-              <input className="field code" value={code} maxLength={6} placeholder={t.room.enterCode} aria-label={t.room.code}
-                onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} />
-              <button className="btn acc sm" disabled={code.length < 4} type="submit">{t.room.join}</button>
-            </form>
-          </div>
+          <motion.section className="panel playcard h5-play" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, type: 'spring', stiffness: 120, damping: 18 }}>
+            {onResume && <button className="btn ghost h5-resume" onClick={onResume}><span aria-hidden>↺</span>{t.continueGame}</button>}
 
-          {!wide && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
-              <button className="btn ghost" style={{ whiteSpace: 'nowrap' }} onClick={onRules}>{t.howToPlay}</button>
-              <button className="btn ghost" style={{ whiteSpace: 'nowrap' }} onClick={onLeaders}><span aria-hidden style={{ fontSize: 15 }}>🏆</span>{t.lb.open}</button>
+            <ModeTabs mode={mode} labels={h.modes} onChange={m => { setQErr(false); app.set({ mode: m }); }} />
+
+            <div className="h5-opts">
+              <AnimatePresence mode="wait" initial={false}>
+                {mode === 'bots' && (
+                  <motion.div key="bots" className="h5-optset" {...swap}>
+                    <div className="h5-row">
+                      <div className="h5-field">
+                        <div className="label">{h.players}</div>
+                        <Seg value={app.opponents + 1} options={[2, 3, 4].map(n => ({ v: n, l: String(n) }))} onChange={v => app.set({ opponents: v - 1 })} />
+                      </div>
+                      <button className="h5-bluff" role="switch" aria-checked={app.bluff} onClick={() => app.set({ bluff: !app.bluff })} title={h.bluffHint}>
+                        <span className="txt"><b>{h.bluff}</b><small>{h.bluffHint}</small></span>
+                        <span className={`switch ${app.bluff ? 'on' : ''}`}><i /></span>
+                      </button>
+                    </div>
+                    <div className="label">{h.level}</div>
+                    <Seg value={level} options={(['easy', 'normal', 'hard', 'expert'] as Level[]).map(v => ({ v, l: h.levels[v] }))}
+                      onChange={v => app.set({ level: v as BotLevel })} />
+                  </motion.div>
+                )}
+                {mode === 'online' && (
+                  <motion.div key="online" className="h5-optset h5-note" {...swap}>
+                    <span className="qdot" aria-hidden><i /></span>
+                    <p>{h.onlineNote}</p>
+                  </motion.div>
+                )}
+                {mode === 'friends' && (
+                  <motion.div key="friends" className="h5-optset" {...swap}>
+                    <p className="h5-sub">{h.friendsNote}</p>
+                    <form className="joinform" onSubmit={e => { e.preventDefault(); join(); }}>
+                      <input className="field code" value={code} maxLength={6} placeholder={t.room.enterCode} aria-label={t.room.code}
+                        onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} />
+                      <button className="btn ghost sm" disabled={code.length < 4} type="submit">{t.room.join}</button>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
-          <ul className="features">
-            {t.features.map(f => <li key={f}>{f}</li>)}
-          </ul>
-          {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>{langPills}</div>}
-        </motion.section>
-      </main>
+
+            <button className={`btn big h5-start ${mode === 'online' ? 'live' : 'acc'}`} onClick={start} disabled={qBusy} aria-busy={qBusy}>
+              {mode === 'online' ? <span className="qdot" aria-hidden><i /></span> : <span className="suitspin" aria-hidden>{mode === 'friends' ? '♥' : '♠'}</span>}
+              <span className="lbl">{startLabel}</span>
+              {qBusy ? <span className="spinner" /> : <span className="arr" aria-hidden>→</span>}
+            </button>
+            {qErr && <div className="qerr" role="alert">{t.quick.error}</div>}
+
+            <div className={`h5-store ${onMerch ? '' : 'one'}`}>
+              <StoreTile icon={<GemIcon />} title={h.shop.title} sub={h.shop.sub} onClick={shop} />
+              {onMerch && <StoreTile icon={<BagIcon />} title={h.merch.title} sub={h.merch.sub} onClick={onMerch} />}
+            </div>
+
+            {!wide && (
+              <div className="h5-links">
+                <button className="btn ghost" onClick={onRules}>{t.howToPlay}</button>
+                <button className="btn ghost" onClick={onLeaders}><span aria-hidden style={{ fontSize: 15 }}>🏆</span>{t.lb.open}</button>
+              </div>
+            )}
+            {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>{langPills}</div>}
+          </motion.section>
+
+          <AnimatePresence>
+            {!wide && !ins.installed && !bannerOff && (
+              <motion.div className="installbanner" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, marginTop: -14 }} transition={{ delay: 1.2 }}>
+                <img src="/icon-192.png" alt="" width={40} height={40} />
+                <button className="ibtext" onClick={onInstall}><b>Bridge 125</b><span>{t.install.banner}</span></button>
+                <button className="btn acc sm" onClick={onInstall}>{t.install.button}</button>
+                <button className="ibx" aria-label={t.close} onClick={hideBanner}>×</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+      )}
+
+      {!intro && (
+        <div className="h5-rules">
+          <RulesPanel onGuide={onRules} onPractice={onPlay} />
+        </div>
+      )}
+
       <footer className="homefoot">
         <button onClick={() => onLegal('privacy')}>{t.legal.privacy}</button><span>·</span>
         <button onClick={() => onLegal('terms')}>{t.legal.terms}</button><span>·</span>
         <span>© {new Date().getFullYear()} Bridge 125</span>
       </footer>
+    </div>
+  );
+}
+
+const swap = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.18 },
+};
+
+/* ---------- pieces ---------- */
+
+const MODE_ICONS: Record<Mode, ReactNode> = {
+  bots: (
+    <svg viewBox="0 0 24 24" aria-hidden><rect x="4.5" y="7.5" width="15" height="11" rx="3.5" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="9.5" cy="13" r="1.4" fill="currentColor" /><circle cx="14.5" cy="13" r="1.4" fill="currentColor" /><path d="M12 7.5V4.5M10 4.5h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+  ),
+  online: (
+    <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M4 12h16M12 4c2.4 2.4 2.4 13.6 0 16M12 4c-2.4 2.4-2.4 13.6 0 16" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+  ),
+  friends: (
+    <svg viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="16.5" cy="10" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M3.5 19c.8-3.2 3-4.8 5.5-4.8s4.7 1.6 5.5 4.8M14.5 14.6c2.6-.4 4.9.9 5.9 3.9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+  ),
+};
+
+function ModeTabs({ mode, labels, onChange }: { mode: Mode; labels: Record<Mode, string>; onChange: (m: Mode) => void }) {
+  const ids: Mode[] = ['bots', 'online', 'friends'];
+  return (
+    <div className="h5-modes" role="radiogroup">
+      {ids.map(id => (
+        <button key={id} role="radio" aria-checked={mode === id} className={mode === id ? 'on' : ''} onClick={() => onChange(id)}>
+          {mode === id && <motion.span layoutId="h5-mode" className="pill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+          <span className="ic">{MODE_ICONS[id]}</span>
+          <span className="tx">{labels[id]}</span>
+          {id === 'online' && <i className="live" aria-hidden />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function StoreTile({ icon, title, sub, onClick }: { icon: ReactNode; title: string; sub: string; onClick: () => void }) {
+  return (
+    <button className="h5-tile" onClick={onClick}>
+      <span className="ico">{icon}</span>
+      <span className="tt"><b>{title}</b><small>{sub}</small></span>
+      <span className="go" aria-hidden>›</span>
+    </button>
+  );
+}
+
+const GemIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden><path d="M6.5 4h11l3.5 5-9 11L3 9z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M3 9h18M9.5 4 8 9l4 11 4-11-1.5-5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+);
+const BagIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden><path d="M5 8h14l-1 12H6z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+);
+
+/** Reflective felt under the hero cards: a lit oval of table cloth with a specular streak that slides against the pointer. */
+function Felt({ cw, mx }: { cw: number; mx: MotionValue<number> }) {
+  const sx = useTransform(mx, [-1, 1], [cw * 0.9, -cw * 0.9]);
+  const gx = useTransform(mx, [-1, 1], [cw * 0.25, -cw * 0.25]);
+  return (
+    <div className="h5-felt" aria-hidden style={{ width: cw * 5.2, height: cw * 1.55, marginLeft: -cw * 2.6, top: cw * 1.43 * 1.18 - cw * 0.78 }}>
+      <div className="cloth" />
+      <motion.div className="glow" style={{ x: gx }} />
+      <motion.div className="streak" style={{ x: sx }} />
+    </div>
+  );
+}
+
+/** Extra depth layers: far bokeh, a light that follows the pointer, near dust motes. Transform-only so it stays cheap. */
+function Atmosphere({ mx, my, dense }: { mx: MotionValue<number>; my: MotionValue<number>; dense: boolean }) {
+  const lx = useTransform(mx, v => ((v + 1) / 2) * (typeof window !== 'undefined' ? window.innerWidth : 1000));
+  const ly = useTransform(my, v => ((v + 1) / 2) * (typeof window !== 'undefined' ? window.innerHeight : 800));
+  const fx = useTransform(mx, v => v * -18), fy = useTransform(my, v => v * -12);
+  const nx = useTransform(mx, v => v * 34), ny = useTransform(my, v => v * 24);
+  const motes = useMemo(() => Array.from({ length: dense ? 34 : 18 }, (_, i) => {
+    const r = (k: number) => (((i + 1) * 9301 * (k + 3) + 49297) % 233280) / 233280;
+    return { left: r(1) * 100, top: r(2) * 100, s: 1.5 + r(3) * 3, dur: 9 + r(4) * 12, del: -r(5) * 20, o: 0.25 + r(6) * 0.5 };
+  }), [dense]);
+  return (
+    <div className="h5-atmos" aria-hidden>
+      <motion.div className="far" style={{ x: fx, y: fy }}>
+        <i className="orb o1" /><i className="orb o2" /><i className="orb o3" /><i className="orb o4" />
+      </motion.div>
+      <motion.div className="lamp" style={{ x: lx, y: ly }} />
+      <motion.div className="near" style={{ x: nx, y: ny }}>
+        {motes.map((m, i) => (
+          <i key={i} className="mote" style={{ left: `${m.left}%`, top: `${m.top}%`, width: m.s, height: m.s, opacity: m.o, animationDuration: `${m.dur}s`, animationDelay: `${m.del}s` }} />
+        ))}
+      </motion.div>
     </div>
   );
 }

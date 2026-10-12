@@ -6,7 +6,7 @@ import { useApp } from '../store';
 
 const C = (id: string): Card => ({ id, r: id.slice(0, -1) as Rank, s: id.slice(-1) as Suit });
 
-function Mini({ id, w = 54, rot = 0, dim = false, mark, delay = 0 }: { id: string; w?: number; rot?: number; dim?: boolean; mark?: 'ok' | 'no'; delay?: number }) {
+export function Mini({ id, w = 54, rot = 0, dim = false, mark, delay = 0 }: { id: string; w?: number; rot?: number; dim?: boolean; mark?: 'ok' | 'no'; delay?: number }) {
   const { lang } = useApp();
   return (
     <motion.div className="mini" style={{ width: w, height: w * 1.43, ['--cw' as string]: `${w}px`, opacity: dim ? 0.45 : 1 }}
@@ -18,7 +18,7 @@ function Mini({ id, w = 54, rot = 0, dim = false, mark, delay = 0 }: { id: strin
   );
 }
 
-function Badge({ children, tone = 'acc', delay = 0 }: { children: ReactNode; tone?: 'acc' | 'bad' | 'info'; delay?: number }) {
+export function Badge({ children, tone = 'acc', delay = 0 }: { children: ReactNode; tone?: 'acc' | 'bad' | 'info'; delay?: number }) {
   return (
     <motion.span className={`gbadge ${tone}`} initial={{ scale: 0.4, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }}
       viewport={{ once: true }} transition={{ delay, type: 'spring', stiffness: 320, damping: 14 }}>{children}</motion.span>
@@ -186,7 +186,7 @@ function Step({ n, h, p, children }: { n: number; h: string; p: string; children
   );
 }
 
-function ScoreLine() {
+export function ScoreLine() {
   const { t } = useApp();
   const l = t.guide.line;
   return (
