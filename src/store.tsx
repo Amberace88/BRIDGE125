@@ -32,6 +32,9 @@ interface Ctx extends Prefs {
   online: boolean;              // supabase configured
   canPersonalize: boolean;
   isAdmin: boolean;
+  /** Owner (admin) or co-author/main tester (god): every premium item unlocked + test tools. */
+  isPrivileged: boolean;
+  isGod: boolean;
   /** Premium cosmetics: free for admins, otherwise owned items only. */
   canUse: (itemId: string) => boolean;
   saveProfile: (patch: Partial<Pick<Prefs, 'name' | 'accent' | 'table' | 'lang' | 'cardBack' | 'avatar'>>) => Promise<boolean>;
@@ -77,7 +80,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAdmin = profile?.role === 'admin';
-  const canUse = useCallback((id: string) => !isPremium(id) || isAdmin || !!profile?.owned?.includes(id), [isAdmin, profile?.owned]);
+  const isGod = profile?.role === 'god';
+  const isPrivileged = isAdmin || isGod;
+  const canUse = useCallback((id: string) => !isPremium(id) || isPrivileged || !!profile?.owned?.includes(id), [isPrivileged, profile?.owned]);
   // never show a premium look the current player is not entitled to (e.g. after signing out)
   useEffect(() => {
     applyTheme(canUse(prefs.accent) ? prefs.accent : 'brass', canUse(prefs.table) ? prefs.table : 'malachite', canUse(prefs.cardBack) ? prefs.cardBack : 'match');
@@ -182,7 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => ({
     ...prefs, t: { ...DICTS[prefs.lang], ...EXTRA[prefs.lang], ...EXTRA2[prefs.lang] }, set, session, profile, online: hasSupabase,
-    canPersonalize: !!session, isAdmin, canUse, saveProfile, signIn, verifyCode, signOut, recordGame,
+    canPersonalize: !!session, isAdmin, isGod, isPrivileged, canUse, saveProfile, signIn, verifyCode, signOut, recordGame,
     signInPassword, signUpPassword, resetPassword, updatePassword, recovery, patchProfile, endRecovery: () => setRecovery(false),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [prefs, session, profile, recovery, localeRev]);

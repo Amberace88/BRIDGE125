@@ -371,7 +371,7 @@ begin
     return json_build_object('ok', false, 'error', 'owned', 'bm', p.bm, 'owned', p.owned);
   end if;
 
-  adm := p.role = 'admin';
+  adm := p.role in ('admin', 'god');
   if not adm and p.bm < it.price_bm then
     return json_build_object('ok', false, 'error', 'funds', 'need', it.price_bm - p.bm, 'bm', p.bm);
   end if;
@@ -395,7 +395,7 @@ grant execute on function public.buy_item(text) to authenticated;
 create or replace function public.enforce_owned_cosmetics() returns trigger
 language plpgsql security definer set search_path = '' as $fn$
 begin
-  if new.role = 'admin' then return new; end if;
+  if new.role in ('admin', 'god') then return new; end if;
   if new.accent is distinct from old.accent and not (new.accent = any(new.owned))
      and exists (select 1 from public.shop_items s where s.id = new.accent and s.kind in ('accent', 'set')) then
     new.accent := old.accent;
