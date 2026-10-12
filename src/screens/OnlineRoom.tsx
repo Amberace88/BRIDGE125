@@ -5,6 +5,9 @@ import { useRoom, playerId, isQuickCode } from '../online/useRoom';
 import { Table } from './Table';
 import { sfx } from '../sound';
 import { track } from '../analytics';
+import { useGameAchievements } from '../progress/useProgress';
+import { HOME } from '../i18n/home';
+import { useStrings } from '../i18n/pick';
 import { useMesh } from '../media/useMesh';
 import { useAvatarUrl } from '../media/avatar';
 import { FaceAvatar } from '../media/UserAvatar';
@@ -28,6 +31,8 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
 
   const leave = () => { r.leave(); onExit(); };
   const quick = isQuickCode(code);
+  const hs = useStrings(HOME);
+  useGameAchievements(r.game, r.you);
 
   // a quick table that filled up or started before we arrived → quietly find another one
   const rematched = useRef(false);
@@ -41,7 +46,7 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
   const phase = r.game?.phase;
   useEffect(() => {
     if (phase === 'gameOver' && r.game && r.you >= 0 && !recorded.current) {
-      recorded.current = true; app.recordGame(r.game.winners.includes(r.you));
+      recorded.current = true; app.recordGame(r.game.winners.includes(r.you), quick ? 'quick' : 'room');
       track('game_end', { mode: quick ? 'quick' : 'room', won: r.game.winners.includes(r.you), rounds: r.game.round, players: r.game.players.length });
     }
     if (phase === 'play' && r.game?.round === 1 && !started.current) { started.current = true; track('game_start', { mode: quick ? 'quick' : 'room', players: r.game.players.length }); }
@@ -168,7 +173,7 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
       {quick ? (
         <div style={{ display: 'grid', gap: 10 }}>
           <div className="mute" style={{ fontSize: 12.5, textAlign: 'center' }}>{t.quick.botsFill}</div>
-          {r.isHost && <button className="btn acc big" onClick={() => { r.send({ t: 'start' }); sfx.shuffle(); }}>{t.quick.startNow}</button>}
+          {r.isHost && <button className="btn acc big" onClick={() => { r.send({ t: 'start', bluff: false }); sfx.shuffle(); }}>{t.quick.startNow}</button>}
         </div>
       ) : r.isHost ? (
         <div style={{ display: 'grid', gap: 10 }}>
@@ -176,7 +181,11 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
             <button className="btn ghost" disabled={seats.length >= max} onClick={() => r.send({ t: 'addBot' })}>＋ {t.room.addBot}</button>
             <button className="btn ghost" disabled={!hasBots} onClick={() => r.send({ t: 'removeBot' })}>－ {t.room.removeBot}</button>
           </div>
-          <button className="btn acc big" disabled={seats.length < 2} onClick={() => { r.send({ t: 'start' }); sfx.shuffle(); }}>
+          <div className="prow" style={{ borderBottom: 0, padding: '4px 4px 6px' }}>
+            <span>🃏 {hs.bluff} <small className="mute" style={{ fontWeight: 500, fontSize: 12 }}>· {hs.bluffHint}</small></span>
+            <button className={`switch ${app.bluff ? 'on' : ''}`} role="switch" aria-checked={app.bluff} onClick={() => app.set({ bluff: !app.bluff })}><i /></button>
+          </div>
+          <button className="btn acc big" disabled={seats.length < 2} onClick={() => { r.send({ t: 'start', bluff: app.bluff }); sfx.shuffle(); }}>
             {seats.length < 2 ? t.room.needTwo : t.room.start}
           </button>
         </div>

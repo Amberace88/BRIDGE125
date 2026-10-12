@@ -44,7 +44,8 @@ interface Ctx extends Prefs {
   endRecovery: () => void;
   verifyCode: (email: string, code: string) => Promise<string | null>;
   signOut: () => Promise<void>;
-  recordGame: (won: boolean) => void;
+  recordGame: (won: boolean, mode?: 'bots' | 'room' | 'quick') => void;
+  patchProfile: (patch: Partial<Profile>) => void;
 }
 
 export type AuthErr = 'wrong' | 'exists' | 'weak' | 'notConfirmed' | 'tooMany' | 'network' | 'generic';
@@ -173,15 +174,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => { await (await getSupabase())?.auth.signOut(); setProfile(null); };
 
-  const recordGame = (won: boolean) => {
+  const patchProfile = useCallback((patch: Partial<Profile>) => setProfile(p => (p ? { ...p, ...patch } : p)), []);
+  const recordGame = (won: boolean, mode?: 'bots' | 'room' | 'quick') => {
     if (!session) return;
-    getSupabase().then(sb => sb?.rpc('record_game', { won }).then(({ data }) => { if (data) setProfile(p => (p ? { ...p, ...(data as object) } : p)); }));
+    getSupabase().then(sb => sb?.rpc('record_game', mode ? { won, mode } : { won }).then(({ data }) => { if (data) setProfile(p => (p ? { ...p, ...(data as object) } : p)); }));
   };
 
   const value = useMemo<Ctx>(() => ({
     ...prefs, t: { ...DICTS[prefs.lang], ...EXTRA[prefs.lang], ...EXTRA2[prefs.lang] }, set, session, profile, online: hasSupabase,
     canPersonalize: !!session, isAdmin, canUse, saveProfile, signIn, verifyCode, signOut, recordGame,
-    signInPassword, signUpPassword, resetPassword, updatePassword, recovery, endRecovery: () => setRecovery(false),
+    signInPassword, signUpPassword, resetPassword, updatePassword, recovery, patchProfile, endRecovery: () => setRecovery(false),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [prefs, session, profile, recovery, localeRev]);
 

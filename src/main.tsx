@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import App from './App';
 import { captureInstallPrompt } from './install';
+import { initMusic } from './media/music';
 import { localeReady } from './store';
 
 captureInstallPrompt();
+initMusic();
 
 // A lazily loaded language (one small chunk) is fetched before the first paint so the UI never flashes English;
 // bundled languages resolve immediately, and a slow network falls back to rendering after 2.5 s.

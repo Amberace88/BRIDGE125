@@ -6,6 +6,8 @@ import { Backdrop } from '../components/Backdrop';
 import { Intro, shouldShowIntro } from '../components/Intro';
 import { RulesPanel } from '../components/RulesPanel';
 import { LangPicker } from '../components/LangPicker';
+import { DailyRewardButton, LevelBadge } from './Rewards';
+import { UserAvatar } from '../media/UserAvatar';
 import { useInstall } from '../install';
 import { useStrings } from '../i18n/pick';
 import { HOME } from '../i18n/home';
@@ -128,9 +130,11 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
           {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
           {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
           {wide && <LangPicker />}
+          <DailyRewardButton />
+          {wide && <LevelBadge size={34} onClick={onProfile} />}
           {app.session ? (
             <button className="who" onClick={onProfile}>
-              <span className="avatar sm">{app.avatar || (app.name || app.session.user.email || '?').slice(0, 1).toUpperCase()}</span>
+              <UserAvatar size={32} className="avatar sm" />
               <span className="whoname">{app.name || t.profile}</span>
               {app.profile && <span className="chip bm"><i className="coin" />{app.profile.bm.toLocaleString('fr-FR')}</span>}
             </button>

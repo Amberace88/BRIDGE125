@@ -6,6 +6,7 @@ import { LangPicker } from '../components/LangPicker';
 import { CardFace } from '../components/CardView';
 import { useInstall } from '../install';
 import { Sheet } from './Sheets';
+import { AchievementsList, LevelBar } from './Rewards';
 import { sfx } from '../sound';
 import { CONTACT_EMAIL } from '../i18n3';
 import type { Card } from '../engine/engine';
@@ -92,8 +93,8 @@ function LivePreview({ table, accent, back }: { table: string; accent: string; b
   );
 }
 
-export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
-  onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void; onInstall: () => void; onAdmin: () => void;
+export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop }: {
+  onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void; onInstall: () => void; onAdmin: () => void; onShop?: () => void;
 }) {
   const app = useApp();
   const { t } = app;
@@ -117,7 +118,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
     setPv(v => ({ ...v, [kind]: id }));
     sfx.tap();
     if (!signedIn) { flash(p.guestLock); return; }
-    if (!app.canUse(id)) { flash(p.locked); return; }
+    if (!app.canUse(id)) { flash(p.locked); if (onShop) setTimeout(onShop, 900); return; }
     app.saveProfile(kind === 'table' ? { table: id } : kind === 'accent' ? { accent: id } : { cardBack: id });
   };
   const revert = () => setPv({ table: app.table, accent: app.accent, back: app.cardBack });
@@ -149,6 +150,8 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
           ))}
         </div>
       )}
+
+      {prof && <LevelBar />}
 
       {!signedIn && app.online && (
         <div className="pguest">
@@ -199,6 +202,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
                 <button className={`switch ${app.sound ? 'on' : ''}`} role="switch" aria-checked={app.sound} onClick={() => app.set({ sound: !app.sound })}><i /></button>
               </div>
               <MusicRows />
+              {signedIn && <><div className="label">🏅</div><AchievementsList /></>}
             </div>
           )}
 
@@ -213,6 +217,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin }: {
                 )}
               </AnimatePresence>
               {app.isAdmin && <div className="adminnote">👑 {p.adminFree}</div>}
+              {onShop && !app.isAdmin && <button className="btn acc" style={{ width: '100%', marginTop: 10 }} onClick={onShop}>💎 {t.prof.premium} →</button>}
 
               <div className="label">{p.table}</div>
               <div className="tilegrid">
