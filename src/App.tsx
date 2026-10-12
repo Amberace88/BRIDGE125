@@ -4,25 +4,28 @@ import { AppProvider, useApp } from './store';
 import { Home } from './screens/Home';
 import { LocalGame, loadSavedGame } from './screens/LocalGame';
 import { OnlineRoom } from './screens/OnlineRoom';
-import { ProfileSheet } from './screens/Sheets';
+import { ProfileSheet } from './screens/Profile';
 import { AuthSheet } from './screens/AuthSheet';
 import type { LegalKind } from './screens/Legal';
 
 const Guide = lazy(() => import('./screens/Guide').then(m => ({ default: m.Guide })));
 const Legal = lazy(() => import('./screens/Legal').then(m => ({ default: m.Legal })));
 const Leaderboard = lazy(() => import('./screens/Leaderboard').then(m => ({ default: m.Leaderboard })));
+const AdminPanel = lazy(() => import('./screens/Admin').then(m => ({ default: m.AdminPanel })));
 const InstallSheet = lazy(() => import('./screens/InstallSheet').then(m => ({ default: m.InstallSheet })));
 import { findQuickMatch, newRoomCode } from './online/useRoom';
+import { startHeartbeat, track } from './analytics';
+import { detectPlatform, isStandalone } from './install';
 import type { GameState } from './engine/engine';
 
 type Route = { name: 'home' } | { name: 'local'; resume: GameState | null; key: number } | { name: 'room'; code: string };
-type Overlay = 'rules' | LegalKind | null;
+type Overlay = 'rules' | 'admin' | LegalKind | null;
 
 function parse(): { route: Route; overlay: Overlay } {
   const p = location.pathname;
   const m = p.match(/^\/r\/([A-Za-z0-9]{4,6})\/?$/);
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
-  const o = p.match(/^\/(rules|privacy|terms)\/?$/);
+  const o = p.match(/^\/(rules|privacy|terms|admin)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
 
@@ -52,6 +55,8 @@ function Shell() {
   // app-icon shortcuts and deep links: /?play=bots, /?play=online, /?install=1
   useEffect(() => {
     const q = new URLSearchParams(location.search);
+    track('app_open', { lang: app.lang, platform: detectPlatform(), standalone: isStandalone(), source: q.get('source'), path: location.pathname.slice(0, 40) });
+    startHeartbeat();
     const play = q.get('play');
     if (q.has('play') || q.has('install') || q.has('source')) history.replaceState(null, '', location.pathname);
     if (play === 'bots') go({ name: 'local', resume: null, key: Date.now() }, '/', true);
@@ -62,6 +67,7 @@ function Shell() {
   /** Matchmaking: resolves when we are on our way to a table; rejects so the button can show an error. */
   const quick = async (skip = '') => {
     const code = await findQuickMatch(skip);
+    if (!skip) track('quick_match');
     go({ name: 'room', code }, `/r/${code}`, route.name === 'room');
   };
 
@@ -78,9 +84,10 @@ function Shell() {
               onLegal={k => openOverlay(k)}
               onLeaders={() => setSheet('leaders')}
               onInstall={() => setSheet('install')}
+              onAdmin={() => openOverlay('admin')}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
-              onCreateRoom={() => { const c = newRoomCode(); go({ name: 'room', code: c }, `/r/${c}`); }}
+              onCreateRoom={() => { const c = newRoomCode(); track('room_create'); go({ name: 'room', code: c }, `/r/${c}`); }}
               onJoinRoom={c => go({ name: 'room', code: c }, `/r/${c}`)} />
           </motion.div>
         )}
@@ -100,12 +107,13 @@ function Shell() {
       <Suspense fallback={null}>
       <AnimatePresence>
         {overlay === 'rules' && <Guide key="g" onClose={closeOverlay} onPractice={() => go({ name: 'local', resume: null, key: Date.now() })} />}
+        {overlay === 'admin' && <AdminPanel key="adm" onClose={closeOverlay} />}
         {(overlay === 'privacy' || overlay === 'terms') && (
           <Legal key="l" kind={overlay} onClose={closeOverlay} onSwitch={k => { history.replaceState(null, '', '/' + k); setOverlay(k); }} />
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} />}
+        {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} onAdmin={() => { setSheet(null); openOverlay('admin'); }} />}
         {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} onLegal={k => { setSheet(null); openOverlay(k); }} />}
         {sheet === 'leaders' && <Leaderboard key="lb" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
         {sheet === 'install' && <InstallSheet key="in" onClose={() => setSheet(null)} />}

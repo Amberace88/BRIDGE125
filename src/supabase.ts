@@ -19,4 +19,5 @@ export function getSupabase(): Promise<SupabaseClient | null> {
 export interface Profile {
   id: string; username: string | null; lang: string | null; accent: string | null; background: string | null;
   bm: number; games_played: number; wins: number;
+  role?: 'player' | 'admin'; banned?: boolean; card_back?: string | null; avatar?: string | null; owned?: string[]; created_at?: string;
 }

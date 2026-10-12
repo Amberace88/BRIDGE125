@@ -1,5 +1,6 @@
-export interface Accent { id: string; name: string; hi: string; base: string; lo: string; ink: string }
-export interface Table { id: string; name: string; css: string; back: string; tone: string }
+export interface Accent { id: string; name: string; hi: string; base: string; lo: string; ink: string; premium?: boolean }
+export interface Table { id: string; name: string; css: string; back: string; tone: string; premium?: boolean }
+export interface CardBack { id: string; name: string; css: string; premium?: boolean }
 
 export const ACCENTS: Accent[] = [
   { id: 'brass', name: 'Brass', hi: '#EBD38E', base: '#C9A54C', lo: '#8C6E28', ink: '#2B1E03' },
@@ -8,6 +9,10 @@ export const ACCENTS: Accent[] = [
   { id: 'amethyst', name: 'Amethyst', hi: '#D6B6FF', base: '#9B6BDF', lo: '#5D3A99', ink: '#FFFFFF' },
   { id: 'silver', name: 'Silver', hi: '#F2F4F7', base: '#C3C9D2', lo: '#7D8592', ink: '#16181C' },
   { id: 'copper', name: 'Copper', hi: '#FFC29A', base: '#D9804A', lo: '#8F4A21', ink: '#2A1205' },
+  { id: 'emerald', name: 'Emerald', hi: '#8FF5C8', base: '#2FBF86', lo: '#13724C', ink: '#03251A', premium: true },
+  { id: 'rosegold', name: 'Rose Gold', hi: '#FFD3C4', base: '#E2A08E', lo: '#9A5E52', ink: '#2E120C', premium: true },
+  { id: 'neon', name: 'Neon', hi: '#FF9BF2', base: '#F23FD8', lo: '#8A1C9E', ink: '#FFFFFF', premium: true },
+  { id: 'platinum', name: 'Platinum', hi: '#FFFFFF', base: '#DCE6F2', lo: '#8796AA', ink: '#0E1520', premium: true },
 ];
 
 const malachite = `
@@ -34,14 +39,51 @@ export const TABLES: Table[] = [
   { id: 'baltic', name: 'Baltic Sea', tone: '#06303A', css: `radial-gradient(130% 90% at 50% 42%, rgba(0,0,0,0) 35%, rgba(0,0,0,.5) 100%),
     repeating-radial-gradient(ellipse 200% 60% at 50% 120%, #0A4A57 0 10px, #0E5A68 10px 16px, #083D48 16px 22px)`,
     back: 'repeating-radial-gradient(ellipse 200% 60% at 50% 120%, #0f6b7c 0 3px,#0a4b57 3px 6px)' },
+  { id: 'royal', name: 'Royal Purple', tone: '#24103F', premium: true, css: `radial-gradient(130% 90% at 50% 40%, rgba(0,0,0,0) 30%, rgba(0,0,0,.6) 100%),
+    radial-gradient(circle at 50% 50%, rgba(235,200,120,.10) 0 2px, transparent 3px) 0 0 / 34px 34px,
+    radial-gradient(circle at 50% 50%, rgba(235,200,120,.06) 0 6px, transparent 7px) 17px 17px / 34px 34px,
+    radial-gradient(120% 90% at 50% 30%, #4B2386 0%, #2C1356 55%, #150829 100%)`,
+    back: 'radial-gradient(circle at 50% 50%, #e9c46a 0 1.5px, transparent 2.5px) 0 0/9px 9px, linear-gradient(160deg,#4b2386,#22104a)' },
+  { id: 'montecarlo', name: 'Monte Carlo', tone: '#4A0A0E', premium: true, css: `radial-gradient(130% 90% at 50% 42%, rgba(0,0,0,0) 32%, rgba(0,0,0,.62) 100%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 3px),
+    radial-gradient(110% 80% at 50% 35%, #A3161F 0%, #6E0D13 55%, #33060A 100%)`,
+    back: 'repeating-linear-gradient(45deg,#7a0e15 0 5px,#a3161f 5px 7px), repeating-linear-gradient(-45deg,transparent 0 5px,rgba(255,215,140,.25) 5px 6px)' },
+  { id: 'jugend', name: 'Art Nouveau', tone: '#0D3A3A', premium: true, css: `radial-gradient(130% 90% at 50% 42%, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%),
+    repeating-radial-gradient(circle at 0% 0%, rgba(214,180,100,.10) 0 2px, transparent 2px 46px),
+    repeating-radial-gradient(circle at 100% 100%, rgba(214,180,100,.08) 0 2px, transparent 2px 46px),
+    radial-gradient(120% 90% at 50% 35%, #17625E 0%, #0E4544 55%, #062221 100%)`,
+    back: 'repeating-radial-gradient(circle at 0 0, #d6b464 0 1px, transparent 1px 10px), repeating-radial-gradient(circle at 100% 100%, #d6b464 0 1px, transparent 1px 10px), linear-gradient(160deg,#17625e,#0b3a39)' },
+  { id: 'synth', name: 'Neon Night', tone: '#120A2A', premium: true, css: `linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(242,63,216,.10) 100%),
+    repeating-linear-gradient(90deg, rgba(0,229,255,.10) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(0deg, rgba(242,63,216,.08) 0 1px, transparent 1px 48px),
+    radial-gradient(120% 90% at 50% 20%, #2A1660 0%, #160B36 55%, #08041A 100%)`,
+    back: 'repeating-linear-gradient(90deg, rgba(0,229,255,.6) 0 1px, transparent 1px 8px), repeating-linear-gradient(0deg, rgba(242,63,216,.55) 0 1px, transparent 1px 8px), linear-gradient(180deg,#24105a,#0c0624)' },
 ];
 
-export function applyTheme(accentId: string, tableId: string) {
+export const BACKS: CardBack[] = [
+  { id: 'match', name: 'Table', css: '' },
+  { id: 'crimson', name: 'Crimson', css: 'repeating-linear-gradient(45deg,#8f1326 0 6px,#b81c34 6px 8px), repeating-linear-gradient(-45deg,transparent 0 6px,rgba(255,255,255,.12) 6px 7px), #8f1326' },
+  { id: 'midnight', name: 'Midnight', css: 'radial-gradient(circle at 30% 30%, #f4e7b8 0 1px, transparent 2px) 0 0/12px 12px, radial-gradient(circle at 70% 70%, #c8d2ff 0 1px, transparent 2px) 0 0/16px 16px, linear-gradient(180deg,#1d2b5a,#0b1230)' },
+  { id: 'carbon', name: 'Carbon', css: 'repeating-linear-gradient(45deg,#1b1d22 0 3px,#2a2d34 3px 6px), repeating-linear-gradient(-45deg,transparent 0 3px,rgba(255,255,255,.04) 3px 6px)' },
+  { id: 'gold', name: 'Gold Foil', premium: true, css: 'linear-gradient(115deg,#8c6e28 0%,#f3de9c 22%,#c9a54c 38%,#fff2c4 50%,#b8913a 64%,#f3de9c 80%,#8c6e28 100%)' },
+  { id: 'jugend', name: 'Art Nouveau', premium: true, css: 'repeating-radial-gradient(circle at 0 0, #d6b464 0 1px, transparent 1px 10px), repeating-radial-gradient(circle at 100% 100%, #d6b464 0 1px, transparent 1px 10px), linear-gradient(160deg,#17625e,#0b3a39)' },
+  { id: 'neon', name: 'Neon Grid', premium: true, css: 'repeating-linear-gradient(90deg, rgba(0,229,255,.7) 0 1px, transparent 1px 8px), repeating-linear-gradient(0deg, rgba(242,63,216,.6) 0 1px, transparent 1px 8px), linear-gradient(180deg,#24105a,#0c0624)' },
+  { id: 'royal', name: 'Royal', premium: true, css: 'radial-gradient(circle at 50% 50%, #e9c46a 0 1.5px, transparent 2.5px) 0 0/9px 9px, linear-gradient(160deg,#4b2386,#22104a)' },
+];
+
+export const isPremium = (id: string) =>
+  !!(ACCENTS.find(a => a.id === id)?.premium || TABLES.find(t => t.id === id)?.premium || BACKS.find(b => b.id === id)?.premium);
+
+/** The CSS background used for card backs: an explicit design, or the table's matching back. */
+export const backCss = (backId: string, tableId: string) =>
+  BACKS.find(b => b.id === backId && b.id !== 'match')?.css || (TABLES.find(t => t.id === tableId) ?? TABLES[0]).back;
+
+export function applyTheme(accentId: string, tableId: string, backId = 'match') {
   const a = ACCENTS.find(x => x.id === accentId) ?? ACCENTS[0];
   const t = TABLES.find(x => x.id === tableId) ?? TABLES[0];
   const r = document.documentElement.style;
   r.setProperty('--acc-hi', a.hi); r.setProperty('--acc', a.base); r.setProperty('--acc-lo', a.lo); r.setProperty('--acc-ink', a.ink);
-  r.setProperty('--table', t.css); r.setProperty('--back', t.back); r.setProperty('--tone', t.tone);
+  r.setProperty('--table', t.css); r.setProperty('--back', backCss(backId, tableId)); r.setProperty('--tone', t.tone);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', t.tone);
 }

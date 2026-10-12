@@ -9,7 +9,7 @@ import { useInstall } from '../install';
 interface Props {
   onPlay: () => void; onResume: (() => void) | null; onRules: () => void; onProfile: () => void; onAuth: () => void;
   onCreateRoom: () => void; onJoinRoom: (code: string) => void; onQuick: () => Promise<void>;
-  onLegal: (k: 'privacy' | 'terms') => void; onLeaders: () => void; onInstall: () => void;
+  onLegal: (k: 'privacy' | 'terms') => void; onLeaders: () => void; onInstall: () => void; onAdmin: () => void;
 }
 
 function useWide() {
@@ -18,7 +18,7 @@ function useWide() {
   return wide;
 }
 
-export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall }: Props) {
+export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin }: Props) {
   const ins = useInstall();
   const [bannerOff, setBannerOff] = useState(() => { try { return localStorage.getItem('b125.installBanner') === 'off'; } catch { return false; } });
   const hideBanner = () => { setBannerOff(true); try { localStorage.setItem('b125.installBanner', 'off'); } catch { /* */ } };
@@ -94,11 +94,12 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
         <nav>
           {wide && <button className="navlink" onClick={onRules}>{t.nav.howToPlay}</button>}
           {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
+          {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
           {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
           {wide && langPills}
           {app.session ? (
             <button className="who" onClick={onProfile}>
-              <span className="avatar sm">{(app.name || app.session.user.email || '?').slice(0, 1).toUpperCase()}</span>
+              <span className="avatar sm">{app.avatar || (app.name || app.session.user.email || '?').slice(0, 1).toUpperCase()}</span>
               <span className="whoname">{app.name || t.profile}</span>
               {app.profile && <span className="chip bm"><i className="coin" />{app.profile.bm.toLocaleString('fr-FR')}</span>}
             </button>

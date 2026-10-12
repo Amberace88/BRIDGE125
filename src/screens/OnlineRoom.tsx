@@ -4,6 +4,7 @@ import { useApp } from '../store';
 import { useRoom, playerId, isQuickCode } from '../online/useRoom';
 import { Table } from './Table';
 import { sfx } from '../sound';
+import { track } from '../analytics';
 
 export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExit: () => void; onQuickAgain: (skip: string) => void }) {
   const app = useApp();
@@ -25,9 +26,14 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
 
   // stats for signed-in players: one record per finished game
   const recorded = useRef(false);
+  const started = useRef(false);
   const phase = r.game?.phase;
   useEffect(() => {
-    if (phase === 'gameOver' && r.game && r.you >= 0 && !recorded.current) { recorded.current = true; app.recordGame(r.game.winners.includes(r.you)); }
+    if (phase === 'gameOver' && r.game && r.you >= 0 && !recorded.current) {
+      recorded.current = true; app.recordGame(r.game.winners.includes(r.you));
+      track('game_end', { mode: quick ? 'quick' : 'room', won: r.game.winners.includes(r.you), rounds: r.game.round, players: r.game.players.length });
+    }
+    if (phase === 'play' && r.game?.round === 1 && !started.current) { started.current = true; track('game_start', { mode: quick ? 'quick' : 'room', players: r.game.players.length }); }
     if (phase && phase !== 'gameOver') recorded.current = false;
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 

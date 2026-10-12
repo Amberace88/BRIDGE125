@@ -3,6 +3,7 @@ import { type GameState, apply, newGame, nextRound } from '../engine/engine';
 import { botAction } from '../engine/bot';
 import { useApp } from '../store';
 import { Table } from './Table';
+import { track } from '../analytics';
 
 const SAVE_KEY = 'b125.game.v1';
 export function loadSavedGame(): GameState | null {
@@ -21,10 +22,12 @@ export function LocalGame({ resume, onExit }: { resume: GameState | null; onExit
   const recorded = useRef(false);
 
   useEffect(() => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(g)); } catch { /* */ } }, [g]);
+  useEffect(() => { if (!resume) track('game_start', { mode: 'bots', players: g.players.length, level: app.level }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (g.phase === 'gameOver' && !recorded.current) {
       recorded.current = true; app.recordGame(g.winners.includes(0)); clearSavedGame();
+      track('game_end', { mode: 'bots', won: g.winners.includes(0), rounds: g.round, players: g.players.length });
     }
   }, [g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -49,7 +52,7 @@ export function LocalGame({ resume, onExit }: { resume: GameState | null; onExit
     <Table g={g} me={0}
       onAct={a => setG(cur => apply(cur, 0, a))}
       onNextRound={() => setG(cur => nextRound(cur))}
-      onRematch={() => { recorded.current = false; setG(newGame(g.players.map(p => ({ name: p.name, bot: p.bot })))); }}
+      onRematch={() => { recorded.current = false; track('game_start', { mode: 'bots', players: g.players.length, rematch: true }); setG(newGame(g.players.map(p => ({ name: p.name, bot: p.bot })))); }}
       onExit={() => { clearSavedGame(); onExit(); }} />
   );
 }

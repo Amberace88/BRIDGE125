@@ -3,13 +3,14 @@ import type { Session } from '@supabase/supabase-js';
 import { DICTS, type Dict, type Lang } from './i18n';
 import { EXTRA, type Extra } from './i18n2';
 import { EXTRA2, type Extra2 } from './i18n3';
-import { applyTheme } from './theme';
+import { applyTheme, isPremium } from './theme';
+import { track } from './analytics';
 import { setSound } from './sound';
 import { getSupabase, hasSupabase, type Profile } from './supabase';
 import type { BotLevel } from './engine/bot';
 
-interface Prefs { lang: Lang; accent: string; table: string; sound: boolean; name: string; level: BotLevel; opponents: number }
-const DEFAULTS: Prefs = { lang: 'en', accent: 'brass', table: 'malachite', sound: true, name: '', level: 'normal', opponents: 1 };
+interface Prefs { lang: Lang; accent: string; table: string; cardBack: string; avatar: string; sound: boolean; name: string; level: BotLevel; opponents: number }
+const DEFAULTS: Prefs = { lang: 'en', accent: 'brass', table: 'malachite', cardBack: 'match', avatar: '', sound: true, name: '', level: 'normal', opponents: 1 };
 const KEY = 'pikovaya.prefs.v1';
 
 function load(): Prefs {
@@ -25,7 +26,10 @@ interface Ctx extends Prefs {
   profile: Profile | null;
   online: boolean;              // supabase configured
   canPersonalize: boolean;
-  saveProfile: (patch: Partial<Pick<Prefs, 'name' | 'accent' | 'table' | 'lang'>>) => Promise<boolean>;
+  isAdmin: boolean;
+  /** Premium cosmetics: free for admins, otherwise owned items only. */
+  canUse: (itemId: string) => boolean;
+  saveProfile: (patch: Partial<Pick<Prefs, 'name' | 'accent' | 'table' | 'lang' | 'cardBack' | 'avatar'>>) => Promise<boolean>;
   signIn: (email: string) => Promise<string | null>;
   signInPassword: (email: string, password: string) => Promise<AuthErr | null>;
   signUpPassword: (email: string, password: string, name: string) => Promise<AuthErr | null>;
@@ -66,7 +70,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPrefs(p => { const n = { ...p, ...patch }; persist(n); return n; });
   }, []);
 
-  useEffect(() => { applyTheme(prefs.accent, prefs.table); }, [prefs.accent, prefs.table]);
+  const isAdmin = profile?.role === 'admin';
+  const canUse = useCallback((id: string) => !isPremium(id) || isAdmin || !!profile?.owned?.includes(id), [isAdmin, profile?.owned]);
+  // never show a premium look the current player is not entitled to (e.g. after signing out)
+  useEffect(() => {
+    applyTheme(canUse(prefs.accent) ? prefs.accent : 'brass', canUse(prefs.table) ? prefs.table : 'malachite', canUse(prefs.cardBack) ? prefs.cardBack : 'match');
+  }, [prefs.accent, prefs.table, prefs.cardBack, canUse]);
   useEffect(() => { setSound(prefs.sound); }, [prefs.sound]);
   useEffect(() => { document.documentElement.lang = prefs.lang; }, [prefs.lang]);
 
@@ -92,6 +101,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.accent) patch.accent = data.accent;
       if (data.background) patch.table = data.background;
       if (data.lang) patch.lang = data.lang as Lang;
+      if (data.card_back) patch.cardBack = data.card_back;
+      if (data.avatar) patch.avatar = data.avatar;
       set(patch);
     }));
   }, [session, set]);
@@ -105,6 +116,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (patch.accent) row.accent = patch.accent;
     if (patch.table) row.background = patch.table;
     if (patch.lang) row.lang = patch.lang;
+    if (patch.cardBack) row.card_back = patch.cardBack;
+    if (patch.avatar !== undefined) row.avatar = patch.avatar;
     const { error } = await sb.from('profiles').update(row).eq('id', session.user.id);
     return !error;
   };
@@ -123,7 +136,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
   const signInPassword: Ctx['signInPassword'] = async (email, password) => {
     const sb = await getSupabase(); if (!sb) return 'network';
-    try { const { error } = await sb.auth.signInWithPassword({ email, password }); return authErr(error); } catch { return 'network'; }
+    try { const { error } = await sb.auth.signInWithPassword({ email, password }); if (!error) track('login', { method: 'password' }); return authErr(error); } catch { return 'network'; }
   };
   const signUpPassword: Ctx['signUpPassword'] = async (email, password, name) => {
     const sb = await getSupabase(); if (!sb) return 'network';
@@ -134,6 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.user && (data.user.identities?.length ?? 0) === 0) return 'exists';
       if (data.session && data.user) {
         await sb.from('profiles').update({ username: name.slice(0, 24) }).eq('id', data.user.id);
+        track('signup', { method: 'password' });
         set({ name });
         return null;
       }
@@ -158,7 +172,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => ({
     ...prefs, t: { ...DICTS[prefs.lang], ...EXTRA[prefs.lang], ...EXTRA2[prefs.lang] }, set, session, profile, online: hasSupabase,
-    canPersonalize: !!session, saveProfile, signIn, verifyCode, signOut, recordGame,
+    canPersonalize: !!session, isAdmin, canUse, saveProfile, signIn, verifyCode, signOut, recordGame,
     signInPassword, signUpPassword, resetPassword, updatePassword, recovery, endRecovery: () => setRecovery(false),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [prefs, session, profile, recovery]);

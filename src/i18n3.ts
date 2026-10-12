@@ -18,6 +18,12 @@ export interface Extra2 {
     welcomeNew: (n: string) => string; welcomeBack: string;
     err: { badEmail: string; short: string; wrong: string; exists: string; weak: string; notConfirmed: string; tooMany: string; network: string; generic: string };
   };
+  prof: {
+    tabs: { me: string; look: string; account: string }; since: (d: string) => string; winRate: string; avatar: string; saved: string;
+    preview: string; table: string; accent: string; backs: string; matchBack: string; premium: string; locked: string; adminFree: string;
+    guestLock: string; tryOn: string; email: string; security: string; changePw: string; pwChanged: string; danger: string;
+    deleteAcc: string; deleteHint: string; admin: string; adminPanel: string; guestTitle: string; guestSub: string; prefs: string;
+  };
 }
 
 const en: Extra2 = {
@@ -54,6 +60,14 @@ const en: Extra2 = {
     welcomeNew: n => `Welcome to the table, ${n}!`, welcomeBack: 'Welcome back!',
     err: { badEmail: 'Enter a valid email address', short: 'Password must be at least 8 characters', wrong: 'Wrong email or password', exists: 'An account with this email already exists — sign in instead.',
       weak: 'Choose a stronger password', notConfirmed: 'Please confirm your email first', tooMany: 'Too many attempts — wait a minute and try again', network: 'No connection — check your internet', generic: 'Something went wrong. Please try again.' },
+  },
+  prof: {
+    tabs: { me: 'Profile', look: 'Style', account: 'Account' }, since: d => `Member since ${d}`, winRate: 'Win rate', avatar: 'Avatar', saved: 'Saved',
+    preview: 'Live preview', table: 'Table', accent: 'Accent colour', backs: 'Card backs', matchBack: 'Match table', premium: 'Premium',
+    locked: 'Premium — coming soon to the shop. Try it on in the preview.', adminFree: 'Admin — every premium item is unlocked for you',
+    guestLock: 'Sign in to save your style', tryOn: 'Previewing', email: 'Email', security: 'Password', changePw: 'Change password', pwChanged: 'Password changed',
+    danger: 'Danger zone', deleteAcc: 'Delete my account', deleteHint: 'We will delete your account and data within 30 days.',
+    admin: 'Admin', adminPanel: 'Open admin panel', guestTitle: 'Playing as guest', guestSub: 'Create a free account to keep stats, BM and your style on every device.', prefs: 'Preferences',
   },
 };
 
@@ -92,6 +106,14 @@ const lv: Extra2 = {
     err: { badEmail: 'Ieraksti derīgu e-pasta adresi', short: 'Parolei jābūt vismaz 8 rakstzīmēm', wrong: 'Nepareizs e-pasts vai parole', exists: 'Konts ar šo e-pastu jau ir — vienkārši ienāc.',
       weak: 'Izvēlies stiprāku paroli', notConfirmed: 'Vispirms apstiprini e-pastu', tooMany: 'Pārāk daudz mēģinājumu — pagaidi minūti', network: 'Nav savienojuma — pārbaudi internetu', generic: 'Kaut kas nogāja greizi. Mēģini vēlreiz.' },
   },
+  prof: {
+    tabs: { me: 'Profils', look: 'Izskats', account: 'Konts' }, since: d => `Spēlē kopš ${d}`, winRate: 'Uzvaru %', avatar: 'Avatārs', saved: 'Saglabāts',
+    preview: 'Priekšskatījums', table: 'Galds', accent: 'Akcenta krāsa', backs: 'Kāršu mugura', matchBack: 'Kā galdam', premium: 'Premium',
+    locked: 'Premium — drīzumā veikalā. Izmēģini priekšskatījumā.', adminFree: 'Admins — visi premium dizaini tev ir atvērti',
+    guestLock: 'Ienāc, lai saglabātu savu stilu', tryOn: 'Priekšskatījums', email: 'E-pasts', security: 'Parole', changePw: 'Mainīt paroli', pwChanged: 'Parole nomainīta',
+    danger: 'Bīstamā zona', deleteAcc: 'Dzēst manu kontu', deleteHint: 'Mēs izdzēsīsim tavu kontu un datus 30 dienu laikā.',
+    admin: 'Admins', adminPanel: 'Atvērt admina paneli', guestTitle: 'Spēlē kā viesis', guestSub: 'Izveido bezmaksas kontu, lai saglabātu statistiku, BM un stilu visās ierīcēs.', prefs: 'Iestatījumi',
+  },
 };
 
 const ru: Extra2 = {
@@ -129,6 +151,14 @@ const ru: Extra2 = {
     err: { badEmail: 'Введите корректный e-mail', short: 'Пароль — минимум 8 символов', wrong: 'Неверный e-mail или пароль', exists: 'Аккаунт с этим e-mail уже есть — просто войдите.',
       weak: 'Выберите пароль понадёжнее', notConfirmed: 'Сначала подтвердите e-mail', tooMany: 'Слишком много попыток — подождите минуту', network: 'Нет соединения — проверьте интернет', generic: 'Что-то пошло не так. Попробуйте ещё раз.' },
   },
+  prof: {
+    tabs: { me: 'Профиль', look: 'Стиль', account: 'Аккаунт' }, since: d => `Играет с ${d}`, winRate: '% побед', avatar: 'Аватар', saved: 'Сохранено',
+    preview: 'Предпросмотр', table: 'Стол', accent: 'Цвет акцента', backs: 'Рубашка карт', matchBack: 'Под стол', premium: 'Премиум',
+    locked: 'Премиум — скоро в магазине. Примерьте в предпросмотре.', adminFree: 'Админ — все премиум-дизайны открыты',
+    guestLock: 'Войдите, чтобы сохранить стиль', tryOn: 'Примерка', email: 'E-mail', security: 'Пароль', changePw: 'Сменить пароль', pwChanged: 'Пароль изменён',
+    danger: 'Опасная зона', deleteAcc: 'Удалить аккаунт', deleteHint: 'Мы удалим аккаунт и данные в течение 30 дней.',
+    admin: 'Админ', adminPanel: 'Открыть админ-панель', guestTitle: 'Вы играете как гость', guestSub: 'Создайте бесплатный аккаунт, чтобы сохранить статистику, BM и стиль на всех устройствах.', prefs: 'Настройки',
+  },
 };
 
 const uk: Extra2 = {
@@ -165,6 +195,14 @@ const uk: Extra2 = {
     welcomeNew: n => `Ласкаво просимо до столу, ${n}!`, welcomeBack: 'Раді бачити знову!',
     err: { badEmail: 'Введіть коректний e-mail', short: 'Пароль — щонайменше 8 символів', wrong: 'Неправильний e-mail або пароль', exists: 'Акаунт з цим e-mail вже є — просто увійдіть.',
       weak: 'Оберіть надійніший пароль', notConfirmed: 'Спершу підтвердіть e-mail', tooMany: 'Забагато спроб — зачекайте хвилину', network: 'Немає з’єднання — перевірте інтернет', generic: 'Щось пішло не так. Спробуйте ще раз.' },
+  },
+  prof: {
+    tabs: { me: 'Профіль', look: 'Стиль', account: 'Акаунт' }, since: d => `Грає з ${d}`, winRate: '% перемог', avatar: 'Аватар', saved: 'Збережено',
+    preview: 'Попередній перегляд', table: 'Стіл', accent: 'Колір акценту', backs: 'Сорочка карт', matchBack: 'Під стіл', premium: 'Преміум',
+    locked: 'Преміум — незабаром у магазині. Приміряйте в перегляді.', adminFree: 'Адмін — усі преміум-дизайни відкриті',
+    guestLock: 'Увійдіть, щоб зберегти стиль', tryOn: 'Приміряння', email: 'E-mail', security: 'Пароль', changePw: 'Змінити пароль', pwChanged: 'Пароль змінено',
+    danger: 'Небезпечна зона', deleteAcc: 'Видалити акаунт', deleteHint: 'Ми видалимо акаунт і дані протягом 30 днів.',
+    admin: 'Адмін', adminPanel: 'Відкрити адмін-панель', guestTitle: 'Ви граєте як гість', guestSub: 'Створіть безкоштовний акаунт, щоб зберегти статистику, BM і стиль на всіх пристроях.', prefs: 'Налаштування',
   },
 };
 

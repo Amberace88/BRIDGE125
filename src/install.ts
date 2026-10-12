@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { track } from './analytics';
 
 /** Chrome / Edge / Samsung fire this when the PWA can be installed; we keep it to show our own button. */
 interface BIPEvent extends Event { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
@@ -11,7 +12,7 @@ const emit = () => subs.forEach(f => f());
 /** Call once, as early as possible (before React mounts), so the event is never missed. */
 export function captureInstallPrompt() {
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e as BIPEvent; emit(); });
-  window.addEventListener('appinstalled', () => { deferred = null; installedNow = true; emit(); });
+  window.addEventListener('appinstalled', () => { deferred = null; installedNow = true; emit(); track('app_installed', { platform: detectPlatform() }); });
 }
 
 export type Platform = 'ios' | 'android' | 'desktop';
@@ -44,6 +45,7 @@ export function useInstall() {
       const ev = deferred;
       await ev.prompt();
       const { outcome } = await ev.userChoice;
+      track('install_prompt', { outcome });
       if (outcome === 'accepted') { deferred = null; installedNow = true; emit(); }
       return outcome === 'accepted';
     },
