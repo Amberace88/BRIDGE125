@@ -5,6 +5,7 @@
 @import '@fontsource/cormorant-garamond/600.css';
 @import '@fontsource/cormorant-garamond/700.css';
 @import '@fontsource/cormorant-garamond/700-italic.css';
+@import './styles/intl-fonts.css';
 
 :root {
   --acc-hi: #EBD38E; --acc: #C9A54C; --acc-lo: #8C6E28; --acc-ink: #2B1E03;
@@ -12,8 +13,8 @@
   --ivory: #F7F1E3; --ink: #17181C; --claret: #A31D35; --claret-hi: #D2334F;
   --lacquer: rgba(5, 18, 16, .72); --line: color-mix(in srgb, var(--acc) 38%, transparent);
   --mute: rgba(232, 240, 236, .62); --text: #EEF3EF;
-  --serif: 'Cormorant Garamond', Georgia, serif;
-  --sans: 'Golos Text', system-ui, sans-serif;
+  --serif: 'Cormorant Garamond', 'Noto Sans Georgian', 'Noto Sans Armenian', Georgia, serif;
+  --sans: 'Golos Text', 'Noto Sans Georgian', 'Noto Sans Armenian', system-ui, sans-serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
   color-scheme: dark;

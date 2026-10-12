@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { HeroCards } from '../components/HeroCards';
 import { Backdrop } from '../components/Backdrop';
-import { LANGS } from '../i18n';
+import { LangPicker } from '../components/LangPicker';
 import { useInstall } from '../install';
 
 interface Props {
@@ -77,14 +77,6 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
     </motion.h1>
   );
 
-  const langPills = (
-    <div className="langs" role="radiogroup" aria-label={t.language}>
-      {LANGS.map(l => (
-        <button key={l.id} role="radio" aria-checked={lang === l.id} className={lang === l.id ? 'on' : ''} onClick={() => app.saveProfile({ lang: l.id })}>{l.id.toUpperCase()}</button>
-      ))}
-    </div>
-  );
-
   return (
     <div className="home">
       <Backdrop mx={mx} my={my} />
@@ -96,7 +88,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
           {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
           {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
           {wide && !ins.installed && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
-          {wide && langPills}
+          {wide && <LangPicker />}
           {app.session ? (
             <button className="who" onClick={onProfile}>
               <span className="avatar sm">{app.avatar || (app.name || app.session.user.email || '?').slice(0, 1).toUpperCase()}</span>
@@ -169,7 +161,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
           <ul className="features">
             {t.features.map(f => <li key={f}>{f}</li>)}
           </ul>
-          {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>{langPills}</div>}
+          {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}><LangPicker variant="pill" /></div>}
         </motion.section>
       </main>
       <footer className="homefoot">
