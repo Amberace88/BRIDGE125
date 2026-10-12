@@ -1,6 +1,11 @@
+import { BACK_ART, TABLE_ART } from './cosmetics/art';
+import { isCosPremium } from './cosmetics/data';
+import './styles/cosmetics.css';
+
 export interface Accent { id: string; name: string; hi: string; base: string; lo: string; ink: string; premium?: boolean }
 export interface Table { id: string; name: string; css: string; back: string; tone: string; premium?: boolean }
-export interface CardBack { id: string; name: string; css: string; premium?: boolean }
+/** fx: 'foil' = animated foil shimmer sweep (legendary backs); see styles/cosmetics.css */
+export interface CardBack { id: string; name: string; css: string; premium?: boolean; fx?: 'foil' }
 
 export const ACCENTS: Accent[] = [
   { id: 'brass', name: 'Brass', hi: '#EBD38E', base: '#C9A54C', lo: '#8C6E28', ink: '#2B1E03' },
@@ -58,6 +63,15 @@ export const TABLES: Table[] = [
     repeating-linear-gradient(0deg, rgba(242,63,216,.08) 0 1px, transparent 1px 48px),
     radial-gradient(120% 90% at 50% 20%, #2A1660 0%, #160B36 55%, #08041A 100%)`,
     back: 'repeating-linear-gradient(90deg, rgba(0,229,255,.6) 0 1px, transparent 1px 8px), repeating-linear-gradient(0deg, rgba(242,63,216,.55) 0 1px, transparent 1px 8px), linear-gradient(180deg,#24105a,#0c0624)' },
+  // ---- wave 2 premium tables (art in src/cosmetics/art.ts)
+  { id: 'marble', name: 'Midnight Marble', premium: true, ...TABLE_ART.marble },
+  { id: 'emvelvet', name: 'Emerald Chesterfield', premium: true, ...TABLE_ART.emvelvet },
+  { id: 'oldriga', name: 'Old Riga Night', premium: true, ...TABLE_ART.oldriga },
+  { id: 'yacht', name: 'Monaco Yacht', premium: true, ...TABLE_ART.yacht },
+  { id: 'aurora', name: 'Northern Lights', premium: true, ...TABLE_ART.aurora },
+  { id: 'damask', name: 'Black Gold Damask', premium: true, ...TABLE_ART.damask },
+  { id: 'sakura', name: 'Sakura', premium: true, ...TABLE_ART.sakura },
+  { id: 'carbonrace', name: 'Carbon Racing', premium: true, ...TABLE_ART.carbonrace },
 ];
 
 export const BACKS: CardBack[] = [
@@ -69,10 +83,27 @@ export const BACKS: CardBack[] = [
   { id: 'jugend', name: 'Art Nouveau', premium: true, css: 'repeating-radial-gradient(circle at 0 0, #d6b464 0 1px, transparent 1px 10px), repeating-radial-gradient(circle at 100% 100%, #d6b464 0 1px, transparent 1px 10px), linear-gradient(160deg,#17625e,#0b3a39)' },
   { id: 'neon', name: 'Neon Grid', premium: true, css: 'repeating-linear-gradient(90deg, rgba(0,229,255,.7) 0 1px, transparent 1px 8px), repeating-linear-gradient(0deg, rgba(242,63,216,.6) 0 1px, transparent 1px 8px), linear-gradient(180deg,#24105a,#0c0624)' },
   { id: 'royal', name: 'Royal', premium: true, css: 'radial-gradient(circle at 50% 50%, #e9c46a 0 1.5px, transparent 2.5px) 0 0/9px 9px, linear-gradient(160deg,#4b2386,#22104a)' },
+  // ---- wave 2 premium backs
+  { id: 'bk_onyx', name: 'Onyx Foil', premium: true, fx: 'foil', css: BACK_ART.bk_onyx },
+  { id: 'bk_holo', name: 'Holographic', premium: true, fx: 'foil', css: BACK_ART.bk_holo },
+  { id: 'bk_dragon', name: 'Dragon Scale', premium: true, fx: 'foil', css: BACK_ART.bk_dragon },
+  { id: 'bk_marble', name: 'Marble', premium: true, css: BACK_ART.bk_marble },
+  { id: 'bk_damask', name: 'Wine Damask', premium: true, css: BACK_ART.bk_damask },
+  { id: 'bk_aurora', name: 'Aurora', premium: true, css: BACK_ART.bk_aurora },
+  { id: 'bk_riga', name: 'Riga Spires', premium: true, css: BACK_ART.bk_riga },
+  { id: 'bk_deco', name: 'Art Deco Fan', premium: true, css: BACK_ART.bk_deco },
+  { id: 'bk_sakura', name: 'Sakura', premium: true, css: BACK_ART.bk_sakura },
+  { id: 'bk_racing', name: 'Chequered Flag', premium: true, css: BACK_ART.bk_racing },
+  { id: 'bk_teak', name: 'Teak & Brass', premium: true, css: BACK_ART.bk_teak },
+  { id: 'bk_studs', name: 'Brass Studs', premium: true, css: BACK_ART.bk_studs },
+  { id: 'bk_tartan', name: 'Tartan', premium: true, css: BACK_ART.bk_tartan },
 ];
 
 export const isPremium = (id: string) =>
-  !!(ACCENTS.find(a => a.id === id)?.premium || TABLES.find(t => t.id === id)?.premium || BACKS.find(b => b.id === id)?.premium);
+  !!(ACCENTS.find(a => a.id === id)?.premium || TABLES.find(t => t.id === id)?.premium || BACKS.find(b => b.id === id)?.premium || isCosPremium(id));
+
+/** Animated effect of the card back that is actually shown ('match' → none). */
+export const backFx = (backId: string) => BACKS.find(b => b.id === backId && b.id !== 'match')?.fx;
 
 /** The CSS background used for card backs: an explicit design, or the table's matching back. */
 export const backCss = (backId: string, tableId: string) =>
@@ -84,6 +115,15 @@ export function applyTheme(accentId: string, tableId: string, backId = 'match') 
   const r = document.documentElement.style;
   r.setProperty('--acc-hi', a.hi); r.setProperty('--acc', a.base); r.setProperty('--acc-lo', a.lo); r.setProperty('--acc-ink', a.ink);
   r.setProperty('--table', t.css); r.setProperty('--back', backCss(backId, tableId)); r.setProperty('--tone', t.tone);
+  const fx = backFx(backId);
+  if (fx) document.documentElement.dataset.backfx = fx; else delete document.documentElement.dataset.backfx;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', t.tone);
 }
+
+/* Card-face style from the device cache (src/cosmetics/useCosmetics.ts → COS_CACHE_KEY) before the first render, so cards
+   never flash in the wrong style. <CosmeticsSync /> then keeps it in line with the account (and entitlements). */
+try {
+  const face = (JSON.parse(localStorage.getItem('b125.cos.v1') ?? '{}') as { face?: unknown }).face;
+  document.documentElement.dataset.face = typeof face === 'string' && /^f_[a-z]+$/.test(face) ? face : 'f_classic';
+} catch { /* no storage / no DOM (tests) */ }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import sql from '../../supabase/migration_003_progress.sql?raw';
-import { ACCENTS, BACKS, TABLES } from '../theme';
-import { SHOP_ROWS, COSMETICS } from '../shop/catalog';
+import sql8 from '../../supabase/migration_008_cosmetics.sql?raw';
+import { SHOP_ROWS, COSMETICS, ALL_SLOTS, slotOptions } from '../shop/catalog';
 import { ACHIEVEMENTS, detectAchievements } from './achievements';
 import { levelForXp, levelProgress, levelReward, xpForLevel } from './levels';
 import { newGame, type GameState } from '../engine/engine';
@@ -24,14 +24,18 @@ describe('level curve (mirrors SQL)', () => {
 });
 
 describe('catalogue is in sync with the SQL seed', () => {
-  it('shop_items rows match', () => {
-    const block = sql.slice(sql.indexOf('insert into public.shop_items'), sql.indexOf('on conflict (id)'));
-    const rows = [...block.matchAll(/\('([a-z0-9_]+)',\s*'(\w+)',\s*(null|\d+),\s*(null|[\d.]+),\s*(null|\d+),\s*'(\w+)'/g)].map(m => ({
-      id: m[1], kind: m[2], price_bm: m[3] === 'null' ? null : Number(m[3]), price_eur: m[4] === 'null' ? null : Number(m[4]),
-      grants_bm: m[5] === 'null' ? null : Number(m[5]), rarity: m[6],
-    }));
+  it('shop_items rows match (003 seed + 008 seed)', () => {
+    const parse = (src: string) => {
+      const block = src.slice(src.indexOf('insert into public.shop_items'), src.indexOf('on conflict (id)', src.indexOf('insert into public.shop_items')));
+      return [...block.matchAll(/\('([a-z0-9_]+)',\s*'(\w+)',\s*(null|\d+),\s*(null|[\d.]+),\s*(null|\d+),\s*'(\w+)'/g)].map(m => ({
+        id: m[1], kind: m[2], price_bm: m[3] === 'null' ? null : Number(m[3]), price_eur: m[4] === 'null' ? null : Number(m[4]),
+        grants_bm: m[5] === 'null' ? null : Number(m[5]), rarity: m[6],
+      }));
+    };
+    const merged = new Map([...parse(sql), ...parse(sql8)].map(r => [r.id, r]));   // 008 upserts over 003
+    const rows = [...merged.values()];
     const sort = <T extends { id: string }>(a: T[]) => [...a].sort((x, y) => x.id.localeCompare(y.id));
-    expect(rows.length).toBeGreaterThan(10);
+    expect(parse(sql8).length).toBeGreaterThan(50);
     expect(sort(rows)).toEqual(sort(SHOP_ROWS));
   });
   it('achievement_defs rows match', () => {
@@ -39,15 +43,11 @@ describe('catalogue is in sync with the SQL seed', () => {
     const rows = [...block.matchAll(/\('([a-z0-9_]+)',\s*(\d+),\s*'(server|client)'/g)].map(m => ({ code: m[1], bm: Number(m[2]), source: m[3] }));
     expect(rows).toEqual(ACHIEVEMENTS.map(a => ({ code: a.code, bm: a.bm, source: a.source })));
   });
-  it('every premium theme item is sold, in the right slot, and nothing free is', () => {
-    const covered = (id: string, slot: 'accent' | 'table' | 'back') => COSMETICS.some(c => c.id === id && c.slots.includes(slot));
-    for (const a of ACCENTS.filter(x => x.premium)) expect(covered(a.id, 'accent')).toBe(true);
-    for (const t of TABLES.filter(x => x.premium)) expect(covered(t.id, 'table')).toBe(true);
-    for (const b of BACKS.filter(x => x.premium)) expect(covered(b.id, 'back')).toBe(true);
-    for (const c of COSMETICS) for (const s of c.slots) {
-      const list: { id: string; premium?: boolean }[] = s === 'accent' ? ACCENTS : s === 'table' ? TABLES : BACKS;
-      expect(list.find(x => x.id === c.id)?.premium).toBe(true);
+  it('every premium item is sold, in the right slot, and nothing free is', () => {
+    for (const slot of ALL_SLOTS) for (const o of slotOptions(slot).filter(x => x.premium)) {
+      expect(COSMETICS.some(c => c.id === o.id && c.slots.includes(slot)), `${slot}:${o.id}`).toBe(true);
     }
+    for (const c of COSMETICS) for (const s of c.slots) expect(slotOptions(s).find(x => x.id === c.id)?.premium, `${s}:${c.id}`).toBe(true);
   });
 });
 

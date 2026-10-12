@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useSpring } from 'motion/react';
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent } from 'react';
 import { useApp } from '../store';
 import { useStrings } from '../i18n/pick';
 import { SHOP_STRINGS, type ShopStrings } from '../i18n/shop';
@@ -10,33 +10,52 @@ import { sfx, buzz } from '../sound';
 import { buyItemRpc } from '../progress/api';
 import { openDailyReward, syncAppProfile, useProgress } from '../progress/useProgress';
 import {
-  BUNDLES, COSMETICS, FEATURED_ID, PASS, TRENDING_IDS, accentOf, cosmetic, fmtBm, fmtEur, forSlot, themeName,
-  type Bundle, type Cosmetic, type Slot,
+  BUNDLES, COLLECTIBLES, COSMETICS, PACKS, PASS, RARITIES, accentOf, cosmetic, featuredToday, fmtBm, fmtEur, forSlot, isNew, packPrice, packSavePct, packWorth, themeName,
+  type Bundle, type Cosmetic, type Rarity, type Slot,
 } from '../shop/catalog';
+import { COS_KINDS, bannerCss, type CosKind } from '../cosmetics/data';
+import { COS_STRINGS, type CosStrings } from '../cosmetics/i18n';
+import { cosName } from '../cosmetics/Badges';
+import { BackCard, CosmeticStage } from '../cosmetics/Previews';
+import { useCosmetics } from '../cosmetics/useCosmetics';
+import { takeShopFocus } from '../cosmetics/shopFocus';
 import { CoinBurst, Ticker } from './Rewards';
 import '../styles/shop.css';
 
-type Tab = 'featured' | 'tables' | 'backs' | 'colours' | 'bundles';
-const TABS: Tab[] = ['featured', 'tables', 'backs', 'colours', 'bundles'];
-const TAB_SLOT: Record<Tab, Slot | null> = { featured: null, tables: 'table', backs: 'back', colours: 'accent', bundles: null };
+type Tab = 'featured' | 'sets' | 'tables' | 'backs' | 'faces' | 'frames' | 'victory' | 'emotes' | 'titles' | 'colours' | 'bundles';
+const TABS: Tab[] = ['featured', 'sets', 'tables', 'backs', 'faces', 'frames', 'victory', 'emotes', 'titles', 'colours', 'bundles'];
+/** Item tabs list one or two slots (second one = a sub-section, e.g. Frames + Banners). */
+const TAB_SLOTS: Record<Tab, Slot[] | null> = {
+  featured: null, sets: null, bundles: null,
+  tables: ['table'], backs: ['back'], faces: ['face'], frames: ['frame', 'banner'], victory: ['victory'], emotes: ['emotes'], titles: ['title', 'namecolor'], colours: ['accent'],
+};
+const tabOf = (c: Cosmetic): Tab => {
+  if (c.kind === 'pack') return 'sets';
+  const s = c.slots[0];
+  return (Object.keys(TAB_SLOTS) as Tab[]).find(t => TAB_SLOTS[t]?.includes(s)) ?? 'featured';
+};
 type S = ShopStrings['shop'];
 
 const NOTIFY_KEY = 'b125.shop.notify';
+const isCosSlot = (s: Slot): s is CosKind => (COS_KINDS as string[]).includes(s);
 
 /* ================================================================== helpers */
 
-const nameOf = (S: S, c: Cosmetic) => S.items[c.id] ?? themeName(c.id, c.slots[0]);
-const kindLabel = (S: S, c: Cosmetic) => (c.kind === 'set' ? S.setOf(c.slots.map(s => S.kinds[s]).join(' + ')) : S.kinds[c.kind]);
+const nameOf = (S: S, lang: string, c: Cosmetic) => S.items[c.id] ?? cosName(lang, c.id, c.kind === 'pack' ? c.id : themeName(c.id, c.slots[0]));
+const kindLabel = (S: S, C: CosStrings, c: Cosmetic) =>
+  c.kind === 'set' ? S.setOf(c.slots.map(s => (s in S.kinds ? S.kinds[s as keyof S['kinds']] : C.kind[s])).join(' + ')) : C.kind[c.kind];
 const accentVars = (id: string): CSSProperties => {
   const a = accentOf(id);
   return { ['--acc' as string]: a.base, ['--acc-hi' as string]: a.hi, ['--acc-lo' as string]: a.lo, ['--acc-ink' as string]: a.ink };
 };
 /** The single most representative background of an item (used by the flying clone). */
 function swatchCss(c: Cosmetic, tableId: string): string {
-  if (c.slots.includes('table')) return (TABLES.find(t => t.id === c.id) ?? TABLES[0]).css;
-  if (c.slots.includes('back') && !c.slots.includes('accent')) return backCss(c.id, tableId);
-  const a = accentOf(c.id);
-  return `radial-gradient(circle at 35% 30%, ${a.hi}, ${a.base} 55%, ${a.lo})`;
+  const g = c.kind === 'pack' ? cosmetic(c.grants?.[0] ?? '') ?? c : c;
+  if (g.slots.includes('table')) return (TABLES.find(t => t.id === g.id) ?? TABLES[0]).css;
+  if (g.slots.includes('back') && !g.slots.includes('accent')) return backCss(g.id, tableId);
+  if (g.slots.includes('banner')) return bannerCss(g.id);
+  if (g.slots.includes('accent')) { const a = accentOf(g.id); return `radial-gradient(circle at 35% 30%, ${a.hi}, ${a.base} 55%, ${a.lo})`; }
+  return 'radial-gradient(circle at 35% 30%, #fff6d8, #e2bd62 50%, #8c6e28)';
 }
 
 function useNotify(): [string[], (id: string) => boolean] {
@@ -69,20 +88,15 @@ function useTilt(max = 9) {
 
 /* ================================================================== live previews */
 
-function MiniBack({ css, style }: { css: string; style?: CSSProperties }) {
-  return <span className="pvcard" style={{ background: css, ...style }}><i /></span>;
-}
-
 function TablePreview({ id, back }: { id: string; back: string }) {
   const tb = TABLES.find(t => t.id === id) ?? TABLES[0];
-  const bk = backCss(back, id);
   return (
     <div className="pv pvtable" style={{ background: tb.css, backgroundColor: tb.tone }}>
       <span className="pvrim" />
       <div className="pvfan">
-        <MiniBack css={bk} style={{ transform: 'translate(-34px, 6px) rotate(-14deg)' }} />
-        <MiniBack css={bk} style={{ transform: 'translate(0, -2px) rotate(0deg)' }} />
-        <MiniBack css={bk} style={{ transform: 'translate(34px, 6px) rotate(14deg)' }} />
+        <BackCard id={back} table={id} w={50} className="pvcard" style={{ transform: 'translate(-34px, 6px) rotate(-14deg)' }} />
+        <BackCard id={back} table={id} w={50} className="pvcard" style={{ transform: 'translate(0, -2px) rotate(0deg)' }} />
+        <BackCard id={back} table={id} w={50} className="pvcard" style={{ transform: 'translate(34px, 6px) rotate(14deg)' }} />
       </div>
       <span className="pvchips"><i /><i /><i /></span>
     </div>
@@ -97,7 +111,7 @@ function BackPreview({ id }: { id: string }) {
       <span className="pvrim" />
       <div className="pvduo">
         <div className="card pvface" style={{ width: 58, height: 83, ['--cw' as string]: '58px' }}><CardFace card={{ id: 'AS', r: 'A', s: 'S' }} lang={app.lang} /></div>
-        <MiniBack css={backCss(id, app.table)} style={{ width: 62, height: 89 }} />
+        <BackCard id={id} table={app.table} w={62} className="pvcard" />
       </div>
     </div>
   );
@@ -112,13 +126,15 @@ function AccentPreview({ id, back }: { id: string; back?: string }) {
       <span className="pvgem"><i /></span>
       <span className="pv125 serif">125</span>
       <span className="pvbtn">♠ {app.t.nav.play}</span>
-      {back && <MiniBack css={backCss(back, app.table)} style={{ position: 'absolute', right: 12, top: '50%', marginTop: -32, width: 38, height: 54, transform: 'rotate(10deg)', zIndex: 1 }} />}
+      {back && <BackCard id={back} table={app.table} w={38} style={{ position: 'absolute', right: 12, top: '50%', marginTop: -27, transform: 'rotate(10deg)', zIndex: 1 }} />}
     </div>
   );
 }
 
 function ItemPreview({ c, slot }: { c: Cosmetic; slot: Slot | null }) {
-  const s: Slot = slot && c.slots.includes(slot) ? slot : c.slots.includes('table') ? 'table' : c.slots.includes('accent') ? 'accent' : 'back';
+  if (c.kind === 'pack') return <CosmeticStage c={c} slot="pack" />;
+  const s: Slot = slot && c.slots.includes(slot) ? slot : c.slots.includes('table') ? 'table' : c.slots.includes('accent') ? 'accent' : c.slots[0];
+  if (isCosSlot(s)) return <CosmeticStage c={c} slot={s} />;
   if (s === 'table') return <TablePreview id={c.id} back={c.slots.includes('back') ? c.id : 'match'} />;
   if (s === 'back') return <BackPreview id={c.id} />;
   return <AccentPreview id={c.id} back={c.slots.includes('back') ? c.id : undefined} />;
@@ -127,52 +143,126 @@ function ItemPreview({ c, slot }: { c: Cosmetic; slot: Slot | null }) {
 /* ================================================================== item card */
 
 interface CardCtx {
-  S: S; guest: boolean; admin: boolean; owned: (id: string) => boolean; bought: (id: string) => boolean; equipped: (c: Cosmetic, slot: Slot | null) => boolean;
-  onBuy: (c: Cosmetic, slot: Slot | null) => void; onEquip: (c: Cosmetic, slot: Slot | null) => void; onAuth: () => void;
+  S: S; C: CosStrings; lang: string; guest: boolean; admin: boolean;
+  owned: (c: Cosmetic) => boolean; bought: (id: string) => boolean; equipped: (c: Cosmetic, slot: Slot | null) => boolean;
+  price: (c: Cosmetic) => number;
+  onBuy: (c: Cosmetic, slot: Slot | null) => void; onEquip: (c: Cosmetic, slot: Slot | null) => void; onAuth: () => void; onOpen: (c: Cosmetic, slot: Slot | null) => void;
 }
 
 function PriceTag({ bm }: { bm: number }) {
   return <span className="sprice"><i className="scoin" />{fmtBm(bm)}</span>;
 }
 
-function ItemCard({ c, slot, ctx, i = 0, hero = false, blurb }: { c: Cosmetic; slot: Slot | null; ctx: CardCtx; i?: number; hero?: boolean; blurb?: string }) {
+function ActionButton({ c, slot, ctx }: { c: Cosmetic; slot: Slot | null; ctx: CardCtx }) {
   const { S } = ctx;
-  const tilt = useTilt(hero ? 6 : 10);
-  const own = ctx.owned(c.id);
+  const own = ctx.owned(c);
   const eq = own && ctx.equipped(c, slot);
-  let action: ReactNode;
-  if (ctx.guest) action = <button className="sact ghost" onClick={ctx.onAuth}>🔒 {S.signInToBuy}</button>;
-  else if (eq) action = <span className="sact on">✓ {S.equipped}</span>;
-  else if (own) action = <button className="sact equip" onClick={() => ctx.onEquip(c, slot)}>{!slot && c.slots.length > 1 ? S.equipAll : S.equip}</button>;
-  else action = <button className="sact buy" onClick={() => ctx.onBuy(c, slot)}><PriceTag bm={c.priceBm} /></button>;
+  if (ctx.guest) return <button className="sact ghost" onClick={ctx.onAuth}>🔒 {S.signInToBuy}</button>;
+  if (eq) return <span className="sact on">✓ {S.equipped}</span>;
+  if (own) return <button className="sact equip" onClick={() => ctx.onEquip(c, slot)}>{!slot && (c.slots.length > 1 || c.kind === 'pack') ? S.equipAll : S.equip}</button>;
+  return <button className="sact buy" onClick={() => ctx.onBuy(c, slot)}><PriceTag bm={ctx.price(c)} /></button>;
+}
 
+function ItemCard({ c, slot, ctx, i = 0, hero = false, blurb }: { c: Cosmetic; slot: Slot | null; ctx: CardCtx; i?: number; hero?: boolean; blurb?: string }) {
+  const { S, C } = ctx;
+  const tilt = useTilt(hero ? 6 : 10);
+  const own = ctx.owned(c);
+  const eq = own && ctx.equipped(c, slot);
+  const fresh = !own && isNew(c);
+  const pack = c.kind === 'pack';
   return (
-    <motion.div className={`scell ${hero ? 'shero' : ''}`} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 * i, type: 'spring', stiffness: 220, damping: 24 }}>
+    <motion.div className={`scell ${hero ? 'shero' : ''}`} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.035 * Math.min(i, 12), type: 'spring', stiffness: 220, damping: 24 }}>
       <motion.article className={`sitem r-${c.rarity} ${own ? 'own' : ''} ${eq ? 'eq' : ''}`} style={tilt.style} onPointerMove={tilt.onPointerMove} onPointerLeave={tilt.onPointerLeave}
         whileTap={{ scale: 0.985 }}>
         <span className="sglow" aria-hidden />
         <div className="sframe">
-          <div className="sprev" data-shop-preview={c.id}>
+          <button className="sprev" data-shop-preview={c.id} onClick={() => ctx.onOpen(c, slot)} aria-label={`${C.details}: ${nameOf(S, ctx.lang, c)}`}>
             <ItemPreview c={c} slot={slot} />
             <motion.span className="sglare" style={{ background: tilt.glare }} aria-hidden />
             <span className={`srar r-${c.rarity}`}>{S.rarity[c.rarity]}</span>
-            {c.tag && !own && <span className={`stag ${c.tag}`}>{S.tags[c.tag]}</span>}
-            {own && <span className="sown" title={eq ? S.equipped : S.owned} aria-label={eq ? S.equipped : S.owned}>{ctx.bought(c.id) ? '✓' : '👑'}</span>}
-          </div>
+            {!own && pack && <span className="stag save">{C.save(packSavePct(c))}</span>}
+            {!own && !pack && (fresh || c.tag) && <span className={`stag ${fresh ? 'new' : c.tag}`}>{fresh ? S.tags.new : S.tags[c.tag!]}</span>}
+            {own && <span className="sown" title={eq ? S.equipped : S.owned} aria-label={eq ? S.equipped : S.owned}>{ctx.bought(c.id) || (pack && !ctx.admin) ? '✓' : '👑'}</span>}
+          </button>
           <div className="sinfo">
             <div className="stitle">
-              <b className={hero ? 'serif' : ''}>{nameOf(S, c)}</b>
-              <small>{kindLabel(S, c)}</small>
+              <b className={hero ? 'serif' : ''}>{nameOf(S, ctx.lang, c)}</b>
+              <small>{kindLabel(S, C, c)}{pack && !own && <> · <s>{fmtBm(packWorth(c))}</s></>}</small>
             </div>
             {hero && blurb && <p className="sblurb">{blurb}</p>}
             <div className="sfoot">
               {ctx.admin && !ctx.bought(c.id) && <span className="sadmin">👑 {S.adminFree}</span>}
-              {action}
+              <ActionButton c={c} slot={slot} ctx={ctx} />
             </div>
           </div>
         </div>
       </motion.article>
     </motion.div>
+  );
+}
+
+/* ================================================================== item detail (big 3D preview) */
+
+function DetailModal({ c, slot, ctx, onClose }: { c: Cosmetic; slot: Slot | null; ctx: CardCtx; onClose: () => void }) {
+  const { S, C } = ctx;
+  const tilt = useTilt(7);
+  const pack = c.kind === 'pack';
+  const own = ctx.owned(c);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
+  }, [onClose]);
+  const about = S.blurbs[c.id] ?? C.about[c.kind];
+  const full = pack ? packWorth(c, g => { const gc = cosmetic(g); return !!gc && ctx.owned(gc); }) : 0;
+  const price = ctx.price(c);
+  const savePct = full ? Math.round((1 - price / full) * 100) : 0;
+  return (
+    <>
+      <motion.div className="sscrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+      <div className="smwrap" role="dialog" aria-modal="true" aria-label={nameOf(S, ctx.lang, c)}>
+        <motion.div className={`sdetail r-${c.rarity}`} initial={{ opacity: 0, y: 60, scale: 0.9, rotateX: 14 }} animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+          exit={{ opacity: 0, y: 40, scale: 0.95 }} transition={{ type: 'spring', stiffness: 250, damping: 24 }}>
+          <button className="sdclose" onClick={onClose} aria-label={S.cancel}>×</button>
+          <div className="sdstage" style={{ perspective: 1000 }}>
+            <motion.div className="sdtilt" style={tilt.style} onPointerMove={tilt.onPointerMove} onPointerLeave={tilt.onPointerLeave}
+              animate={{ y: [0, -6, 0] }} transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}>
+              <span className="sdglow" aria-hidden />
+              <div className="sdprev"><ItemPreview c={c} slot={slot} /><motion.span className="sglare" style={{ background: tilt.glare }} aria-hidden /></div>
+            </motion.div>
+            <span className={`srar r-${c.rarity}`}>{S.rarity[c.rarity]}</span>
+          </div>
+          <div className="sdbody">
+            <div className="sdtitle">
+              <small>{kindLabel(S, C, c)}</small>
+              <b className="serif">{nameOf(S, ctx.lang, c)}</b>
+            </div>
+            <p className="sdabout">{about}</p>
+            {(pack || c.kind === 'set') && (
+              <div className="sdinc">
+                <span className="sdlabel">{C.includes}</span>
+                <ul>
+                  {pack ? (c.grants ?? []).map(g => {
+                    const gc = cosmetic(g);
+                    return gc && <li key={g} className={`r-${gc.rarity}`}><i aria-hidden />{nameOf(S, ctx.lang, gc)}<small>{kindLabel(S, C, gc)}</small>{ctx.owned(gc) && <em>✓</em>}</li>;
+                  }) : c.slots.map(s => <li key={s} className={`r-${c.rarity}`}><i aria-hidden />{s in S.kinds ? S.kinds[s as keyof S['kinds']] : C.kind[s]}</li>)}
+                </ul>
+              </div>
+            )}
+            {pack && !own && price < c.priceBm && <p className="sdnote">{C.partOwned}</p>}
+            <div className="sdbuy">
+              {!own && (pack || c.priceEur != null) && <div className="sdprice">
+                <PriceTag bm={price} />
+                {pack && <s>{fmtBm(full)}</s>}
+                {pack && savePct > 0 && <em className="sdsave">{C.save(savePct)}</em>}
+                {c.priceEur != null && <small>{C.orEur(fmtEur(c.priceEur, ctx.lang))}</small>}
+              </div>}
+              <ActionButton c={c} slot={slot} ctx={ctx} />
+            </div>
+            {ctx.admin && !ctx.bought(c.id) && <div className="sadmin" style={{ marginTop: 8 }}>👑 {S.adminFree}</div>}
+          </div>
+        </motion.div>
+      </div>
+    </>
   );
 }
 
@@ -253,13 +343,13 @@ function PassCard({ S, lang, notify, onToggle }: { S: S; lang: string; notify: s
 
 type BuyState = 'confirm' | 'busy' | 'done' | 'funds' | 'error';
 
-function BuyModal({ c, slot, S, bm, admin, onClose, onBought, onEquip, canDaily }: {
-  c: Cosmetic; slot: Slot | null; S: S; bm: number; admin: boolean; canDaily: boolean;
+function BuyModal({ c, slot, S, C, lang, price, bm, admin, onClose, onBought, onEquip, canDaily }: {
+  c: Cosmetic; slot: Slot | null; S: S; C: CosStrings; lang: string; price: number; bm: number; admin: boolean; canDaily: boolean;
   onClose: () => void; onBought: (from: DOMRect | null) => void; onEquip: () => void;
 }) {
   const app = useApp();
-  const [st, setSt] = useState<BuyState>(() => (!admin && bm < c.priceBm ? 'funds' : 'confirm'));
-  const [need, setNeed] = useState(Math.max(0, c.priceBm - bm));
+  const [st, setSt] = useState<BuyState>(() => (!admin && bm < price ? 'funds' : 'confirm'));
+  const [need, setNeed] = useState(Math.max(0, price - bm));
   const [err, setErr] = useState('');
   const prevRef = useRef<HTMLDivElement>(null);
 
@@ -272,7 +362,7 @@ function BuyModal({ c, slot, S, bm, admin, onClose, onBought, onEquip, canDaily 
     setSt('busy'); sfx.tap();
     const [r] = await Promise.all([buyItemRpc(c.id), new Promise(res => setTimeout(res, 450))]);
     if (r.ok || r.error === 'owned') {
-      if (r.ok) track('shop_buy', { item: c.id, price: r.price ?? c.priceBm, admin: !!r.admin, kind: c.kind });
+      if (r.ok) track('shop_buy', { item: c.id, price: r.price ?? price, admin: !!r.admin, kind: c.kind });
       setSt('done'); sfx.big(); buzz([20, 40, 30]);
       onBought(prevRef.current?.getBoundingClientRect() ?? null);
       void syncAppProfile(app, { ...(r.bm !== undefined ? { bm: r.bm } : {}), ...(r.owned ? { owned: r.owned } : {}) });
@@ -283,7 +373,7 @@ function BuyModal({ c, slot, S, bm, admin, onClose, onBought, onEquip, canDaily 
     setSt('error'); sfx.alert();
   };
 
-  const after = bm - (admin ? 0 : c.priceBm);
+  const after = bm - (admin ? 0 : price);
   return (
     <>
       <motion.div className="sscrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => st !== 'busy' && onClose()} />
@@ -306,8 +396,8 @@ function BuyModal({ c, slot, S, bm, admin, onClose, onBought, onEquip, canDaily 
           </div>
           <div className="smbody">
             <div className="smtitle">
-              <b className="serif">{nameOf(S, c)}</b>
-              <small>{kindLabel(S, c)}</small>
+              <b className="serif">{nameOf(S, lang, c)}</b>
+              <small>{kindLabel(S, C, c)}</small>
             </div>
 
             {st === 'done' ? (
@@ -322,7 +412,7 @@ function BuyModal({ c, slot, S, bm, admin, onClose, onBought, onEquip, canDaily 
               <>
                 <div className="smfunds">
                   <b>{S.notEnough(fmtBm(need))}</b>
-                  <div className="smbar"><i style={{ width: `${Math.min(100, (bm / c.priceBm) * 100)}%` }} /></div>
+                  <div className="smbar"><i style={{ width: `${Math.min(100, (bm / price) * 100)}%` }} /></div>
                   <span>{S.earnHint}</span>
                 </div>
                 <div className="smacts">
@@ -333,13 +423,13 @@ function BuyModal({ c, slot, S, bm, admin, onClose, onBought, onEquip, canDaily 
             ) : (
               <>
                 <div className="smrows">
-                  <div><span>{S.confirmTitle}</span>{admin ? <b className="sadmin">👑 {S.adminFree}</b> : <PriceTag bm={c.priceBm} />}</div>
+                  <div><span>{S.confirmTitle}</span>{admin ? <b className="sadmin">👑 {S.adminFree}</b> : <PriceTag bm={price} />}</div>
                   {!admin && <div className="mute"><span>{S.balanceAfter}</span><span className="smafter"><i className="coin" />{fmtBm(after)}</span></div>}
                 </div>
                 {st === 'error' && <div className="autherr" style={{ marginTop: 10 }}>{err}</div>}
                 <div className="smacts">
                   <button className="btn acc" onClick={buy} disabled={st === 'busy'}>
-                    {st === 'busy' ? <><span className="spinner" />{S.buying}</> : admin ? S.equipNow : <>{S.confirmBuy('')}<PriceTag bm={c.priceBm} /></>}
+                    {st === 'busy' ? <><span className="spinner" />{S.buying}</> : admin ? S.equipNow : <>{S.confirmBuy('')}<PriceTag bm={price} /></>}
                   </button>
                   <button className="btn ghost" onClick={onClose} disabled={st === 'busy'}>{S.cancel}</button>
                 </div>
@@ -369,54 +459,74 @@ function FlyItem({ from, to, bg, onDone }: { from: DOMRect; to: DOMRect; bg: str
 
 /* ================================================================== screen */
 
-export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClose: () => void; onAuth: () => void; initialTab?: Tab }) {
+export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialItem }: { onClose: () => void; onAuth: () => void; initialTab?: Tab; initialItem?: string }) {
   const app = useApp();
   const Sall = useStrings(SHOP_STRINGS);
   const S = Sall.shop;
+  const C = useStrings(COS_STRINGS);
   const p = useProgress();
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const [buying, setBuying] = useState<{ c: Cosmetic; slot: Slot | null } | null>(null);
+  const cos = useCosmetics();
+  const [focus] = useState(() => cosmetic(initialItem ?? takeShopFocus() ?? ''));
+  const [tab, setTab] = useState<Tab>(focus ? tabOf(focus) : initialTab);
+  const [rar, setRar] = useState<Rarity | 'all'>('all');
+  const [detail, setDetail] = useState<{ c: Cosmetic; slot: Slot | null } | null>(focus ? { c: focus, slot: null } : null);
+  const [buying, setBuying] = useState<{ c: Cosmetic; slot: Slot | null; price: number } | null>(null);
   const [fly, setFly] = useState<{ from: DOMRect; to: DOMRect; bg: string } | null>(null);
   const [pop, setPop] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [notify, toggleNotify] = useNotify();
   const bagRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLElement>(null);
   const toastTm = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const guest = !app.session;
-  const admin = app.isAdmin;
+  const admin = app.isPrivileged;
   const ownedSet = new Set(p.owned);
-  const owned = (id: string) => admin || ownedSet.has(id);
-  const ownedCount = COSMETICS.filter(c => owned(c.id)).length;
+  const ownId = (id: string) => admin || ownedSet.has(id);
+  const owned = (c: Cosmetic) => (c.kind === 'pack' ? (c.grants ?? []).every(ownId) : ownId(c.id));
+  const price = (c: Cosmetic) => (c.kind === 'pack' ? packPrice(c, id => ownedSet.has(id)) ?? c.priceBm : c.priceBm);
+  const ownedCount = COLLECTIBLES.filter(c => ownId(c.id)).length;
+  const daily = useMemo(() => featuredToday(), []);
 
-  useEffect(() => { track('shop_view', { signed_in: !guest, admin }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { track('shop_view', { signed_in: !guest, admin, focus: focus?.id ?? null }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape' && !buying) onClose(); };
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape' && !buying && !detail) onClose(); };
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
-  }, [onClose, buying]);
+  }, [onClose, buying, detail]);
   useEffect(() => { bodyRef.current?.scrollTo({ top: 0 }); }, [tab]);
+  useEffect(() => { tabsRef.current?.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [tab]);
 
   const flash = (m: string) => { setToast(m); if (toastTm.current) clearTimeout(toastTm.current); toastTm.current = setTimeout(() => setToast(null), 2400); };
 
-  const equipped = (c: Cosmetic, slot: Slot | null) => {
+  const themeVal = (s: Slot) => (s === 'table' ? app.table : s === 'accent' ? app.accent : s === 'back' ? app.cardBack : cos.equipped[s as CosKind]);
+  const equipped = (c: Cosmetic, slot: Slot | null): boolean => {
+    if (c.kind === 'pack') return (c.grants ?? []).every(g => { const gc = cosmetic(g); return !!gc && equipped(gc, null); });
     const parts = slot && c.slots.includes(slot) ? [slot] : c.slots;
-    return parts.every(s => (s === 'table' ? app.table : s === 'accent' ? app.accent : app.cardBack) === c.id);
+    return parts.every(s => themeVal(s) === c.id);
   };
   const equip = async (c: Cosmetic, slot: Slot | null) => {
-    const parts = slot && c.slots.includes(slot) ? [slot] : c.slots;
+    const items: { c: Cosmetic; parts: Slot[] }[] = c.kind === 'pack'
+      ? (c.grants ?? []).map(g => cosmetic(g)).filter((x): x is Cosmetic => !!x).map(g => ({ c: g, parts: g.slots }))
+      : [{ c, parts: slot && c.slots.includes(slot) ? [slot] : c.slots }];
     const patch: { table?: string; accent?: string; cardBack?: string } = {};
-    for (const s of parts) { if (s === 'table') patch.table = c.id; else if (s === 'accent') patch.accent = c.id; else patch.cardBack = c.id; }
+    const cosJobs: Promise<boolean>[] = [];
+    for (const it of items) for (const s of it.parts) {
+      if (s === 'table') patch.table = it.c.id; else if (s === 'accent') patch.accent = it.c.id; else if (s === 'back') patch.cardBack = it.c.id;
+      else if (isCosSlot(s)) cosJobs.push(cos.equip(s, it.c.id));
+    }
     sfx.good(); buzz(15);
-    flash(S.equippedToast(nameOf(S, c)));
-    await app.saveProfile(patch);
+    flash(S.equippedToast(nameOf(S, app.lang, c)));
+    if (Object.keys(patch).length) await app.saveProfile(patch);
+    await Promise.all(cosJobs);
     track('shop_equip', { item: c.id });
   };
 
   const ctx: CardCtx = {
-    S, guest, admin, owned, bought: id => ownedSet.has(id), equipped,
-    onBuy: (c, slot) => { sfx.tap(); setBuying({ c, slot }); },
+    S, C, lang: app.lang, guest, admin, owned, bought: id => ownedSet.has(id), equipped, price,
+    onBuy: (c, slot) => { sfx.tap(); setDetail(null); setBuying({ c, slot, price: price(c) }); },
     onEquip: (c, slot) => { void equip(c, slot); },
+    onOpen: (c, slot) => { sfx.tap(); setDetail({ c, slot }); track('shop_detail', { item: c.id }); },
     onAuth,
   };
 
@@ -425,8 +535,31 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
     if (from && to && buying) setTimeout(() => setFly({ from, to, bg: swatchCss(buying.c, app.table) }), 350);
   };
 
-  const slot = TAB_SLOT[tab];
-  const featured = cosmetic(FEATURED_ID)!;
+  const slots = TAB_SLOTS[tab];
+  const byRarity = (list: Cosmetic[]) => (rar === 'all' ? list : list.filter(c => c.rarity === rar));
+  const tabLabel = (k: Tab): string => {
+    switch (k) {
+      case 'sets': return C.cats.pack;
+      case 'faces': return C.cats.face;
+      case 'frames': return C.cats.frame;
+      case 'victory': return C.cats.victory;
+      case 'emotes': return C.cats.emotes;
+      case 'titles': return C.cats.title;
+      default: return S.tabs[k];
+    }
+  };
+  const newIn = COSMETICS.filter(c => c.kind !== 'pack' && isNew(c) && !owned(c) && (c.rarity === 'legendary' || c.rarity === 'epic')).slice(0, 8);
+  const toggleN = (id: string) => { if (toggleNotify(id)) flash(S.notifyToast); };
+
+  const RarityBar = (
+    <div className="srarbar" role="radiogroup">
+      {(['all', ...RARITIES] as const).map(r => (
+        <button key={r} role="radio" aria-checked={rar === r} className={`${rar === r ? 'on' : ''} ${r !== 'all' ? `r-${r}` : ''}`} onClick={() => { setRar(r); sfx.tap(); }}>
+          {r !== 'all' && <i aria-hidden />}{r === 'all' ? C.all : S.rarity[r]}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <motion.div className="shop" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }} transition={{ type: 'spring', stiffness: 260, damping: 30 }}>
@@ -439,10 +572,10 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
             <span>{S.sub}</span>
           </div>
           {!guest && (
-            <motion.div ref={bagRef} key={'bag' + pop} className="sbag" title={S.collection(ownedCount, COSMETICS.length)}
+            <motion.div ref={bagRef} key={'bag' + pop} className="sbag" title={S.collection(ownedCount, COLLECTIBLES.length)}
               initial={pop ? { scale: 1.35 } : false} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 420, damping: 12 }}>
               <span className="sbagicon" aria-hidden><i /><i /></span>
-              <b>{ownedCount}<small>/{COSMETICS.length}</small></b>
+              <b>{ownedCount}<small>/{COLLECTIBLES.length}</small></b>
             </motion.div>
           )}
           {guest ? (
@@ -454,11 +587,11 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
             </div>
           )}
         </div>
-        <nav className="stabs" role="tablist">
+        <nav className="stabs" role="tablist" ref={tabsRef}>
           {TABS.map(k => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => { setTab(k); sfx.tap(); }}>
               {tab === k && <motion.span layoutId="stab" className="stabpill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-              <span>{S.tabs[k]}</span>
+              <span>{tabLabel(k)}</span>
             </button>
           ))}
         </nav>
@@ -479,8 +612,11 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
             <motion.div key={tab} initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -14 }} transition={{ duration: 0.18 }}>
               {tab === 'featured' && (
                 <>
-                  <div className="ssec"><b className="serif">{S.featured}</b><span>{S.featuredSub}</span></div>
-                  <div className="sgrid one"><ItemCard c={featured} slot={null} ctx={ctx} hero blurb={S.blurbs[featured.id]} /></div>
+                  <div className="ssec"><b className="serif">{C.featuredToday}</b><span>{C.featuredSub}</span></div>
+                  <div className="sgrid one"><ItemCard c={daily.hero} slot={null} ctx={ctx} hero blurb={S.blurbs[daily.hero.id] ?? C.about[daily.hero.kind]} /></div>
+                  <div className="sgrid sfour">
+                    {daily.picks.map((c, i) => <ItemCard key={c.id} c={c} slot={null} ctx={ctx} i={i + 1} />)}
+                  </div>
 
                   {!guest && p.ready && (
                     p.canClaim ? (
@@ -492,35 +628,60 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
                     ) : <div className="sdailydone">✓ {S.dailyDone}</div>
                   )}
 
-                  <div className="ssec"><b className="serif">{S.trending}</b></div>
+                  <div className="ssec"><b className="serif">{C.sets}</b><button className="alink" onClick={() => setTab('sets')}>{S.seeAll} →</button></div>
                   <div className="sgrid">
-                    {TRENDING_IDS.map((id, i) => <ItemCard key={id} c={cosmetic(id)!} slot={null} ctx={ctx} i={i} />)}
+                    {PACKS.filter(c => c.id !== daily.hero.id).slice(0, 4).map((c, i) => <ItemCard key={c.id} c={c} slot={null} ctx={ctx} i={i} />)}
                   </div>
 
+                  {newIn.length > 0 && <>
+                    <div className="ssec"><b className="serif">{C.newIn}</b></div>
+                    <div className="sgrid">{newIn.map((c, i) => <ItemCard key={c.id} c={c} slot={null} ctx={ctx} i={i} />)}</div>
+                  </>}
+
                   <div className="ssec"><b className="serif">{S.passTitle}</b></div>
-                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={id => { if (toggleNotify(id)) flash(S.notifyToast); }} />
+                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={toggleN} />
 
                   <div className="ssec"><b className="serif">{S.bundlesTitle}</b><button className="alink" onClick={() => setTab('bundles')}>{S.seeAll} →</button></div>
                   <div className="sgrid">
-                    {BUNDLES.slice(1, 3).map((b, i) => <BundleCard key={b.id} b={b} i={i + 1} S={S} lang={app.lang} notify={notify} onToggle={id => { if (toggleNotify(id)) flash(S.notifyToast); }} />)}
+                    {BUNDLES.slice(1, 3).map((b, i) => <BundleCard key={b.id} b={b} i={i + 1} S={S} lang={app.lang} notify={notify} onToggle={toggleN} />)}
                   </div>
                 </>
               )}
 
-              {slot && (
-                <div className="sgrid">
-                  {forSlot(slot).map((c, i) => <ItemCard key={c.id} c={c} slot={slot} ctx={ctx} i={i} />)}
-                </div>
+              {tab === 'sets' && (
+                <>
+                  <div className="ssec col"><b className="serif">{C.sets}</b><span>{C.setsSub}</span></div>
+                  <div className="sgrid">{PACKS.map((c, i) => <ItemCard key={c.id} c={c} slot={null} ctx={ctx} i={i} />)}</div>
+                </>
+              )}
+
+              {slots && (
+                <>
+                  {RarityBar}
+                  {slots.map((sl, si) => {
+                    const list = byRarity(forSlot(sl));
+                    return (
+                      <div key={sl}>
+                        {(slots.length > 1 || si > 0) && <div className="ssec"><b className="serif">{C.cats[sl]}</b><span>{C.about[sl]}</span></div>}
+                        {slots.length === 1 && <p className="sabout">{C.about[sl]}</p>}
+                        <div className="sgrid">
+                          {list.map((c, i) => <ItemCard key={c.id} c={c} slot={sl} ctx={ctx} i={i} />)}
+                        </div>
+                        {list.length === 0 && <div className="sempty">—</div>}
+                      </div>
+                    );
+                  })}
+                </>
               )}
 
               {tab === 'bundles' && (
                 <>
                   <div className="ssec col"><b className="serif">{S.bundlesTitle}</b><span>{S.bundlesSub}</span></div>
                   <div className="sgrid">
-                    {BUNDLES.map((b, i) => <BundleCard key={b.id} b={b} i={i} S={S} lang={app.lang} notify={notify} onToggle={id => { if (toggleNotify(id)) flash(S.notifyToast); }} />)}
+                    {BUNDLES.map((b, i) => <BundleCard key={b.id} b={b} i={i} S={S} lang={app.lang} notify={notify} onToggle={toggleN} />)}
                   </div>
                   <div className="ssec"><b className="serif">{S.passTitle}</b></div>
-                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={id => { if (toggleNotify(id)) flash(S.notifyToast); }} />
+                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={toggleN} />
                 </>
               )}
             </motion.div>
@@ -529,8 +690,11 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
       </div>
 
       <AnimatePresence>
+        {detail && !buying && <DetailModal key={'d' + detail.c.id} c={detail.c} slot={detail.slot} ctx={ctx} onClose={() => setDetail(null)} />}
+      </AnimatePresence>
+      <AnimatePresence>
         {buying && (
-          <BuyModal key={buying.c.id} c={buying.c} slot={buying.slot} S={S} bm={p.bm} admin={admin} canDaily={p.canClaim}
+          <BuyModal key={buying.c.id} c={buying.c} slot={buying.slot} S={S} C={C} lang={app.lang} price={buying.price} bm={p.bm} admin={admin} canDaily={p.canClaim}
             onClose={() => setBuying(null)} onBought={onBought}
             onEquip={() => { const b = buying; setBuying(null); void equip(b.c, b.slot); }} />
         )}
@@ -544,3 +708,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured' }: { onClo
 }
 
 export default ShopScreen;
+
+/** Exported for the wardrobe / tests: which shop tab shows an item. */
+export const shopTabOf = (id: string): Tab | null => { const c = cosmetic(id); return c ? tabOf(c) : null; };
+export type { Tab as ShopTab };
