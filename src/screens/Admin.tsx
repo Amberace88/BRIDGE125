@@ -8,6 +8,8 @@ import { adminInterest, type InterestRow } from '../merch/api';
 import { MERCH_STRINGS } from '../i18n/merch';
 import { SHOP_STRINGS } from '../i18n/shop';
 import '../styles/admin2.css';
+import { LANGS, isLang } from '../i18n';
+import { Flag } from '../components/Flag';
 
 /* Admin panel — owner-only (Latvian UI). Every RPC re-checks is_admin() on the server. */
 
@@ -133,7 +135,7 @@ function DayChart({ title, data, kind }: { title: string; data: { day: string; v
   );
 }
 
-function Breakdown({ title, data, labels }: { title: string; data: Record<string, number>; labels?: Record<string, string> }) {
+function Breakdown({ title, data, labels, flags }: { title: string; data: Record<string, number>; labels?: Record<string, string>; flags?: boolean }) {
   const rows = Object.entries(data ?? {}).sort((a, b) => b[1] - a[1]);
   const max = Math.max(1, ...rows.map(r => r[1]));
   const sum = rows.reduce((s, r) => s + r[1], 0) || 1;
@@ -143,7 +145,7 @@ function Breakdown({ title, data, labels }: { title: string; data: Record<string
       {rows.length === 0 && <div className="mute" style={{ fontSize: 13, padding: '10px 0' }}>Vēl nav datu</div>}
       {rows.map(([k, v], i) => (
         <div key={k} className="abrow" title={`${k}: ${v}`}>
-          <span className="abk">{labels?.[k] ?? k}</span>
+          <span className="abk">{flags && isLang(k) && <Flag lang={k} size={12} className="abflag" />}{flags && isLang(k) && ' '}{labels?.[k] ?? k}</span>
           <span className="abbar"><motion.i initial={{ width: 0 }} animate={{ width: `${(v / max) * 100}%` }} transition={{ delay: i * 0.05, duration: 0.6 }} /></span>
           <span className="abv">{nf(v)} <em>{Math.round((v / sum) * 100)}%</em></span>
         </div>
@@ -153,7 +155,7 @@ function Breakdown({ title, data, labels }: { title: string; data: Record<string
 }
 
 const MODE_LV: Record<string, string> = { bots: 'Pret botiem', quick: 'Ātrā online', room: 'Privāts galds' };
-const LANG_LV: Record<string, string> = { en: 'English', lv: 'Latviešu', ru: 'Русский', uk: 'Українська' };
+const LANG_LV: Record<string, string> = Object.fromEntries(LANGS.map(l => [l.id, l.label]));   // native names, all 17
 const PLAT_LV: Record<string, string> = { ios: 'iPhone / iPad', android: 'Android', desktop: 'Dators' };
 const EV_LV: Record<string, string> = {
   app_open: 'Atvēra', ping: 'Aktīvs', game_start: 'Sāka spēli', game_end: 'Pabeidza spēli', quick_match: 'Ātrā spēle', room_create: 'Izveidoja galdu',
@@ -231,7 +233,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   </div>
                   <div className="abreaks">
                     <Breakdown title="Spēles pēc režīma · 30 d" data={ov.modes} labels={MODE_LV} />
-                    <Breakdown title="Valodas · 30 d" data={ov.langs} labels={LANG_LV} />
+                    <Breakdown title="Valodas · 30 d" data={ov.langs} labels={LANG_LV} flags />
                     <Breakdown title="Ierīces · 30 d" data={ov.platforms} labels={PLAT_LV} />
                     <Breakdown title="Notikumi · 7 d" data={ov.top_events} labels={EV_LV} />
                   </div>

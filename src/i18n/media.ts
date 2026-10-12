@@ -95,3 +95,7 @@ export const MEDIA: Strings<MediaStrings> = {
     music: 'Музика', musicSub: 'Нічний лаунж, створюється наживо', volume: 'Гучність',
   },
 };
+
+// lt et pl de be kk uz az ka hy ro bg es: src/i18n/locales/<lang>.ts, deep-merged over English on load
+import { registerStrings } from './pick';
+registerStrings('media', MEDIA);

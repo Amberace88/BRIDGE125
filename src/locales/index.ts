@@ -2,6 +2,7 @@ import { DICTS, type Lang } from '../i18n';
 import { EXTRA } from '../i18n2';
 import { EXTRA2, LEGAL } from '../i18n3';
 import type { LocalePack } from './types';
+import { loadFeatureStrings } from '../i18n/locales';
 
 /**
  * Lazily loaded languages. en/lv/ru/uk are bundled in the main chunk; each language below is its
@@ -45,7 +46,8 @@ export function loadLocale(lang: Lang): Promise<void> {
   if (isLocaleLoaded(lang)) return Promise.resolve();
   let p = pending.get(lang);
   if (!p) {
-    p = LOADERS[lang]!().then(m => register(lang, m.default)).catch(() => { pending.delete(lang); });
+    // core pack + feature strings (src/i18n/locales) in parallel; the feature loader never rejects
+    p = Promise.all([LOADERS[lang]!(), loadFeatureStrings(lang)]).then(([m]) => register(lang, m.default)).catch(() => { pending.delete(lang); });
     pending.set(lang, p);
   }
   return p;
