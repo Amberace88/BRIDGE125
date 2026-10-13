@@ -499,6 +499,7 @@ const es: FeaturePack = {
       w_win10: 'Diez victorias', w_play20: 'Socio del club', w_quick: 'Un extraño en la mesa', w_queen10: 'La corte de la reina', w_burn3: 'Caminante del fuego',
       w_jacks3: 'Multiplicador de jotas', w_bluff30: 'Maestro de máscaras', w_star3: 'Una noche perfecta', w_kings: 'Cuatro coronas',
       g_zole2: 'Noche de Zole', g_durak2: 'Nunca el Durak', g_solitaire: 'La paciencia paga', g_sudoku_day: 'La cuadrícula del día', g_any3: 'Sala de juegos',
+      g_thousand: 'Carrera a 1000', g_mahjong_day: 'Fichas del día', g_freecell: 'Manos libres', g_freecell_day: 'La mano del día',
     },
     desc: {
       games: n => (n === 1 ? 'Juega una partida' : `Juega ${n} partidas`),
@@ -519,6 +520,10 @@ const es: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Gana una partida de Durak' : `Gana ${n} partidas de Durak`),
       mg_solitaire_win: n => (n === 1 ? 'Resuelve un solitario' : `Resuelve ${n} solitarios`),
       mg_sudoku_daily: () => 'Resuelve el Sudoku de hoy',
+      mg_thousand_win: n => (n === 1 ? 'Gana una partida de Mil' : `Gana ${n} partidas de Mil`),
+      mg_mahjong_daily: () => 'Despeja el Mahjong de hoy',
+      mg_freecell_win: n => (n === 1 ? 'Resuelve una Carta Blanca' : `Resuelve ${n} Cartas Blancas`),
+      mg_freecell_daily: () => 'Resuelve la Carta Blanca de hoy',
     },
     time: { d: ' d', h: ' h', m: ' min' },
   },
@@ -634,6 +639,9 @@ const es: FeaturePack = {
       mg_daily_solver: { name: 'Solucionador diario', desc: 'Resuelve 7 puzles diarios.' },
       mg_clockwork: { name: 'Como un reloj', desc: 'Resuelve el puzle diario 7 días seguidos.' },
       mg_all_rounder: { name: 'Todoterreno', desc: 'Gana al menos una vez en 4 minijuegos distintos.' },
+      mg_thousand_master: { name: 'Maestro del Mil', desc: 'Gana 10 partidas de Mil.' },
+      mg_mahjong_zen: { name: 'Zen del Mahjong', desc: 'Despeja 25 tableros de Mahjong.' },
+      mg_freecell_purist: { name: 'Purista de Carta Blanca', desc: 'Resuelve 5 Cartas Blancas seguidas.' },
     },
   },
   economy: {

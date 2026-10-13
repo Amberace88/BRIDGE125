@@ -503,6 +503,7 @@ const pl: FeaturePack = {
       w_win10: 'Dziesięć zwycięstw', w_play20: 'Członek klubu', w_quick: 'Nieznajomy przy stole', w_queen10: 'Dwór damy', w_burn3: 'Po rozżarzonych węglach',
       w_jacks3: 'Mnożnik waletów', w_bluff30: 'Mistrz masek', w_star3: 'Idealna noc', w_kings: 'Cztery korony',
       g_zole2: 'Wieczór Zole', g_durak2: 'Nie dureń', g_solitaire: 'Cierpliwość popłaca', g_sudoku_day: 'Siatka dnia', g_any3: 'Sala gier',
+      g_thousand: 'Wyścig do 1000', g_mahjong_day: 'Kamienie dnia', g_freecell: 'Wolne ręce', g_freecell_day: 'Rozdanie dnia',
     },
     desc: {
       games: n => (n === 1 ? 'Rozegraj partię' : `Rozegraj ${n} ${pl3(n, 'partię', 'partie', 'partii')}`),
@@ -523,6 +524,10 @@ const pl: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Wygraj partię Duraka' : `Wygraj ${n} ${pl3(n, 'partię', 'partie', 'partii')} Duraka`),
       mg_solitaire_win: n => (n === 1 ? 'Ułóż pasjansa' : `Ułóż ${n} ${pl3(n, 'pasjansa', 'pasjanse', 'pasjansów')}`),
       mg_sudoku_daily: () => 'Rozwiąż dzisiejsze Sudoku',
+      mg_thousand_win: n => (n === 1 ? 'Wygraj partię Tysiąca' : `Wygraj ${n} ${pl3(n, 'partię', 'partie', 'partii')} Tysiąca`),
+      mg_mahjong_daily: () => 'Oczyść dzisiejszego Mahjonga',
+      mg_freecell_win: n => (n === 1 ? 'Wygraj partię FreeCell' : `Wygraj ${n} ${pl3(n, 'partię', 'partie', 'partii')} FreeCell`),
+      mg_freecell_daily: () => 'Ułóż dzisiejsze rozdanie FreeCell',
     },
     time: { d: ' d', h: ' godz.', m: ' min' },
   },
@@ -638,6 +643,9 @@ const pl: FeaturePack = {
       mg_daily_solver: { name: 'Mistrz dnia', desc: 'Rozwiąż 7 dziennych łamigłówek.' },
       mg_clockwork: { name: 'Jak w zegarku', desc: 'Rozwiązuj dzienną łamigłówkę 7 dni z rzędu.' },
       mg_all_rounder: { name: 'Wszechstronny', desc: 'Wygraj co najmniej raz w 4 różnych minigrach.' },
+      mg_thousand_master: { name: 'Mistrz Tysiąca', desc: 'Wygraj 10 partii Tysiąca.' },
+      mg_mahjong_zen: { name: 'Zen Mahjonga', desc: 'Oczyść 25 plansz Mahjonga.' },
+      mg_freecell_purist: { name: 'Purysta FreeCell', desc: 'Wygraj 5 partii FreeCell z rzędu.' },
     },
   },
   economy: {

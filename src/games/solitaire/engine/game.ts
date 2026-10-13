@@ -4,6 +4,7 @@ import { applyK, dealKlondike, kFinalScore, kLegal, kLiveScore, kWon, type KMove
 import { applySp, dealSpider, spLegal, spLiveScore, spWon, SP_SCORE, type SpMove, type SpState } from './spider';
 import { hashSeed } from './cards';
 import { findWinnableSeed } from './solver';
+import { seedNumber } from '../../seed';
 
 export type Mode = 'klondike-1' | 'klondike-3' | 'spider-1' | 'spider-2' | 'spider-4';
 export const MODES: readonly Mode[] = ['klondike-1', 'klondike-3', 'spider-1', 'spider-2', 'spider-4'];
@@ -25,6 +26,8 @@ export interface Game {
   day?: string;
   /** the result was reported (won, or abandoned) */
   reported?: boolean;
+  /** the challenge seed this deal came from (seed contract, ../../types.ts): `seedStart` → `winnableSeed` replays it */
+  seed?: string;
 }
 
 export function newGame(mode: Mode, seed: number, opts: { vegas?: boolean; day?: string } = {}): Game {
@@ -79,6 +82,9 @@ export function dailySeed(day: string): number {
   const start = (hashSeed('b125-solitaire-' + day) % 999_999_999) + 1;
   return findWinnableSeed(start, 1, WINNABLE_BUDGET);
 }
+
+/** Where the deal search of a string seed starts (1 … 999 999 999; "123" starts at deal 123). */
+export const seedStart = (seed: string) => seedNumber(seed, 'solitaire', 999_999_999);
 
 /** A proven-winnable Klondike deal near `start` (Spider deals are used as they come). */
 export function winnableSeed(mode: Mode, start: number): number {

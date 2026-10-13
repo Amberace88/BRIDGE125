@@ -497,6 +497,7 @@ const kk: FeaturePack = {
       w_win10: 'Он жеңіс', w_play20: 'Клуб мүшесі', w_quick: 'Үстелдегі бейтаныс', w_queen10: 'Дама сарайы', w_burn3: 'Шоқ үстімен',
       w_jacks3: 'Валеттер көбейткіші', w_bluff30: 'Маскалар шебері', w_star3: 'Мінсіз түн', w_kings: 'Төрт тәж',
       g_zole2: 'Золе кеші', g_durak2: 'Ақымақ емес', g_solitaire: 'Сабыр түбі — сары алтын', g_sudoku_day: 'Күн торы', g_any3: 'Ойын залы',
+      g_thousand: '1000-ға жарыс', g_mahjong_day: 'Күн тастары', g_freecell: 'Бос қолдар', g_freecell_day: 'Күн таратуы',
     },
     desc: {
       games: n => (n === 1 ? 'Бір партия ойнаңыз' : `${n} ойын ойнаңыз`),
@@ -517,6 +518,10 @@ const kk: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Дуракта бір партия ұтыңыз' : `Дуракта ${n} партия ұтыңыз`),
       mg_solitaire_win: n => (n === 1 ? 'Бір пасьянс жинаңыз' : `${n} пасьянс жинаңыз`),
       mg_sudoku_daily: () => 'Бүгінгі судокуды шешіңіз',
+      mg_thousand_win: n => (n === 1 ? 'Мыңда бір партия ұтыңыз' : `Мыңда ${n} партия ұтыңыз`),
+      mg_mahjong_daily: () => 'Бүгінгі маджонгты тазалаңыз',
+      mg_freecell_win: n => (n === 1 ? 'Бір FreeCell жинаңыз' : `${n} FreeCell жинаңыз`),
+      mg_freecell_daily: () => 'Бүгінгі FreeCell-ді жинаңыз',
     },
     time: { d: ' күн', h: ' сағ', m: ' мин' },
   },
@@ -632,6 +637,9 @@ const kk: FeaturePack = {
       mg_daily_solver: { name: 'Күн шешушісі', desc: '7 күнделікті жұмбақ шешіңіз.' },
       mg_clockwork: { name: 'Сағаттай дәл', desc: 'Күнделікті жұмбақты қатарынан 7 күн шешіңіз.' },
       mg_all_rounder: { name: 'Әмбебап', desc: '4 түрлі мини-ойында кемінде бір рет жеңіңіз.' },
+      mg_thousand_master: { name: 'Мың шебері', desc: 'Мыңда 10 партия ұтыңыз.' },
+      mg_mahjong_zen: { name: 'Маджонг дзені', desc: '25 маджонг тақтасын тазалаңыз.' },
+      mg_freecell_purist: { name: 'FreeCell пуристі', desc: 'Қатарынан 5 FreeCell жинаңыз.' },
     },
   },
   economy: {

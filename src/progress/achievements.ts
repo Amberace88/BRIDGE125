@@ -28,6 +28,7 @@ export const COUNTER_STATS = [
   'spins', 'jackpots', 'stake_played', 'stake_wins', 'stake_big_wins', 'boosts',
   // mini games (server-side only: record_minigame, migration 019)
   'mg_games', 'mg_zole_wins', 'mg_durak_streak', 'mg_solitaire_wins', 'mg_sudoku_wins', 'mg_dailies', 'mg_daily_streak', 'mg_variety',
+  'mg_thousand_wins', 'mg_mahjong_wins', 'mg_freecell_streak',
 ] as const;
 export type AchStat = typeof COLUMN_STATS[number] | typeof COUNTER_STATS[number];
 
@@ -179,6 +180,10 @@ export const ACHIEVEMENTS: AchDef[] = [
   a('mg_daily_solver', 'games', 'silver', 700, '☀7', ['mg_dailies', 7]),
   a('mg_clockwork', 'games', 'gold', 1500, '7d', ['mg_daily_streak', 7]),
   a('mg_all_rounder', 'games', 'gold', 1500, '4◈', ['mg_variety', 4]),
+  // ---- the games of 022a–c (migration 024 seeds these rows with sort 95…)
+  a('mg_thousand_master', 'games', 'gold', 1500, '1000', ['mg_thousand_wins', 10]),
+  a('mg_mahjong_zen', 'games', 'silver', 800, '中', ['mg_mahjong_wins', 25]),
+  a('mg_freecell_purist', 'games', 'silver', 800, 'FC×5', ['mg_freecell_streak', 5]),
 ];
 
 const BY_CODE = new Map(ACHIEVEMENTS.map(x => [x.code, x]));

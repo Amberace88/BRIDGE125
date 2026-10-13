@@ -497,6 +497,7 @@ const uz: FeaturePack = {
       w_win10: 'Oʻn gʻalaba', w_play20: 'Klub aʼzosi', w_quick: 'Stoldagi notanish', w_queen10: 'Dama saroyi', w_burn3: 'Choʻgʻ ustida',
       w_jacks3: 'Valetlar koʻpaytiruvchisi', w_bluff30: 'Niqoblar ustasi', w_star3: 'Mukammal tun', w_kings: 'Toʻrt toj',
       g_zole2: 'Zole oqshomi', g_durak2: 'Ahmoq emas', g_solitaire: 'Sabr tagi — sariq oltin', g_sudoku_day: 'Kun to‘ri', g_any3: 'O‘yin zali',
+      g_thousand: '1000 sari poyga', g_mahjong_day: 'Kun toshlari', g_freecell: 'Erkin qo‘llar', g_freecell_day: 'Kun tarqatmasi',
     },
     desc: {
       games: n => (n === 1 ? 'Bitta partiya oʻynang' : `${n} ta oʻyin oʻynang`),
@@ -517,6 +518,10 @@ const uz: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Durakda bitta partiya yuting' : `Durakda ${n} ta partiya yuting`),
       mg_solitaire_win: n => (n === 1 ? 'Bitta pasyans yig‘ing' : `${n} ta pasyans yig‘ing`),
       mg_sudoku_daily: () => 'Bugungi sudokuni yeching',
+      mg_thousand_win: n => (n === 1 ? 'Mingda bitta partiya yuting' : `Mingda ${n} ta partiya yuting`),
+      mg_mahjong_daily: () => 'Bugungi Mahjongni tozalang',
+      mg_freecell_win: n => (n === 1 ? 'Bitta FreeCell yig‘ing' : `${n} ta FreeCell yig‘ing`),
+      mg_freecell_daily: () => 'Bugungi FreeCellni yig‘ing',
     },
     time: { d: ' kun', h: ' soat', m: ' daq' },
   },
@@ -632,6 +637,9 @@ const uz: FeaturePack = {
       mg_daily_solver: { name: 'Kun yechuvchisi', desc: '7 ta kunlik boshqotirmani yeching.' },
       mg_clockwork: { name: 'Soatdek aniq', desc: 'Kunlik boshqotirmani ketma-ket 7 kun yeching.' },
       mg_all_rounder: { name: 'Universal', desc: '4 xil mini-o‘yinda kamida bir marta g‘alaba qozoning.' },
+      mg_thousand_master: { name: 'Ming ustasi', desc: 'Mingda 10 ta partiya yuting.' },
+      mg_mahjong_zen: { name: 'Mahjong zeni', desc: '25 ta Mahjong taxtasini tozalang.' },
+      mg_freecell_purist: { name: 'FreeCell puristi', desc: 'Ketma-ket 5 ta FreeCell yig‘ing.' },
     },
   },
   economy: {

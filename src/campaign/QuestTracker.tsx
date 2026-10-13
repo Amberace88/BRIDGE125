@@ -24,6 +24,8 @@ const GLYPH: Record<Metric, string> = {
   kings: 'K⁴', quick_win: 'ϟ', journey_win: '✦', journey_3star: '★',
   // mini games (migration 019)
   mg_games: '◈', mg_zole_win: 'Z', mg_durak_win: 'D', mg_solitaire_win: 'K♥', mg_sudoku_daily: '9',
+  // 022a–c, live from migration 024
+  mg_thousand_win: '1000', mg_mahjong_daily: '中', mg_freecell_win: 'FC', mg_freecell_daily: '☀FC',
 };
 
 /** Engraved brass medallion with the quest's glyph. */

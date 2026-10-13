@@ -12,7 +12,8 @@ import { IconBack, IconHint, IconMenu, IconNew, IconUndo, IconWand } from '../..
 import { dayLabel, fmtTime } from '../../solitaire/ui/format';
 import { fcStrings } from '../strings';
 import { loadSave, recordResult, writeSave, type FcSave } from '../store';
-import { canUndo, isWon, newGame, play, playAuto, randomDeal, scoreOf, undo, type FcGame } from '../engine/game';
+import { canUndo, dealFromSeed, isWon, newGame, play, playAuto, randomDeal, scoreOf, undo, type FcGame } from '../engine/game';
+import { isSeed } from '../../seed';
 import { UNSOLVABLE } from '../engine/deal';
 import {
   allMoves, autoStep, canFinish, cardId, fcCard, finishStep, foundCount, maxMovable, movingCards, noMoves, runLength,
@@ -45,17 +46,19 @@ function useSize(ref: React.RefObject<HTMLDivElement | null>) {
 const cardsAt = (st: FcState, loc: Loc): number[] =>
   loc.k === 'col' ? st.cols[loc.i] : loc.k === 'cell' ? (st.cells[loc.i] == null ? [] : [st.cells[loc.i]!]) : Array.from({ length: st.found[loc.i] }, (_, r) => cardId(loc.i, r + 1));
 
-export default function FreeCell({ onExit, onAuth }: GameScreenProps) {
+export default function FreeCell({ onExit, onAuth, seed }: GameScreenProps) {
   const app = useApp();
   const lang = app.lang;
   const s = fcStrings(lang);
   const reduce = !!useReducedMotion();
 
   const [save, setSave] = useState<FcSave>(() => loadSave());
-  const [game, setGame] = useState<FcGame | null>(() => (save.game && !isWon(save.game) ? save.game : null));
+  // a challenge seed (../../types.ts): no menu and no resume — its deal is dealt on mount
+  const seeded = isSeed(seed) ? seed : null;
+  const [game, setGame] = useState<FcGame | null>(() => (!seeded && save.game && !isWon(save.game) ? save.game : null));
   const [dealKey, setDealKey] = useState('resume');
   const [dealIn, setDealIn] = useState(false);
-  const [menu, setMenu] = useState(() => !game);
+  const [menu, setMenu] = useState(() => !game && !seeded);
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<HintMark | null>(null);
   const [thinking, setThinking] = useState(false);
@@ -114,6 +117,8 @@ export default function FreeCell({ onExit, onAuth }: GameScreenProps) {
   const resultOf = (g: FcGame, won: boolean, seconds: number): GameResult => ({
     game: 'freecell', won, score: scoreOf({ ...g, seconds }, won), seconds, level: 'classic', day: g.day,
     details: { moves: g.moves, undos: g.undos, deal: g.deal },
+    // the deal number is the seed (dealFromSeed): any game can be sent to a friend as the very same deal
+    seed: String(g.deal),
   });
 
   const finishWin = useCallback((g: FcGame) => {
@@ -164,6 +169,13 @@ export default function FreeCell({ onExit, onAuth }: GameScreenProps) {
     else if (UNSOLVABLE.includes(n)) setTimeout(() => flash(s.unsolvable(n)), 1400);
     else setTimeout(() => flash(day ? `${s.daily} · ${s.dealNo(n)}` : s.dealNo(n)), 1400);
   }, [persist, today, s]);
+
+  const seededOnce = useRef(false);
+  useEffect(() => {
+    if (!seeded || seededOnce.current) return;
+    seededOnce.current = true;
+    void deal(dealFromSeed(seeded));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const askNew = (then: () => void) => {
     const g = gameRef.current;

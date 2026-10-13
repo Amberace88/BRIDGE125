@@ -16,7 +16,7 @@ import { QuickAudio } from '../../voice/AudioControls';
 import { CountUp } from './CountUp';
 import {
   type Action, type Play, type Suit, type TCard, type TState, GLYPH, MARRIAGE, N, actor, bidOptions, canDeclare, contractOptions, firstHand,
-  lastBid, legalCards, nextSeat, sortHand, sumPoints, takenBy, trickWinnerIndex,
+  lastBid, legalCards, nextSeat, sortHand, sumPoints, takenBy, trickWinnerIndex, makeRng,
 } from './engine';
 import { botAction, suggestBid, type TLevel } from './bot';
 import { THOUSAND } from './strings';
@@ -147,7 +147,8 @@ export function ThousandGame({ g, level, fast, onToggleFast, onAct, onBot, onExi
     const base = g.phase === 'bid' ? BOT_MS.bid : g.phase === 'give' ? BOT_MS.give : g.phase === 'contract' ? BOT_MS.contract : BOT_MS.play + (g.trick.length === 0 ? 180 : 0);
     const delay = (base + Math.random() * BOT_MS.jitter) * (fast ? 0.5 : 1);
     const seq = g.seq, p = who;
-    const tm = setTimeout(() => { const a = botAction(g, p, level); if (a) onBot(seq, p, a); }, delay);
+    // the bots' choices come from the deal's generator too: a seeded challenge replays the same way on every device
+    const tm = setTimeout(() => { const a = botAction(g, p, level, makeRng((g.rng ^ Math.imul(seq + 1, 0x9e3779b1) ^ Math.imul(p + 1, 0x85ebca6b)) >>> 0)); if (a) onBot(seq, p, a); }, delay);
     return () => clearTimeout(tm);
   }, [g.seq, busy, paused, fast]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -8,11 +8,13 @@ import { sfx } from '../../sound';
 import { useApp } from '../../store';
 import { reportGame, reportStart } from '../session';
 import type { GameScreenProps } from '../types';
-import { type Action, type ZState, type ZoleRules, apply, isWin, newSession } from './engine';
-import type { ZLevel } from './bot';
+import { type Action, type ZState, type ZoleRules, apply, isWin } from './engine';
+import { LEVELS, type ZLevel } from './bot';
+import { isSeed, pickLevel } from '../seed';
+import { newSeed } from '../challenge/compare';
 import { ZOLE } from './strings';
 import { TITLES } from './titles';
-import { loadSave, writeSave, type ZolePrefs, type ZoleRun } from './save';
+import { DEFAULT_PREFS, isStandardRules, loadSave, sessionFromSeed, writeSave, type ZolePrefs, type ZoleRun } from './save';
 import { ZoleGame } from './ZoleGame';
 import { RulesSheet } from './RulesSheet';
 import '../../styles/table.css';
@@ -35,11 +37,25 @@ function sessionDetails(g: ZState): Record<string, number | boolean | string> {
   };
 }
 
-export default function ZoleScreen({ onExit }: GameScreenProps) {
+export default function ZoleScreen({ onExit, seed, level }: GameScreenProps) {
   const app = useApp();
   const { t } = app;
   const [prefs, setPrefs] = useState<ZolePrefs>(() => loadSave().prefs);
-  const [run, setRun] = useState<ZoleRun | null>(() => loadSave().run);
+  const table = () => {
+    const bots = t.botNames.slice(0, 2);
+    return [{ name: app.name || t.you, bot: false }, { name: bots[0] ?? 'Artjoms', bot: true }, { name: bots[1] ?? 'Marina', bot: true }];
+  };
+  /** a new session; seeded (a challenge, see ../types.ts) → standard rules, so the seed + level replay it anywhere */
+  const newRun = (p: ZolePrefs, sd?: string): ZoleRun => {
+    const rules = sd ? DEFAULT_PREFS.rules : p.rules;
+    const s = sd ?? newSeed();
+    return { g: sessionFromSeed(s, table(), rules), level: p.level, seconds: 0, ...(isStandardRules(rules) ? { seed: s } : {}) };
+  };
+  // a challenge seed: the first session starts at once from it (no lobby, the saved session is not resumed)
+  const [run, setRun] = useState<ZoleRun | null>(() => (isSeed(seed) ? newRun({ ...prefs, level: pickLevel(level, LEVELS, prefs.level) }, seed) : loadSave().run));
+  useEffect(() => {
+    if (isSeed(seed) && run) reportStart('zole', { level: run.level, deals: run.g.rules.deals, maza: run.g.rules.mazaZole, pules: run.g.rules.pules, seeded: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const pace = useFastMode();
 
   /* ---------- seconds at the table (counted while this screen is open and visible) ---------- */
@@ -67,19 +83,14 @@ export default function ZoleScreen({ onExit }: GameScreenProps) {
   useEffect(() => {
     if (!run || run.g.phase !== 'sessionOver' || run.reported) return;
     const g = run.g;
-    void reportGame({ game: 'zole', won: g.scores[0] > 0, score: g.scores[0], seconds: Math.round(elapsed()), level: run.level, details: sessionDetails(g) });
+    void reportGame({ game: 'zole', won: g.scores[0] > 0, score: g.scores[0], seconds: Math.round(elapsed()), level: run.level, details: sessionDetails(g), ...(run.seed ? { seed: run.seed } : {}) });
     setRun(r => (r ? { ...r, reported: true } : r));
   }, [run?.g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const start = (p: ZolePrefs) => {
-    const bots = t.botNames.slice(0, 2);
-    const g = newSession({
-      players: [{ name: app.name || t.you, bot: false }, { name: bots[0] ?? 'Artjoms', bot: true }, { name: bots[1] ?? 'Marina', bot: true }],
-      rules: p.rules, seed: (Date.now() ^ Math.floor(Math.random() * 0x7fffffff)) >>> 0,
-    });
     clock.current = { base: 0, at: performance.now(), hidden: false };
     setPrefs(p);
-    setRun({ g, level: p.level, seconds: 0 });
+    setRun(newRun(p));
     reportStart('zole', { level: p.level, deals: p.rules.deals, maza: p.rules.mazaZole, pules: p.rules.pules });
     sfx.shuffle();
   };

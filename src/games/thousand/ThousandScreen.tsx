@@ -9,22 +9,38 @@ import { useApp } from '../../store';
 import { GameResultSheet } from '../GameResultSheet';
 import { reportGame, reportStart } from '../session';
 import type { GameResult, GameScreenProps } from '../types';
-import { type Action, type ThousandRules, apply, gameDetails, newGame } from './engine';
-import type { TLevel } from './bot';
+import { type Action, type ThousandRules, apply, gameDetails } from './engine';
+import { LEVELS, type TLevel } from './bot';
+import { isSeed, pickLevel } from '../seed';
+import { newSeed } from '../challenge/compare';
 import { THOUSAND } from './strings';
 import { TITLES } from './titles';
-import { loadSave, writeSave, type ThousandPrefs, type ThousandRun } from './save';
+import { DEFAULT_PREFS, gameFromSeed, isStandardRules, loadSave, writeSave, type ThousandPrefs, type ThousandRun } from './save';
 import { ThousandGame } from './ThousandGame';
 import { RulesSheet } from './RulesSheet';
 import '../../styles/table.css';
 import './thousand.css';
 
-export default function ThousandScreen({ onExit, onAuth }: GameScreenProps) {
+export default function ThousandScreen({ onExit, onAuth, seed, level }: GameScreenProps) {
   const app = useApp();
   const { t } = app;
   const s = useStrings(THOUSAND);
   const [prefs, setPrefs] = useState<ThousandPrefs>(() => loadSave().prefs);
-  const [run, setRun] = useState<ThousandRun | null>(() => loadSave().run);
+  const table = () => {
+    const bots = t.botNames.slice(0, 2);
+    return [{ name: app.name || t.you, bot: false }, { name: bots[0] ?? 'Artjoms', bot: true }, { name: bots[1] ?? 'Marina', bot: true }];
+  };
+  /** a new game; seeded (a challenge, see ../types.ts) → standard rules, so the seed + level replay it anywhere */
+  const newRun = (p: ThousandPrefs, sd?: string): ThousandRun => {
+    const rules = sd ? DEFAULT_PREFS.rules : p.rules;
+    const x = sd ?? newSeed();
+    return { g: gameFromSeed(x, table(), rules), level: p.level, seconds: 0, ...(isStandardRules(rules) ? { seed: x } : {}) };
+  };
+  // a challenge seed: the first game starts at once from it (no lobby, the saved game is not resumed)
+  const [run, setRun] = useState<ThousandRun | null>(() => (isSeed(seed) ? newRun({ ...prefs, level: pickLevel(level, LEVELS, prefs.level) }, seed) : loadSave().run));
+  useEffect(() => {
+    if (isSeed(seed) && run) reportStart('thousand', { level: run.level, ...run.g.rules, seeded: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [results, setResults] = useState(false);
   const pace = useFastMode();
 
@@ -56,22 +72,18 @@ export default function ThousandScreen({ onExit, onAuth }: GameScreenProps) {
     const g = run.g;
     const result: GameResult = {
       game: 'thousand', won: g.winner === 0, score: Math.max(0, g.scores[0]), seconds: Math.round(elapsed()), level: run.level, details: gameDetails(g),
+      ...(run.seed ? { seed: run.seed } : {}),
     };
     report.current = { result, p: reportGame(result) };
     setRun(r => (r ? { ...r, reported: true } : r));
   }, [run?.g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const start = (p: ThousandPrefs) => {
-    const bots = t.botNames.slice(0, 2);
-    const g = newGame({
-      players: [{ name: app.name || t.you, bot: false }, { name: bots[0] ?? 'Artjoms', bot: true }, { name: bots[1] ?? 'Marina', bot: true }],
-      rules: p.rules, seed: (Date.now() ^ Math.floor(Math.random() * 0x7fffffff)) >>> 0,
-    });
     clock.current = { base: 0, at: performance.now(), hidden: false };
     report.current = null;
     setResults(false);
     setPrefs(p);
-    setRun({ g, level: p.level, seconds: 0 });
+    setRun(newRun(p));
     reportStart('thousand', { level: p.level, ...p.rules });
     sfx.shuffle();
   };

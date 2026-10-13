@@ -13,4 +13,5 @@ export const sudoku: GameModule = {
   tagline: TAGLINE,
   Emblem: SudokuEmblem,
   Screen: lazy(() => import('./Screen')),
+  seeded: true,
 };

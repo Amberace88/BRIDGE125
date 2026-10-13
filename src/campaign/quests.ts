@@ -15,7 +15,8 @@ export type BridgeMetric =
  * Mini-game quest metrics (supabase/migration_019_minigames.sql). The server alone moves them (record_minigame), and
  * assigns at most one game quest a day, on top of Bridge's three, to players who played a mini game recently.
  */
-export type GameMetric = 'mg_games' | 'mg_zole_win' | 'mg_durak_win' | 'mg_solitaire_win' | 'mg_sudoku_daily';
+export type GameMetric = 'mg_games' | 'mg_zole_win' | 'mg_durak_win' | 'mg_solitaire_win' | 'mg_sudoku_daily'
+  | 'mg_thousand_win' | 'mg_mahjong_daily' | 'mg_freecell_win' | 'mg_freecell_daily';
 export type Metric = BridgeMetric | GameMetric;
 export const isGameMetric = (m: string): m is GameMetric => m.startsWith('mg_');
 
@@ -53,6 +54,11 @@ export const GAME_QUEST_DEFS: GameQuestDef[] = [
   { id: 'g_solitaire', kind: 'daily', metric: 'mg_solitaire_win', goal: 1, bm: 120, xp: 35, game: 'solitaire' },
   { id: 'g_sudoku_day', kind: 'daily', metric: 'mg_sudoku_daily', goal: 1, bm: 150, xp: 40, game: 'sudoku' },
   { id: 'g_any3', kind: 'daily', metric: 'mg_games', goal: 3, bm: 120, xp: 30, game: 'any' },
+  // seeded inactive by 022a / 022b / 022c, switched on by migration 024 (once these mirrors shipped)
+  { id: 'g_thousand', kind: 'daily', metric: 'mg_thousand_win', goal: 1, bm: 150, xp: 40, game: 'thousand' },
+  { id: 'g_mahjong_day', kind: 'daily', metric: 'mg_mahjong_daily', goal: 1, bm: 150, xp: 40, game: 'mahjong' },
+  { id: 'g_freecell', kind: 'daily', metric: 'mg_freecell_win', goal: 1, bm: 120, xp: 35, game: 'freecell' },
+  { id: 'g_freecell_day', kind: 'daily', metric: 'mg_freecell_daily', goal: 1, bm: 150, xp: 40, game: 'freecell' },
 ];
 
 export const questDef = (id: string) => QUEST_DEFS.find(q => q.id === id);

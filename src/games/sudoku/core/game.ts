@@ -1,5 +1,6 @@
 import { CELL_UNITS, PEERS, UNITS, bit, candidatesOf, parse, type Grid, type Level } from './grid';
 import type { Puzzle } from './generator';
+import { seedNumber } from '../../seed';
 
 // The game state is plain JSON (autosaved after every move). Every action returns a NEW state; each user move is one
 // undoable patch that also carries its side effects (cleared notes in the peers), so undo/redo restore exactly.
@@ -64,6 +65,12 @@ export interface Events {
   solved?: boolean;
   lost?: boolean;
 }
+
+/**
+ * The generator seed of a challenge seed (seed contract, ../../types.ts): digits are the generator seed itself
+ * (a game reports `String(game.seed)`, so any puzzle can be sent to a friend), anything else is hashed.
+ */
+export const seedFor = (seed: string) => seedNumber(seed, 'sudoku', 0xffffffff, 0);
 
 export const gameKey = (mode: Mode, level: Level, day?: string) => (mode === 'daily' ? `daily:${day}:${level}` : `classic:${level}`);
 

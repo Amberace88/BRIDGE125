@@ -7,21 +7,32 @@ import { reportGame, reportStart } from '../session';
 import type { GameScreenProps } from '../types';
 import { autoplay, botAction } from './bot';
 import { DurakTable } from './DurakTable';
-import { type Action, type DurakState, apply, durakScore, newGame } from './engine';
+import { type Action, type DurakState, apply, durakScore } from './engine';
 import { EndScreen } from './EndScreen';
 import { Lobby, RulesSheet } from './Lobby';
-import { type DurakSettings, loadSave, writeSave } from './save';
+import { DEFAULT_SETTINGS, LEVELS, type DurakSettings, gameFromSeed, isStandardTable, loadSave, writeSave } from './save';
+import type { DurakLevel } from './bot';
+import { isSeed, pickLevel } from '../seed';
+import { newSeed } from '../challenge/compare';
 import { DURAK_STRINGS } from './strings';
 
 const ME = 0;
-const newSeed = () => (Math.floor(Math.random() * 0xffffffff) ^ Date.now()) >>> 0;
+const tableOf = (me: string, bots: readonly string[], n: number) => [{ name: me, bot: false }, ...bots.slice(0, n - 1).map(name => ({ name, bot: true }))];
 
-export default function DurakScreen({ onExit, onAuth }: GameScreenProps) {
+export default function DurakScreen({ onExit, onAuth, seed, level: seedLevel }: GameScreenProps) {
   const app = useApp();
   const s = useStrings(DURAK_STRINGS);
-  const [boot] = useState(loadSave);
+  // a challenge seed (../types.ts): the first game is dealt from it at once, at the standard table (no lobby, no resume)
+  const [boot] = useState(() => {
+    const b = loadSave();
+    if (!isSeed(seed)) return { ...b, runLevel: null as DurakLevel | null };
+    const game = gameFromSeed(seed, tableOf(app.name || s.you, s.botNames, DEFAULT_SETTINGS.players));
+    return { ...b, game, seconds: 0, takes: 0, runLevel: pickLevel(seedLevel, LEVELS, b.settings.level) };
+  });
   const [settings, setSettings] = useState<DurakSettings>(boot.settings);
   const [g, setG] = useState<DurakState | null>(boot.game);
+  /** the bots' level of a seeded game (the lobby's level otherwise) */
+  const [runLevel, setRunLevel] = useState<DurakLevel | null>(boot.runLevel);
   const [view, setView] = useState<'lobby' | 'table'>(boot.game ? 'table' : 'lobby');
   const [hints, setHints] = useState<string[]>(boot.hints);
   const [sheet, setSheet] = useState<null | 'menu' | 'rules'>(null);
@@ -32,7 +43,7 @@ export default function DurakScreen({ onExit, onAuth }: GameScreenProps) {
   const reported = useRef(false);
   const pace = useFastMode();
   const tempo = pace.fast ? FAST_TEMPO : 1;
-  const level = settings.level;
+  const level = runLevel ?? settings.level;
 
   // every move is saved; a finished game is not kept
   useEffect(() => {
@@ -47,9 +58,13 @@ export default function DurakScreen({ onExit, onAuth }: GameScreenProps) {
     return () => clearInterval(iv);
   }, [view, !!g, over]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (boot.runLevel && g) reportStart('durak', { players: g.players.length, level: boot.runLevel, variant: 'podkidnoy', deck: g.rules.deck, seeded: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const start = useCallback((st: DurakSettings) => {
-    const bots = s.botNames.slice(0, st.players - 1).map(name => ({ name, bot: true }));
-    const ng = newGame({ players: [{ name: app.name || s.you, bot: false }, ...bots], rules: { transfer: st.transfer, deck: st.deck }, seed: newSeed() });
+    const ng = gameFromSeed(newSeed(), tableOf(app.name || s.you, s.botNames, st.players), st);
+    setRunLevel(null);
     secs.current = 0; takes.current = 0; reported.current = false;
     setShowEnd(false); setSheet(null);
     setG(ng); setView('table');
@@ -84,6 +99,8 @@ export default function DurakScreen({ onExit, onAuth }: GameScreenProps) {
       const place = isDurak ? g.players.length : g.players[ME].place ?? g.players.length;
       void reportGame({
         game: 'durak', won: !isDurak, score: durakScore(g, ME, takes.current), seconds: Math.round(secs.current), level,
+        // the engine seed replays this deal (seed contract) — when it was dealt at the standard table
+        ...(isStandardTable({ players: g.players.length, deck: g.rules.deck, transfer: g.rules.transfer }) ? { seed: String(g.seed) } : {}),
         details: { durak: isDurak, place, players: g.players.length, variant: g.rules.transfer ? 'perevodnoy' : 'podkidnoy', deck: g.rules.deck, pogony: isDurak && g.pogony },
       });
     }

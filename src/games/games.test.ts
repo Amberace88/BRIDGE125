@@ -4,6 +4,7 @@ import sql from '../../supabase/migration_019_minigames.sql?raw';
 import sql22a from '../../supabase/migration_022a_thousand.sql?raw';
 import sql22b from '../../supabase/migration_022b_mahjong.sql?raw';
 import sql22c from '../../supabase/migration_022c_freecell.sql?raw';
+import sql24 from '../../supabase/migration_024_activate_game_quests.sql?raw';
 import { BRIDGE_WIN, LEVEL_MULT, MINIGAME_DEFS, rewardFor } from './rewards';
 import { GAME_QUEST_DEFS, QUEST_DEFS, isGameMetric } from '../campaign/quests';
 import { QUEST_STRINGS } from '../i18n/journey';
@@ -40,9 +41,22 @@ describe('migration 019 ↔ client mirrors', () => {
   });
 
   it('game quest defs equal GAME_QUEST_DEFS and stay out of the Bridge pool', () => {
-    const rows = [...block('quest_defs', 'on conflict (id)').matchAll(/\('(\w+)',\s*'(daily|weekly)',\s*'(\w+)',\s*(\d+),\s*(\d+),\s*(\d+),\s*true,\s*\d+,\s*'([\w-]+)'\)/g)]
-      .map(m => ({ id: m[1], kind: m[2], metric: m[3], goal: +m[4], bm: +m[5], xp: +m[6], game: m[7] }));
-    expect(rows).toEqual(GAME_QUEST_DEFS);
+    const re = /\('(\w+)',\s*'(daily|weekly)',\s*'(\w+)',\s*(\d+),\s*(\d+),\s*(\d+),\s*(true|false),\s*\d+,\s*'([\w-]+)'\)/g;
+    const parse = (src: string) => {
+      const a = src.indexOf('insert into public.quest_defs');
+      return [...src.slice(a, src.indexOf('on conflict (id)', a)).matchAll(re)]
+        .map(m => ({ id: m[1], kind: m[2], metric: m[3], goal: +m[4], bm: +m[5], xp: +m[6], active: m[7] === 'true', game: m[8] }));
+    };
+    // 019's live quests + 022a–c's (seeded inactive) — which migration 024 switches on, row for row
+    const later = [sql22a, sql22b, sql22c].flatMap(parse);
+    const live = parse(sql24);
+    expect(later.length).toBe(4);
+    expect(later.map(r => r.active)).toEqual([false, false, false, false]);
+    expect(live).toEqual(later.map(r => ({ ...r, active: true })));
+    expect(sql24).toMatch(/on conflict \(id\) do update set active = true;/);
+    const rows = [...parse(sql), ...live];
+    expect(rows.every(r => r.active)).toBe(true);
+    expect(rows.map(r => ({ id: r.id, kind: r.kind, metric: r.metric, goal: r.goal, bm: r.bm, xp: r.xp, game: r.game }))).toEqual(GAME_QUEST_DEFS);
     for (const q of GAME_QUEST_DEFS) {
       expect(isGameMetric(q.metric)).toBe(true);
       expect(QUEST_DEFS.some(b => b.id === q.id)).toBe(false);

@@ -6,6 +6,7 @@ import type { Lang } from '../i18n';
 export { CardFace } from './CardFace';
 import { CardFace } from './CardFace';
 import { after } from './stageClock';
+import { cardKeyDown } from './cardKeys';
 
 /** Where a card rests. x/y are the card centre in stage pixels; rx tilts it back into the table plane. */
 export interface Pose { x: number; y: number; rot: number; scale: number; z: number; up: boolean; rx?: number }
@@ -276,7 +277,8 @@ export function CardView({ card, lang, pose, w, flight, legal, dim, sel, onTap, 
   });
 
   const tappable = !!onTap;
-  const onKey = (e: KeyboardEvent) => { if (onTap && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onTap(); } };
+  // Enter reaches onTap through Motion's press gesture; Space through cardKeyDown (see ./cardKeys.ts — not both)
+  const onKey = (e: KeyboardEvent) => cardKeyDown(e, onTap);
 
   return (
     <motion.div

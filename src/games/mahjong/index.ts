@@ -13,4 +13,5 @@ export const mahjong: GameModule = {
   tagline: TAGLINE,
   Emblem: MahjongEmblem,
   Screen: lazy(() => import('./Screen')),
+  seeded: true,
 };

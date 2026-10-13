@@ -1,5 +1,6 @@
-import { DEFAULT_RULES, type TState, type ThousandRules } from './engine';
+import { DEFAULT_RULES, newGame, type TPlayer, type TState, type ThousandRules } from './engine';
 import type { TLevel } from './bot';
+import { seedNumber } from '../seed';
 
 /**
  * Thousand on this device: the lobby choices and the game in progress, saved after every move under one key, so
@@ -16,10 +17,18 @@ export interface ThousandRun {
   seconds: number;
   /** the result was reported (game over) */
   reported?: boolean;
+  /** the seed the game was dealt from — only when it can be replayed from (seed, level) alone (standard rules) */
+  seed?: string;
 }
 export interface ThousandSave { v: 1; prefs: ThousandPrefs; run: ThousandRun | null }
 
 export const DEFAULT_PREFS: ThousandPrefs = { level: 'normal', rules: DEFAULT_RULES };
+
+/* ---------- seed contract (../types.ts): a game from a string seed, the same on every device ---------- */
+/** the standard rules a challenge is played with (a seed + level must be enough to replay the game) */
+export const isStandardRules = (r: ThousandRules) => (Object.keys(DEFAULT_RULES) as (keyof ThousandRules)[]).every(k => r[k] === DEFAULT_RULES[k]);
+export const gameFromSeed = (seed: string, players: TPlayer[], rules: ThousandRules = DEFAULT_RULES): TState =>
+  newGame({ players, rules, seed: seedNumber(seed, 'thousand') });
 
 const valid = (r: unknown): r is ThousandRun => {
   const g = (r as ThousandRun | null)?.g;

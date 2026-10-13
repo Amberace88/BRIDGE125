@@ -1,5 +1,6 @@
-import type { ZState, ZoleRules } from './engine';
+import { DEFAULT_RULES, newSession, type ZPlayer, type ZState, type ZoleRules } from './engine';
 import type { ZLevel } from './bot';
+import { seedNumber } from '../seed';
 
 /**
  * Zole on this device: the lobby choices and the session in progress, saved after every move under one key, so
@@ -16,10 +17,18 @@ export interface ZoleRun {
   seconds: number;
   /** the result was reported (session over) */
   reported?: boolean;
+  /** the seed the session was dealt from — only when it can be replayed from (seed, level) alone (standard rules) */
+  seed?: string;
 }
 export interface ZoleSave { v: 1; prefs: ZolePrefs; run: ZoleRun | null }
 
 export const DEFAULT_PREFS: ZolePrefs = { level: 'normal', rules: { mazaZole: true, pules: false, deals: 12 } };
+
+/* ---------- seed contract (../types.ts): a session from a string seed, the same on every device ---------- */
+/** the standard rules a challenge is played with (a seed + level must be enough to replay the session) */
+export const isStandardRules = (r: ZoleRules) => r.mazaZole === DEFAULT_RULES.mazaZole && r.pules === DEFAULT_RULES.pules && r.deals === DEFAULT_RULES.deals;
+export const sessionFromSeed = (seed: string, players: ZPlayer[], rules: ZoleRules = DEFAULT_RULES): ZState =>
+  newSession({ players, rules, seed: seedNumber(seed, 'zole') });
 
 const valid = (r: unknown): r is ZoleRun => {
   const g = (r as ZoleRun | null)?.g;
