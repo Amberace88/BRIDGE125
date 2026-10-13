@@ -1,4 +1,6 @@
-"""Bridge 125 — product mockups rendered in code (SVG/CSS scenes → Chromium → WebP).
+"""Bridge 125 — product mockups for the original (2025) line, rendered in code; the 2026 collection is in mockups2.py.
+
+Bridge 125 — product mockups rendered in code (SVG/CSS scenes → Chromium → WebP).
 
     python3 scripts/merch/mockups.py              # all mockups → public/merch/mockups/*.webp
     python3 scripts/merch/mockups.py tee-queen-ink
@@ -19,10 +21,11 @@ from PIL import Image  # noqa: E402
 
 from designs import sym  # noqa: E402
 from render import MERCH, browser, render_html  # noqa: E402
+from svgkit import ROOT  # noqa: E402
 from svgkit import FELT, FELT2, FELT_D, GOLD, GOLD_HI, GOLD_LO, INK, IVORY, RUBY, SPADE  # noqa: E402
 
-DESIGNS = os.path.join(MERCH, 'designs')
-DECK_PNG = os.path.join(MERCH, 'print', 'deck')
+DESIGNS = os.path.join(ROOT, 'merch-print', 'designs')
+DECK_PNG = os.path.join(ROOT, 'merch-print', 'deck')
 OUT = os.path.join(MERCH, 'mockups')
 WEB = os.path.join(MERCH, 'web')
 SIZE = 1200
@@ -355,10 +358,6 @@ SCENES = {
     'deck-backs': lambda: deck_scene('back'),
     'tee-queen-ink': lambda: tee('queen-of-spades', 'ink'),
     'tee-queen-forest': lambda: tee('queen-of-spades', 'forest'),
-    'tee-burn-ink': lambda: tee('burn-125', 'ink'),
-    'tee-burn-forest': lambda: tee('burn-125', 'forest'),
-    'tee-sunset-ink': lambda: tee('sunset-70s', 'ink'),
-    'tee-sunset-forest': lambda: tee('sunset-70s', 'forest'),
     'hoodie-varsity-forest': lambda: hoodie('varsity-club', 'forest'),
     'hoodie-varsity-ink': lambda: hoodie('varsity-club', 'ink'),
     'hoodie-bluff-ink': lambda: hoodie('bluff-neon', 'ink', art_w=230, art_y=350, aspect=1300 / 1200),
@@ -368,10 +367,8 @@ SCENES = {
     'poster-riga-black': lambda: framed_poster('riga-jugendstil', '#141418'),
     'poster-riga-oak': lambda: framed_poster('riga-jugendstil', '#8A6439'),
     'phone-jacks': lambda: phone('jacks-x5'),
-    'tote-hand': lambda: tote('line-art-hand'),
     'cap-logo-ink': lambda: cap('ink'),
     'cap-logo-forest': lambda: cap('forest'),
-    'stickers': stickers,
 }
 
 

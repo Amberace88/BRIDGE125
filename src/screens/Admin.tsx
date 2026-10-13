@@ -6,6 +6,8 @@ import { RoleBadge } from '../components/RoleBadge';
 import { AvatarImg } from '../components/AvatarImg';
 import { adminInterest, type InterestRow } from '../merch/api';
 import { MERCH_STRINGS } from '../i18n/merch';
+import { productById } from '../merch/catalog';
+import { productCopy } from '../merch/copy';
 import { SHOP_STRINGS } from '../i18n/shop';
 import '../styles/admin2.css';
 import { LANGS, isLang } from '../i18n';
@@ -519,7 +521,7 @@ const itemName = (id: string) => {
   if (k) return `${k[1]} 000 BM paka`;
   return id === 'pass_s1' ? 'Sezonas caurlaide (S1)' : id;
 };
-const productName = (id: string) => (MERCH_STRINGS.lv ?? MERCH_STRINGS.en).products[id]?.name ?? MERCH_STRINGS.en.products[id]?.name ?? id;
+const productName = (id: string) => { const p = productById(id); return p ? productCopy(p, MERCH_STRINGS.lv ?? MERCH_STRINGS.en, 'lv').name : id; };
 const pctOf = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
 
 interface ShopStatsData {

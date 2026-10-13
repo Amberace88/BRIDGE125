@@ -1,0 +1,3 @@
+# The 2026 collection print files are generated (npm run merch:build): ~200 MB, too large to commit.
+# Files of the original line that are already tracked stay tracked.
+print/*
