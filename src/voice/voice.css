@@ -148,3 +148,27 @@
   .stage.tbl.fxshake-1, .stage.tbl.fxshake-2 { animation: none; }
   .fx-pt, .fx-tongue, .fx-flame { animation: none; display: none; }
 }
+
+/* ---------------------------------------------------------------- on-device neural voice offer */
+.nvoice { display: flex; align-items: center; gap: 10px; width: 100%; margin: 10px 0 4px; padding: 11px 13px; border-radius: 14px;
+  font: inherit; color: #f3e7cc; text-align: left;
+  background: linear-gradient(160deg, rgba(212, 175, 96, .14), rgba(212, 175, 96, .04));
+  border: 1px solid rgba(212, 175, 96, .28); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 6px 16px -10px rgba(0, 0, 0, .7); }
+.nvoice.offer { cursor: pointer; transition: transform .15s ease, border-color .2s ease; }
+.nvoice.offer:hover { border-color: rgba(212, 175, 96, .55); }
+.nvoice.offer:active { transform: scale(.98); }
+.nvoice .nv-ico { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, #f6dc9a, #b98a3a 70%); box-shadow: 0 2px 8px -2px rgba(0, 0, 0, .6); }
+.nvoice .nv-ico svg { width: 17px; height: 17px; fill: none; stroke: #2a1d08; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.nvoice .nv-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nvoice .nv-txt b { font-weight: 600; font-size: .9rem; line-height: 1.25; }
+.nvoice .nv-txt small { opacity: .62; font-size: .76rem; }
+.nvoice.busy { flex-direction: column; align-items: stretch; gap: 8px; font-size: .84rem; }
+.nvoice .nv-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.nvoice .nv-bar i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, #b98a3a, #f6dc9a); box-shadow: 0 0 10px rgba(246, 220, 154, .5); }
+.nvoice.ready { font-size: .82rem; padding: 8px 12px; background: rgba(120, 200, 140, .07); border-color: rgba(120, 200, 140, .25); }
+.nvoice .nv-dot { width: 8px; height: 8px; border-radius: 50%; background: #7fd39a; box-shadow: 0 0 8px #7fd39a; flex: none; }
+.nvoice .nv-link { margin-left: auto; background: none; border: 0; color: inherit; opacity: .55; font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+.nvoice.compact { margin: 8px 0 0; padding: 8px 10px; font-size: .8rem; }
+.nvoice.compact .nv-ico { width: 24px; height: 24px; }
+.nvoice.compact .nv-txt b { font-size: .8rem; }

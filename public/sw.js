@@ -1,9 +1,9 @@
-const C = 'b125-v2';
+const C = 'b125-v3';
 self.addEventListener('install', () => { self.skipWaiting(); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C && !k.startsWith('b125-voice')).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
-  if (e.request.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/')) return;
+  if (e.request.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/') || u.pathname.startsWith('/tts/')) return;
   const put = (key, r) => { if (r.ok) { const c = r.clone(); caches.open(C).then(x => x.put(key, c)); } return r; };
   // app shell: network first, fall back to the cached shell when offline
   if (e.request.mode === 'navigate') {

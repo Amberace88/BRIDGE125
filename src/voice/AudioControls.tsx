@@ -3,16 +3,16 @@
 //  · <QuickAudio/>    — frameless glyph toggles in a small popover on the table
 
 import { AnimatePresence, motion } from 'motion/react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useApp } from '../store';
 import { LANGS } from '../i18n';
 import { useMusic } from '../media/music';
 import { sfx } from '../sound';
 import { useStrings } from '../i18n/pick';
-import { VOICE_UI } from '../i18n/voice';
+import { NEURAL_UI, VOICE_UI } from '../i18n/voice';
 import { audioPrefs, useAudioPrefs } from './prefs';
 import { narrator } from './speech';
-import { speakSample, useSpeakLang } from './useNarrator';
+import { speakSample, useNarratorRev, useSpeakLang } from './useNarrator';
 import './voice.css';
 
 /* ------------------------------------------------------------------ glyphs */
@@ -56,10 +56,63 @@ function useVoiceNote() {
   const app = useApp();
   const ui = useStrings(VOICE_UI);
   const speakLang = useSpeakLang(app.lang);
+  useNarratorRev();
+  if (narrator().neuralOffer) return null;           // <NeuralOffer/> explains it instead
   if (!narrator().available) return ui.noVoice;
   if (speakLang && speakLang !== app.lang) return ui.fallback(LANGS.find(l => l.id === speakLang)?.label ?? speakLang);
   if (!speakLang) return ui.noVoice;
   return null;
+}
+
+/* ------------------------------------------------------------------ on-device neural voice */
+/** Offer / progress / status of the downloadable natural voice for a language the device has no voice for. */
+export function NeuralOffer({ compact = false }: { compact?: boolean }) {
+  const app = useApp();
+  const t = useStrings(NEURAL_UI);
+  const n = narrator();
+  useSpeakLang(app.lang);
+  useNarratorRev();
+  const st = useSyncExternalStore(n.neural.subscribe, () => n.neural.state, () => n.neural.state);
+  const wanted = useRef(false);
+  // the voice the player just downloaded says hello in their language
+  useEffect(() => {
+    if (wanted.current && st.status === 'ready') { wanted.current = false; setTimeout(() => speakSample(app.lang, app.t.botNames[1] ?? 'Marina'), 150); }
+  }, [st.status, app.lang, app.t.botNames]);
+  if (!n.neuralOffer) return null;
+  const pct = st.total ? Math.min(100, Math.round((st.loaded / st.total) * 100)) : 0;
+  const get = () => { wanted.current = true; n.downloadNeural(); sfx.tap(); };
+  const mb = Math.round((st.total || 63_000_000) / 1e6);
+  const ready = st.status === 'ready' && st.lang === app.lang;
+
+  if (ready) {
+    if (compact) return null;
+    return (
+      <div className="nvoice ready">
+        <span className="nv-dot" aria-hidden />
+        <span>{t.ready}</span>
+        <button className="nv-link" onClick={() => { void n.neural.remove(); }}>{t.remove}</button>
+      </div>
+    );
+  }
+  if (st.status === 'downloading' || st.status === 'loading' || (st.status === 'checking' && wanted.current)) {
+    return (
+      <div className={`nvoice busy ${compact ? 'compact' : ''}`} role="status" aria-live="polite">
+        <span>{st.status === 'loading' || st.status === 'checking' ? t.loading : t.downloading(pct)}</span>
+        <div className="nv-bar"><motion.i animate={{ width: `${st.status === 'loading' ? 100 : pct}%` }} transition={{ ease: 'easeOut', duration: 0.3 }} /></div>
+      </div>
+    );
+  }
+  return (
+    <button className={`nvoice offer ${compact ? 'compact' : ''}`} onClick={get}>
+      <span className="nv-ico" aria-hidden>
+        <svg viewBox="0 0 24 24"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 18.5h14" /></svg>
+      </span>
+      <span className="nv-txt">
+        <b>{st.status === 'error' ? t.error : t.get(mb)}</b>
+        {!compact && <small>{t.sub}</small>}
+      </span>
+    </button>
+  );
 }
 
 /* ------------------------------------------------------------------ Profile rows */
@@ -97,6 +150,7 @@ export function AudioSettings({ music }: { music: ReactNode }) {
               <button className="vtest" onClick={sample} aria-label={ui.test} title={ui.test}>▶</button>
             </label>
             {note && <div className="vnote">{note}</div>}
+            <NeuralOffer />
           </motion.div>
         )}
       </AnimatePresence>
@@ -181,6 +235,7 @@ export function QuickAudio() {
                 </motion.div>
               </AnimatePresence>
               {voice.on && note && <div className="qa-note">{note}</div>}
+              {voice.on && <NeuralOffer compact />}
             </motion.div>
           </>
         )}

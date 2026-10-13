@@ -8,6 +8,8 @@
 
 import { LANGS, type Lang } from '../i18n';
 import type { Line, LineKind } from './narrate';
+import { NeuralTTS } from './neural';
+import { neuralVoiceFor } from './neuralVoices';
 
 /* =========================================================================== queue policy */
 export interface Backend {
@@ -211,22 +213,41 @@ class WebSpeech implements Backend {
 type Listener = () => void;
 
 class Narrator {
-  readonly be = new WebSpeech();
-  readonly queue = new SpeechQueue(this.be);
+  readonly web = new WebSpeech();
+  readonly neural = new NeuralTTS();
+  /** The backend in use: the system voice, or the on-device neural voice when the system has none. */
+  private active: Backend = this.web;
+  private mux: Backend = {
+    speak: (text, done) => this.active.speak(text, done),
+    cancel: () => { this.web.cancel(); this.neural.cancel(); },
+  };
+  readonly queue = new SpeechQueue(this.mux);
   private voices: SpeechSynthesisVoice[] = [];
   private uiLang: Lang = 'en';
   private subs = new Set<Listener>();
   private inited = false;
   private unlocked = false;
+  /** System voices have had time to load (some browsers report them late). */
+  private settled = false;
+  private enabled = false;
   speakLang: Lang | null = null;
+  /** Bumped on every voice decision (for UI that depends on more than the spoken language). */
+  rev = 0;
+
+  constructor() {
+    this.neural.subscribe(() => this.choose());
+  }
 
   init() {
     if (this.inited) return;
     this.inited = true;
-    const s = synth(); if (!s) return;
+    const settle = () => { if (!this.settled) { this.settled = true; this.choose(); } };
+    setTimeout(settle, 1500);
+    const s = synth();
+    if (!s) { settle(); return; }
     const load = () => {
       const v = s.getVoices();
-      if (v.length && v.length !== this.voices.length) { this.voices = v; this.choose(); }
+      if (v.length && v.length !== this.voices.length) { this.voices = v; this.settled = true; this.choose(); }
     };
     load();
     try { s.addEventListener?.('voiceschanged', load); } catch { /* */ }
@@ -239,6 +260,7 @@ class Narrator {
       if (this.unlocked) return; this.unlocked = true;
       off();
       try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; s.speak(u); } catch { /* */ }
+      this.neural.unlock();
       load();
     };
     const evs = ['pointerdown', 'touchend', 'keydown'] as const;
@@ -247,17 +269,39 @@ class Narrator {
   }
 
   private choose() {
-    this.speakLang = resolveSpeakLang(this.voices, this.uiLang);
-    this.be.setVoice(this.speakLang ? pickVoice(this.voices, this.speakLang) : null);
+    const lang = this.uiLang;
+    const native = pickVoice(this.voices, lang);
+    let next: Lang | null;
+    if (native) {
+      this.active = this.web; this.web.setVoice(native); next = lang;
+    } else if (this.neural.ready && this.neural.state.lang === lang) {
+      this.active = this.neural; next = lang;
+    } else {
+      // no system voice: open an already downloaded neural voice (only while the assistant is on — it costs memory)
+      if (this.enabled && this.settled && neuralVoiceFor(lang)) this.neural.open(lang, false);
+      next = resolveSpeakLang(this.voices, lang);
+      this.active = this.web;
+      this.web.setVoice(next ? pickVoice(this.voices, next) : null);
+    }
+    this.speakLang = next;
+    this.rev++;
     for (const f of this.subs) f();
   }
 
   setLang(l: Lang) { if (l !== this.uiLang || !this.inited) { this.init(); this.uiLang = l; this.choose(); } }
-  setVolume(v: number) { this.be.volume = Math.min(1, Math.max(0, v)); }
+  /** The assistant is switched on (neural voices are only loaded then). */
+  setEnabled(on: boolean) { if (on !== this.enabled) { this.enabled = on; this.choose(); } }
+  setVolume(v: number) { const x = Math.min(1, Math.max(0, v)); this.web.volume = x; this.neural.volume = x; }
+  set onActive(f: ((on: boolean) => void) | null) { this.web.onActive = f; this.neural.onActive = f; }
   say(lines: Line[]) { if (lines.length && this.speakLang) this.queue.push(lines); }
   stop() { this.queue.clear(); }
-  get available() { return !!synth(); }
-  get voiceName() { return this.be.voice?.name ?? null; }
+  /** Download (once) and start the on-device voice for the current language. */
+  downloadNeural() { this.init(); this.neural.unlock(); this.neural.open(this.uiLang, true); }
+  /** A neural voice can be offered: the language has one and the device has no system voice for it. */
+  get neuralOffer(): boolean { return !!neuralVoiceFor(this.uiLang) && !pickVoice(this.voices, this.uiLang); }
+  get usingNeural() { return this.active === this.neural; }
+  get available() { return !!synth() || !!neuralVoiceFor(this.uiLang); }
+  get voiceName() { return this.active === this.neural ? 'Piper · neural' : this.web.voice?.name ?? null; }
   subscribe = (f: Listener) => { this.subs.add(f); return () => { this.subs.delete(f); }; };
 }
 

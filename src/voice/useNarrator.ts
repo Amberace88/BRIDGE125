@@ -10,7 +10,7 @@ import { narrator } from './speech';
 // Cinematic sound effects and the narrator both dip the music.
 setDuckHandler(() => music.duck());
 let duckTimer: ReturnType<typeof setInterval> | null = null;
-narrator().be.onActive = on => {
+narrator().onActive = on => {
   if (duckTimer) { clearInterval(duckTimer); duckTimer = null; }
   if (on) { music.duck(); duckTimer = setInterval(() => music.duck(), 420); }
 };
@@ -18,8 +18,16 @@ narrator().be.onActive = on => {
 /** The language the narrator really speaks for `lang` on this device (null = no usable voice yet). */
 export function useSpeakLang(lang: Lang): Lang | null {
   const n = narrator();
+  const { voice } = useAudioPrefs();
   useEffect(() => { n.setLang(lang); }, [n, lang]);
+  useEffect(() => { n.setEnabled(voice.on); }, [n, voice.on]);
   return useSyncExternalStore(n.subscribe, () => n.speakLang, () => null);
+}
+
+/** Re-render whenever the narrator re-decides its voice (system voices loaded, neural voice ready …). */
+export function useNarratorRev(): number {
+  const n = narrator();
+  return useSyncExternalStore(n.subscribe, () => n.rev, () => 0);
 }
 
 /** Speak one sample line right away (settings "Hear it", switching the voice on). */

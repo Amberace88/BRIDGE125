@@ -906,3 +906,11 @@ export const VOICE_UI: Strings<VoiceUi> = {
   bg: { voice: 'Гласов асистент', voiceSub: 'Обявява всеки ход и обяснява играта', moves: 'Само ходове', tips: 'Ходове + съвети', sfx: 'Звукови ефекти', sfxSub: 'Карти, маса и ефекти', volume: 'Сила на звука', test: 'Чуй', noVoice: 'Това устройство няма глас за този език', fallback: l => `Няма глас за този език — глас: ${l}`, quick: 'Звук и глас', music: 'Музика', close: 'Затвори' },
   es: { voice: 'Asistente de voz', voiceSub: 'Anuncia cada jugada y explica el juego', moves: 'Solo jugadas', tips: 'Jugadas + consejos', sfx: 'Efectos de sonido', sfxSub: 'Cartas, mesa y efectos', volume: 'Volumen', test: 'Escuchar', noVoice: 'Este dispositivo no tiene voz para este idioma', fallback: l => `No hay voz para este idioma — voz: ${l}`, quick: 'Sonido y voz', music: 'Música', close: 'Cerrar' },
 };
+
+/** The on-device neural voice offer (only shown for a language that has one and no system voice). */
+export interface NeuralUi { get: (mb: number) => string; sub: string; downloading: (pct: number) => string; loading: string; ready: string; remove: string; error: string }
+export const NEURAL_UI: Strings<NeuralUi> = {
+  en: { get: mb => `Download a natural voice for this language · ${mb} MB, once`, sub: 'Runs on your device and works offline afterwards', downloading: p => `Downloading the voice… ${p}%`, loading: 'Preparing the voice…', ready: 'Natural voice on this device', remove: 'Remove', error: 'Could not load the voice — tap to try again' },
+  lv: { get: mb => `Lejupielādēt latviešu balsi · ${mb} MB, vienreiz`, sub: 'Darbojas tieši ierīcē, pēc tam arī bez interneta', downloading: p => `Lejupielādē latviešu balsi… ${p}%`, loading: 'Sagatavo balsi…', ready: 'Latviešu balss ierīcē', remove: 'Dzēst', error: 'Neizdevās ielādēt balsi — pieskaries, lai mēģinātu vēlreiz' },
+  ru: { get: mb => `Скачать естественный голос для этого языка · ${mb} МБ, один раз`, sub: 'Работает на устройстве, потом и без интернета', downloading: p => `Загрузка голоса… ${p}%`, loading: 'Подготовка голоса…', ready: 'Естественный голос на устройстве', remove: 'Удалить', error: 'Не удалось загрузить голос — нажмите, чтобы повторить' },
+};
