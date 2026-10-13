@@ -1,0 +1,3 @@
+# The 825 × 1125 masters, box panels and the back-only file are committed (≈ 64 MB for all decks).
+# The Prodigi-size crop is derived from them: regenerate with `npm run merch:decks -- --print`.
+*/print/prodigi-815x1110/
