@@ -1,6 +1,6 @@
 import { motion, useTransform, type MotionValue } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
-import { CHAPTERS, character, chapterStars, isUnlocked, matchesOf, type ChapterId, type MatchDef, type StarMap } from '../../campaign/data';
+import { CHAPTERS, character, chapterStars, isUnlocked, matchesOn, posOn, type ChapterId, type MatchDef, type RouteId, type StarMap } from '../../campaign/data';
 import { Cameo, Skyline, StarIcon, StarRow } from '../../campaign/art';
 import { twistInfo } from '../../campaign/twists';
 import type { JourneyStrings } from '../../i18n/journey';
@@ -10,7 +10,7 @@ import { sfx } from '../../sound';
 const LEVEL_PIPS = { easy: 1, normal: 2, hard: 3, expert: 4 } as const;
 
 export function TwistIcon({ twist }: { twist: MatchDef['twist'] }) {
-  const g: Record<string, string> = { none: '♣', bluff: '?', trio: '3', handicap: '+', banker: '6♠', pique: 'Q♠', twins: '×2', baron: '?', clock: '◷', countess: '125', maestro: '×3', croupier: '100' };
+  const g: Record<string, string> = { none: '♣', bluff: '?', trio: '3', handicap: '+', banker: '6♠', pique: 'Q♠', twins: '×2', baron: '?', clock: '◷', countess: '125', maestro: '×3', croupier: '100', matryoshka: '+6', selector: '◷', bison: '?', eagle: '6♠', caravan: '?', fire: '125', cognac: '+6', voivode: '110', thorn: '125', matador: '6♠', spymaster: 'Q♠' };
   return <i className={`ticon t-${twist}`} aria-hidden>{g[twist] ?? '♣'}</i>;
 }
 
@@ -44,17 +44,18 @@ interface Props {
   s: JourneyStrings;
   id: ChapterId;
   stars: StarMap;
+  route: RouteId;
   onBack: () => void;
   onPick: (m: MatchDef) => void;
   mx: MotionValue<number>; my: MotionValue<number>;
 }
 
-export function ChapterView({ s, id, stars, onBack, onPick, mx, my }: Props) {
+export function ChapterView({ s, id, stars, route, onBack, onPick, mx, my }: Props) {
   const ch = CHAPTERS.find(c => c.id === id)!;
   const city = s.cities[id];
-  const ms = matchesOf(id);
+  const ms = matchesOn(route, id);
   const st = chapterStars(id, stars);
-  const nextId = ms.find(m => isUnlocked(m, stars) && !(stars[m.id] > 0))?.id;
+  const nextId = ms.find(m => isUnlocked(m, stars, route) && !(stars[m.id] > 0))?.id;
   const tx = useTransform(mx, [-1, 1], [-8, 8]);
 
   return (
@@ -67,7 +68,7 @@ export function ChapterView({ s, id, stars, onBack, onPick, mx, my }: Props) {
         </header>
         <motion.section className="jcity-hero" style={{ x: tx }}>
           <motion.div className="kick" initial={{ opacity: 0, letterSpacing: '.6em' }} animate={{ opacity: 1, letterSpacing: '.28em' }} transition={{ duration: 0.9 }}>
-            {s.chapterN(ch.n)}
+            {s.chapterN(posOn(route, id))}
           </motion.div>
           <motion.h1 className="serif" initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ duration: 0.8, delay: 0.1 }}>{city.name}</motion.h1>
           <motion.div className="room serif" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>{city.room}</motion.div>
@@ -76,7 +77,7 @@ export function ChapterView({ s, id, stars, onBack, onPick, mx, my }: Props) {
 
         <ol className="jladder">
           {ms.map((m, i) => {
-            const open = isUnlocked(m, stars);
+            const open = isUnlocked(m, stars, route);
             const got = stars[m.id] ?? 0;
             const c = character(m.foe);
             const info = twistInfo(m.twist);

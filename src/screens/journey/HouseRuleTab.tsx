@@ -9,13 +9,13 @@ import { TwistIcon } from './Chapter';
  * A brass bookmark on the left edge of the table during a Journey match: chapter numeral + house-rule glyph.
  * It opens by itself for a few seconds at the start (so the rule is never a surprise) and on tap.
  */
-export function HouseRuleTab({ s, m, n }: { s: JourneyStrings; m: MatchDef; n: number }) {
+export function HouseRuleTab({ s, m }: { s: JourneyStrings; m: MatchDef }) {
   const [open, setOpen] = useState(true);
   useEffect(() => { const t = setTimeout(() => setOpen(false), 4200); return () => clearTimeout(t); }, []);
   return (
     <motion.button className={`jtab ${open ? 'open' : ''}`} onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label={s.twists[m.twist].name}
       initial={{ x: -80 }} animate={{ x: 0 }} transition={{ delay: 0.6, type: 'spring', stiffness: 220, damping: 22 }}>
-      <span className="jtab-num serif">{ROMAN[n - 1]}</span>
+      <span className="jtab-num serif">{ROMAN[m.pos - 1]}</span>
       <TwistIcon twist={m.twist} />
       <AnimatePresence initial={false}>
         {open && (

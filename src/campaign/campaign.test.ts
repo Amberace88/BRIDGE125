@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import sql from '../../supabase/migration_011_journey.sql?raw';
 import { apply, newGame, nextRound, options, type Card, type GameState } from '../engine/engine';
 import {
-  CHAPTERS, CHARACTERS, MATCHES, TOTAL_STARS, chapterStars, isUnlocked, matchById, nextMatch, rewardFor, starsFor, totalStars,
+  CHAPTERS, CHARACTERS, MATCH_TPLS, TOTAL_STARS, chapterStars, isUnlocked, matchOn, nextMatch, rewardFor, routeMatches, starsFor, totalStars,
 } from './data';
+import { COS_STRINGS } from '../cosmetics/i18n';
+
+/** The original campaign = the 'classic' route (positions = the old chapters). */
+const MATCHES = routeMatches('classic');
+const matchById = (id: string) => matchOn('classic', id);
 import { HANDICAP_POINTS, clockStep, giveCard, roundTwist, setupMatch, twistInfo } from './twists';
 import {
   QUEST_CAPS, QUEST_DEFS, addDays, applyEvents, assignQuests, clampEvents, diffRows, gameEvents, newTally, rowOf, stepTally, weekStart,
@@ -23,17 +28,18 @@ const allIds = (g: GameState) => [...g.deck, ...g.pile, ...g.players.flatMap(p =
 /* ------------------------------------------------------------------------------------------------ catalogue */
 
 describe('journey catalogue', () => {
-  it('8 chapters × (3 matches + boss), unique ids, global order 1..32', () => {
-    expect(CHAPTERS).toHaveLength(8);
+  it('classic route: 8 chapters × (3 matches + boss), unique ids, order 1..32', () => {
+    expect(CHAPTERS).toHaveLength(19);
+    expect(MATCH_TPLS).toHaveLength(76);
     expect(MATCHES).toHaveLength(32);
     expect(new Set(MATCHES.map(m => m.id)).size).toBe(32);
     expect(MATCHES.map(m => m.ord)).toEqual(Array.from({ length: 32 }, (_, i) => i + 1));
-    expect(MATCHES.filter(m => m.boss).map(m => m.id)).toEqual(CHAPTERS.map(c => `${c.id}_boss`));
+    expect(MATCHES.filter(m => m.boss).map(m => m.id)).toEqual(['riga', 'tallinn', 'vilnius', 'warsaw', 'kyiv', 'tbilisi', 'vienna', 'montecarlo'].map(c => `${c}_boss`));
     expect(TOTAL_STARS).toBe(96);
-    for (const m of MATCHES) expect(CHARACTERS.some(c => c.id === m.foe), m.foe).toBe(true);
+    for (const m of MATCH_TPLS) expect(CHARACTERS.some(c => c.id === m.foe), m.foe).toBe(true);
   });
 
-  it('journey_matches seed in migration 011 mirrors MATCHES (rewards + items)', () => {
+  it('journey_matches seed in migration 011 mirrors the classic route (rewards + items)', () => {
     const block = sql.slice(sql.indexOf('insert into public.journey_matches'), sql.indexOf('on conflict (id)', sql.indexOf('insert into public.journey_matches')));
     const rows = [...block.matchAll(/\('([a-z_0-9]+)',\s*'([a-z]+)',\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(null|'[a-z_0-9]+')\)/g)].map(r => ({
       id: r[1], chapter: r[2], ord: +r[3], bm: +r[4], xp: +r[5], starBm: +r[6], item: r[7] === 'null' ? null : r[7].slice(1, -1),
@@ -47,14 +53,14 @@ describe('journey catalogue', () => {
   });
 
   it('unlocking is sequential and nextMatch follows the stars', () => {
-    expect(isUnlocked(MATCHES[0], {})).toBe(true);
-    expect(isUnlocked(MATCHES[1], {})).toBe(false);
-    expect(isUnlocked(MATCHES[1], { riga_1: 1 })).toBe(true);
-    expect(nextMatch({}).id).toBe('riga_1');
-    expect(nextMatch({ riga_1: 2, riga_2: 1 }).id).toBe('riga_3');
+    expect(isUnlocked(MATCHES[0], {}, 'classic')).toBe(true);
+    expect(isUnlocked(MATCHES[1], {}, 'classic')).toBe(false);
+    expect(isUnlocked(MATCHES[1], { riga_1: 1 }, 'classic')).toBe(true);
+    expect(nextMatch({}, 'classic').id).toBe('riga_1');
+    expect(nextMatch({ riga_1: 2, riga_2: 1 }, 'classic').id).toBe('riga_3');
     const all = Object.fromEntries(MATCHES.map(m => [m.id, 3]));
-    expect(nextMatch(all).id).toBe('montecarlo_boss');
-    expect(totalStars(all)).toBe(96);
+    expect(nextMatch(all, 'classic').id).toBe('montecarlo_boss');
+    expect(totalStars(all, 'classic')).toBe(96);
     expect(chapterStars('riga', { riga_1: 3, riga_boss: 1 })).toEqual({ got: 4, max: 12, done: true });
   });
 
@@ -339,9 +345,10 @@ describe('journey strings', () => {
     for (const l of langs) {
       const s = JOURNEY_STRINGS[l]!;
       for (const c of CHARACTERS) { expect(s.chars[c.id]?.name, `${l} ${c.id}`).toBeTruthy(); expect(s.chars[c.id]?.quote).toBeTruthy(); }
-      for (const m of MATCHES) for (const e of m.extra) expect(s.companions[e], `${l} ${e}`).toBeTruthy();
-      for (const c of CHAPTERS) { expect(s.cities[c.id].name).toBeTruthy(); expect(s.item[c.item], `${l} item ${c.item}`).toBeTruthy(); }
-      for (const m of MATCHES) expect(s.twists[m.twist].name).toBeTruthy();
+      for (const m of MATCH_TPLS) for (const e of m.extra) expect(s.companions[e], `${l} ${e}`).toBeTruthy();
+      // boss trophies: Journey labels, or (newer cities) the shop's cosmetic names
+      for (const c of CHAPTERS) { expect(s.cities[c.id].name).toBeTruthy(); expect(s.item[c.item] ?? COS_STRINGS.en.names[c.item], `${l} item ${c.item}`).toBeTruthy(); }
+      for (const m of MATCH_TPLS) expect(s.twists[m.twist].name).toBeTruthy();
       expect(Object.keys(s).sort()).toEqual(Object.keys(JOURNEY_STRINGS.en).sort());
     }
   });

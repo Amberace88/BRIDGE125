@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
-import { CHAPTERS, character, type MatchDef } from '../../campaign/data';
+import { CHAPTERS, FINALE_ID, GRAND_TOUR_TITLE, character, type MatchDef } from '../../campaign/data';
 import { Cameo, StarIcon } from '../../campaign/art';
 import type { MatchOutcome } from '../../campaign/session';
 import type { CompleteResult } from '../../campaign/journeyStore';
@@ -43,7 +43,7 @@ export function MatchResult({ s, m, outcome, prevBest, res, hasNext, onRetry, on
   const est = useMemo(() => {
     const gain = Math.max(0, outcome.stars - prevBest);
     const first = prevBest === 0;
-    return { bm: (first ? m.bm : 0) + gain * m.starBm, xp: first ? m.xp : 0, item: first ? m.item : null, title: first && m.ord === 32 ? 't_grand_tour' : null };
+    return { bm: (first ? m.bm : 0) + gain * m.starBm, xp: first ? m.xp : 0, item: first ? m.item : null, title: first && m.id === FINALE_ID ? GRAND_TOUR_TITLE : null };
   }, [m, outcome.stars, prevBest]);
   const rw = res?.reward ?? null;
   const bm = rw ? rw.bm : est.bm, xp = rw ? rw.xp : est.xp, item = rw ? rw.item : est.item, title = rw ? rw.title : est.title;
@@ -93,7 +93,7 @@ export function MatchResult({ s, m, outcome, prevBest, res, hasNext, onRetry, on
         )}
         {conquered && (
           <motion.div className="jres-banner serif" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 2.6, type: 'spring', stiffness: 200, damping: 14 }}>
-            {m.ord === 32 ? s.result.grandTour : s.result.conquered(s.cities[m.chapter].name)}
+            {m.id === FINALE_ID ? s.result.grandTour : s.result.conquered(s.cities[m.chapter].name)}
           </motion.div>
         )}
 

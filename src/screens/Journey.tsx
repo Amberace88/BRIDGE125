@@ -3,9 +3,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { useStrings } from '../i18n/pick';
 import { JOURNEY_STRINGS } from '../i18n/journey';
-import { MATCHES, TOTAL_STARS, chapterById, matchById, nextMatch, totalStars, type ChapterId, type MatchDef } from '../campaign/data';
+import { COS_STRINGS } from '../cosmetics/i18n';
+import { ROUTES, TOTAL_STARS, chapterById, matchOn, nextMatch, routeMatches, totalStars, type ChapterId, type MatchDef } from '../campaign/data';
 import { StarIcon } from '../campaign/art';
-import { useJourney, type CompleteResult } from '../campaign/journeyStore';
+import { ensureRoute, useJourney, type CompleteResult } from '../campaign/journeyStore';
 import { useParallax } from '../campaign/useParallax';
 import type { MatchOutcome } from '../campaign/session';
 import { QuestToasts } from '../campaign/QuestToasts';
@@ -16,6 +17,7 @@ import { LocalGame } from './LocalGame';
 import { ChapterFeature, ChapterList, JourneyMap } from './journey/JourneyMap';
 import { ChapterView } from './journey/Chapter';
 import { MatchIntro } from './journey/MatchIntro';
+import { RoutePicker } from './journey/RoutePicker';
 import { clearJourneyRun, loadJourneyRun } from './savedGame';
 import { SAVING } from '../i18n/saving';
 import type { GameState } from '../engine/engine';
@@ -32,28 +34,36 @@ function useWide(min = 900) {
 }
 
 /**
- * The Journey: single-player campaign across eight card rooms of Europe.
+ * The Journey: single-player campaign through eight card rooms — starting in the home city of the player's language
+ * (their ROUTE, see campaign/data.ts) and ending in Monte Carlo.
  * Self-contained route: map → city → match intro → match (LocalGame in campaign mode) → result.
  */
 export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () => void }) {
   const app = useApp();
-  const s = useStrings(JOURNEY_STRINGS);
+  const s0 = useStrings(JOURNEY_STRINGS);
+  const cos = useStrings(COS_STRINGS);
+  // boss trophies of the newer cities are shop cosmetics: their names come from the wardrobe strings
+  const s = useMemo(() => ({ ...s0, item: { ...cos.names, ...s0.item } }), [s0, cos]);
   const J = useJourney();
-  const stars = J.stars;
+  const { stars, route } = J;
   const { mx, my } = useParallax();
   const wide = useWide();
   const [view, setView] = useState<View>({ v: 'map' });
-  const [sel, setSel] = useState<ChapterId>(() => nextMatch(stars).chapter);
+  const [sel, setSel] = useState<ChapterId>(() => nextMatch(stars, route).chapter);
   const picked = useRef(false);
   const [intro, setIntro] = useState<MatchDef | null>(null);
   const [shown, setShown] = useState<{ o: MatchOutcome; prev: number } | null>(null);
   const [res, setRes] = useState<CompleteResult | null>(null);
-  const total = totalStars(stars);
+  const [picker, setPicker] = useState(false);
+  const total = totalStars(stars, route);
+
+  // store the starting city on the first visit (the player's language, or the original tour for early players)
+  useEffect(() => { if (J.status === 'ready' || J.status === 'offline') void ensureRoute(app.lang); }, [J.status, app.lang]);
 
   // follow the player's current chapter until they pick one themselves (progress may load after mount)
-  const cur = nextMatch(stars).chapter;
-  useEffect(() => { if (!picked.current) setSel(cur); }, [cur]);
-  useEffect(() => { track('journey_open', { stars: total }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const cur = nextMatch(stars, route).chapter;
+  useEffect(() => { if (!picked.current || !ROUTES[route].includes(sel)) setSel(cur); }, [cur, route]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { track('journey_open', { stars: total, route }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const select = (c: ChapterId) => { picked.current = true; setSel(c); };
   const enter = (c: ChapterId) => { picked.current = true; setSel(c); sfx.whoosh(0.8); setView({ v: 'city', ch: c }); };
@@ -65,7 +75,7 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
     setIntro(null); setShown(null); setRes(null); setView({ v: 'match', id: m.id, key: Date.now(), resume: resume ?? null });
   };
   useEffect(() => { if (view.v !== 'match') setRun(loadJourneyRun()); }, [view.v]);
-  const runMatch = run ? matchById(run.match) ?? null : null;
+  const runMatch = run ? matchOn(route, run.match) ?? null : null;
   const runInfo = (g: GameState) => ({ round: g.round, score: g.players[0]?.score ?? 0 });
 
   const onEnd = (o: MatchOutcome) => {
@@ -80,21 +90,21 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
     }
   };
 
-  const match = view.v === 'match' ? matchById(view.id) : null;
+  const match = view.v === 'match' ? matchOn(route, view.id) ?? null : null;
   const campaign = useMemo(() => {
     if (!match) return undefined;
-    const ch = chapterById(match.chapter)!;
     const foeTxt = s.chars[match.foe];
     const foes = [foeTxt?.seat ?? foeTxt?.name ?? match.foe, ...match.extra.map(e => s.companions[e] ?? s.chars[e]?.name ?? e)];
     return {
       match,
       names: { me: app.name || app.t.you, foes },
-      overlay: <HouseRuleTab s={s} m={match} n={ch.n} />,
+      overlay: <HouseRuleTab s={s} m={match} />,
       onEnd,
     };
   }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const next = match ? MATCHES.find(x => x.ord === match.ord + 1) ?? null : null;
+  const next = match ? routeMatches(route)[match.ord] ?? null : null;
+  const home = chapterById(ROUTES[route][0])!;
 
   return (
     <div className={`jroot ${view.v === 'match' ? 'is-match' : ''}`}>
@@ -108,12 +118,18 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
                 <div className="jtitle">
                   <small>{s.kicker}</small>
                   <h1 className="serif">{s.title}</h1>
+                  <button className={`jroute ${J.canChangeRoute ? '' : 'fixed'}`} style={{ ['--glow' as string]: home.glow }} onClick={() => { sfx.tap(); setPicker(true); }}
+                    aria-label={s.route.change} title={s.route.change}>
+                    <i className="pin" aria-hidden />
+                    <span>{s.route.from(s.cities[home.id].name)}{route === 'classic' ? ` · ${s.route.classic}` : ''}</span>
+                    {J.canChangeRoute && <em>{s.route.change}</em>}
+                  </button>
                 </div>
                 <span className="jtotal" title={s.progress(total, TOTAL_STARS)}><StarIcon on size={15} /><b>{total}</b><small>/{TOTAL_STARS}</small></span>
               </header>
               <main className={`jmain ${wide ? 'wide' : ''}`}>
                 <section className="jmapcol">
-                  <JourneyMap s={s} stars={stars} selected={sel} onSelect={select} onEnter={enter} mx={mx} my={my} wide={wide} />
+                  <JourneyMap s={s} stars={stars} route={route} selected={sel} onSelect={select} onEnter={enter} mx={mx} my={my} wide={wide} />
                   {run && runMatch && (
                     <motion.button className="jresume" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 24 }}
                       onClick={() => { sfx.tap(); start(runMatch, run.g); }}>
@@ -127,8 +143,8 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
                   </div>
                 </section>
                 <aside className="jside">
-                  <AnimatePresence mode="wait"><ChapterFeature key={sel} s={s} id={sel} stars={stars} onEnter={() => enter(sel)} /></AnimatePresence>
-                  <ChapterList s={s} stars={stars} selected={sel} onSelect={select} />
+                  <AnimatePresence mode="wait"><ChapterFeature key={route + sel} s={s} id={sel} stars={stars} route={route} onEnter={() => enter(sel)} /></AnimatePresence>
+                  <ChapterList s={s} stars={stars} route={route} selected={sel} onSelect={select} />
                 </aside>
               </main>
             </div>
@@ -136,7 +152,7 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
         )}
         {view.v === 'city' && (
           <motion.div key={'city' + view.ch} className="jscreen" initial={{ opacity: 0, scale: 1.06 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}>
-            <ChapterView s={s} id={view.ch} stars={stars} mx={mx} my={my} onBack={() => setView({ v: 'map' })} onPick={m => setIntro(m)} />
+            <ChapterView s={s} id={view.ch} stars={stars} route={route} mx={mx} my={my} onBack={() => setView({ v: 'map' })} onPick={m => setIntro(m)} />
           </motion.div>
         )}
         {view.v === 'match' && match && campaign && (
@@ -160,8 +176,11 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
             onNext={() => { if (!next) return; setShown(null); setSel(next.chapter); setView({ v: 'city', ch: next.chapter }); setTimeout(() => setIntro(next), 450); }} />
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {picker && <RoutePicker key="rp" s={s} lang={app.lang} current={route} canChange={J.canChangeRoute} privileged={app.isPrivileged}
+          onPick={async r => { const x = await J.setRoute(r); if (x.ok) { picked.current = false; } return x; }} onClose={() => setPicker(false)} />}
+      </AnimatePresence>
       {view.v !== 'match' && <QuestToasts />}
     </div>
   );
 }
-
