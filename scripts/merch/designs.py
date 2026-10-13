@@ -13,7 +13,7 @@ import random
 from svgkit import (CLUB, DIAMOND, FELT, FELT2, FELT_D, GOLD, GOLD_HI, GOLD_LO, HEART, INK, IVORY, ROOT, RUBY, RUBY_D,
                     SPADE, font, lin, mirror_x, rad, rot180, spade, suit, svg, write)
 
-OUT = os.path.join(ROOT, 'public', 'merch', 'designs')
+OUT = os.path.join(ROOT, 'merch-print', 'designs')   # vector print sources (not deployed)
 DESIGNS: dict[str, callable] = {}
 
 

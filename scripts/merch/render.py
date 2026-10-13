@@ -41,7 +41,7 @@ def render_svg(b, svg_path: str, out_png: str, width: int, bg: str | None = None
                      f'<body style="margin:0;{bgcss}">{src}</body></html>')
     page.wait_for_load_state('networkidle')
     os.makedirs(os.path.dirname(out_png), exist_ok=True)
-    page.screenshot(path=out_png, omit_background=bg is None, full_page=False)
+    page.screenshot(path=out_png, omit_background=bg is None, full_page=False, timeout=240000)
     page.close()
 
 
