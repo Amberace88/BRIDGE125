@@ -37,7 +37,29 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T | n
   return data as T;
 }
 
+/** achievements_sync() (migration 012): grants whatever the stats already allow and returns the hall's data. */
+export interface AchSyncResult {
+  ok: boolean; error?: string; achievements?: string[]; pinned?: string[]; stats?: Record<string, number>;
+  granted?: string[]; granted_bm?: number; level_from?: number; level?: number; xp?: number; bm?: number; shards?: number;
+  owned?: string[]; prestige?: number;
+}
+export interface RarityData { players: number; counts: Record<string, number> }
+export interface StatsResult extends AchSyncResult { capped?: boolean }
+export interface PinResult { ok: boolean; error?: 'max' | 'locked' | 'auth' | 'network' | string; pinned?: string[] }
+export interface ShowcaseRow { id: string; pinned: string[]; prestige: number; ach_count: number }
+
 export const fetchProgress = () => rpc<ProgressData>('progress');
+export const achievementsSyncRpc = () => rpc<AchSyncResult>('achievements_sync');
+export const achievementRarityRpc = () => rpc<RarityData>('achievement_rarity');
+export const reportGameStatsRpc = (stats: object) => rpc<StatsResult>('report_game_stats', { stats });
+export async function pinAchievementsRpc(codes: string[]): Promise<PinResult> {
+  try { return (await rpc<PinResult>('pin_achievements', { codes })) ?? { ok: false, error: 'network' }; }
+  catch { return { ok: false, error: 'network' }; }
+}
+/** Other players' pinned medals + prestige (seats, leaderboard). Max 12 ids. */
+export async function publicShowcase(ids: string[]): Promise<ShowcaseRow[]> {
+  try { return (await rpc<ShowcaseRow[]>('public_showcase', { uids: ids.slice(0, 12) })) ?? []; } catch { return []; }
+}
 export const claimDailyRpc = () => rpc<DailyResult>('claim_daily');
 export const reportAchievementRpc = (code: string) => rpc<ReportResult>('report_achievement', { code });
 

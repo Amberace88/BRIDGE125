@@ -3,13 +3,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
 import { useStrings } from '../i18n/pick';
 import { SHOP_STRINGS } from '../i18n/shop';
-import { ACHIEVEMENTS, achDef } from '../progress/achievements';
+import { ACHIEVEMENTS, achDef, achProgress } from '../progress/achievements';
 import { DAILY_ITEM, DAILY_REWARDS } from '../progress/levels';
-import { openDailyReward, syncAppProfile, useProgress, type Toast } from '../progress/useProgress';
+import { openDailyReward, syncAppProfile, useAchievements, useProgress, type Toast } from '../progress/useProgress';
+import { TierMedal } from '../progress/Medal';
+import { ACH_STRINGS, type AchStrings } from '../i18n/achievements';
+import { ECO_STRINGS } from '../i18n/economy';
 import type { DailyResult } from '../progress/api';
 import { fmtBm } from '../shop/catalog';
 import { sfx, buzz } from '../sound';
 import '../styles/shop.css';
+import '../styles/achievements.css';
 
 /* ================================================================== small building blocks */
 
@@ -42,15 +46,13 @@ export function CoinBurst({ n = 16, spread = 150, className = '' }: { n?: number
   );
 }
 
-/** Achievement medallion: brass ring, engraved glyph. */
+/** Achievement medallion (kept for older callers) — now the tiered metal medal from src/progress/Medal.tsx. */
 export function Medal({ code, size = 52, locked = false }: { code: string; size?: number; locked?: boolean }) {
-  const d = achDef(code);
-  return (
-    <span className={`medal ${locked ? 'locked' : ''}`} style={{ width: size, height: size, fontSize: size * ((d?.glyph.length ?? 1) > 2 ? 0.26 : 0.36) }} aria-hidden>
-      <span className="medalin">{d?.glyph ?? '★'}</span>
-    </span>
-  );
+  return <TierMedal code={code} size={size} locked={locked} secret={achDef(code)?.secret} />;
 }
+
+const achNameOf = (A: AchStrings, code: string) => A.list[code]?.name ?? ACH_STRINGS.en.list[code]?.name ?? code;
+const achDescOf = (A: AchStrings, code: string) => A.list[code]?.desc ?? ACH_STRINGS.en.list[code]?.desc ?? '';
 
 function Flame({ on = true, size = 22 }: { on?: boolean; size?: number }) {
   return (
@@ -273,8 +275,10 @@ export function DailyRewardButton({ className = '' }: { className?: string }) {
 
 function ToastCard({ t, onDone }: { t: Toast; onDone: () => void }) {
   const S = useStrings(SHOP_STRINGS);
+  const A = useStrings(ACH_STRINGS);
   useEffect(() => {
     if (t.kind === 'level') { sfx.big(); buzz([30, 40, 30]); } else if (t.kind === 'ach') { sfx.good(); buzz(25); }
+    else if (t.kind === 'stake') { if (t.status === 'won') { sfx.coin(); buzz([20, 40, 20]); } else sfx.alert(); }
     const tm = setTimeout(onDone, t.kind === 'xp' ? 2600 : t.kind === 'level' ? 4400 : 4000);
     return () => clearTimeout(tm);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -305,15 +309,16 @@ function ToastCard({ t, onDone }: { t: Toast; onDone: () => void }) {
       </motion.button>
     );
   }
-  const a = S.ach.list[t.code];
+  if (t.kind === 'stake') return <StakeToast t={t} onDone={onDone} />;
+  const d = achDef(t.code);
   return (
-    <motion.button layout className="rtoast achv" onClick={onDone} initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: -20, opacity: 0, scale: 0.95 }}
+    <motion.button layout className={`rtoast achv tier t-${d?.tier ?? 'bronze'}`} onClick={onDone} initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: -20, opacity: 0, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 280, damping: 22 }}>
-      <motion.span initial={{ rotateY: 180, scale: 0.5 }} animate={{ rotateY: 0, scale: 1 }} transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 13 }}><Medal code={t.code} size={48} /></motion.span>
+      <motion.span initial={{ rotateY: 180, scale: 0.5 }} animate={{ rotateY: 0, scale: 1 }} transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 13 }}><TierMedal code={t.code} size={48} /></motion.span>
       <span className="rtxt">
-        <small>{S.ach.unlocked}</small>
-        <strong>{a?.name ?? t.code}</strong>
-        <em>{a?.desc}</em>
+        <small>{A.reveal.unlocked}</small>
+        <strong>{achNameOf(A, t.code)}</strong>
+        <em>{achDescOf(A, t.code)}</em>
       </span>
       {t.bm > 0 && <span className="rbm side"><i className="coin" />+{fmtBm(t.bm)}</span>}
       <span className="rsheen" />
@@ -321,14 +326,87 @@ function ToastCard({ t, onDone }: { t: Toast; onDone: () => void }) {
   );
 }
 
+function StakeToast({ t, onDone }: { t: Extract<Toast, { kind: 'stake' }>; onDone: () => void }) {
+  const E = useStrings(ECO_STRINGS);
+  const won = t.status === 'won';
+  const txt = won ? E.stakes.result.won(fmtBm(t.payout)) : t.status === 'lost' ? E.stakes.result.lost(fmtBm(t.entry)) : t.status === 'void' ? E.stakes.result.void : E.stakes.result.expired;
+  return (
+    <motion.button layout className={`rtoast stake ${won ? 'won' : 'lost'}`} onClick={onDone} initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: -20, opacity: 0, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 22 }}>
+      <motion.span className="rstakechip" initial={{ rotate: -200, scale: 0.4 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 180, damping: 12 }}><b>{won ? '★' : '♠'}</b></motion.span>
+      <span className="rtxt">
+        <small>{E.stakes.title}</small>
+        <strong>{txt}</strong>
+      </span>
+      {won && <span className="rsheen" />}
+    </motion.button>
+  );
+}
+
+/* ================================================================== cinematic medal reveal (gold, platinum, secrets) */
+
+const sparkAt = (i: number, n: number) => { const ang = (i / n) * Math.PI * 2; const r = 120 + (i % 3) * 22; return { x: Math.cos(ang) * r, y: Math.sin(ang) * r }; };
+
+/** Center-stage reveal for gold / platinum / secret medals (queued by the progress store; mounted by RewardToasts). */
+export function MedalReveal({ code, onDone }: { code: string; onDone: () => void }) {
+  const A = useStrings(ACH_STRINGS);
+  const d = achDef(code);
+  useEffect(() => {
+    sfx.fanfare(); buzz([30, 60, 40]);
+    const tm = setTimeout(onDone, 4200);
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape' || e.key === 'Enter') onDone(); };
+    window.addEventListener('keydown', k);
+    return () => { clearTimeout(tm); window.removeEventListener('keydown', k); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!d) return null;
+  const n = 14;
+  return (
+    <motion.div className={`mreveal t-${d.tier} ${d.secret ? 'secret' : ''}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.35 } }} role="status" aria-live="polite">
+      <motion.div className="mrscrim" onClick={onDone} initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
+      <motion.div className="mrcard" onClick={onDone} initial={{ scale: 0.92 }} animate={{ scale: 1 }} exit={{ scale: 0.96, y: -20 }}>
+        <div className="mrstage">
+          <motion.span className="mrrays" initial={{ opacity: 0, scale: 0.4 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.35, duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }} />
+          <motion.span className="mrflash" initial={{ opacity: 0, scale: 0.2 }} animate={{ opacity: [0, 1, 0], scale: [0.2, 1.3, 1.6] }} transition={{ delay: 0.55, duration: 0.9, times: [0, 0.25, 1] }} />
+          {Array.from({ length: n }, (_, i) => {
+            const p = sparkAt(i, n);
+            return <motion.i key={i} className="mrspark" initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }} animate={{ x: p.x, y: p.y, opacity: [0, 1, 0], scale: [0.4, 1, 0.2] }} transition={{ delay: 0.6 + (i % 4) * 0.03, duration: 1.2, ease: [0.15, 0.8, 0.3, 1] }} />;
+          })}
+          <motion.span className="mrmedal" initial={{ rotateY: 720, scale: 0.2, y: 60, opacity: 0 }} animate={{ rotateY: 0, scale: 1, y: 0, opacity: 1 }}
+            transition={{ duration: 1.25, ease: [0.16, 1, 0.3, 1] }}>
+            <TierMedal code={code} size={150} glow />
+          </motion.span>
+        </div>
+        <motion.div className="mrkick" initial={{ opacity: 0, letterSpacing: '0.6em' }} animate={{ opacity: 1, letterSpacing: '0.26em' }} transition={{ delay: 0.9, duration: 0.7 }}>
+          {d.secret ? A.reveal.secret : `${A.reveal.unlocked} · ${A.tiers[d.tier]}`}
+        </motion.div>
+        <motion.h2 className="mrname serif" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05, duration: 0.5 }}>{achNameOf(A, code)}</motion.h2>
+        <motion.p className="mrdesc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.25 }}>{achDescOf(A, code)}</motion.p>
+        <motion.div className="mrrw" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45 }}>
+          {d.bm > 0 && <span className="achrw bm"><i className="coin" />+{fmtBm(d.bm)} BM</span>}
+          {d.xp > 0 && <span className="achrw xp">{A.xp(fmtBm(d.xp))}</span>}
+          {d.shards > 0 && <span className="achrw sh"><i className="shardi" />{A.shards(d.shards)}</span>}
+          {d.item && <span className="achrw it">✦ {A.item(A.items[d.item] ?? ACH_STRINGS.en.items[d.item] ?? d.item)}</span>}
+        </motion.div>
+        <motion.small className="mrtap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }}>{A.reveal.tap}</motion.small>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export function RewardToasts() {
   const p = useProgress();
+  const reveal = p.reveals[0];
   return (
-    <div className="rtoasts" aria-live="polite">
-      <AnimatePresence initial={false}>
-        {p.toasts.map(t => <ToastCard key={t.id} t={t} onDone={() => p.dismissToast(t.id)} />)}
+    <>
+      <div className="rtoasts" aria-live="polite">
+        <AnimatePresence initial={false}>
+          {p.toasts.map(t => <ToastCard key={t.id} t={t} onDone={() => p.dismissToast(t.id)} />)}
+        </AnimatePresence>
+      </div>
+      <AnimatePresence>
+        {reveal && <MedalReveal key={reveal} code={reveal} onDone={p.dismissReveal} />}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
 
@@ -355,42 +433,52 @@ export function RewardsLayer({ autoDaily = true, onAuth }: { autoDaily?: boolean
   );
 }
 
-/* ================================================================== achievements list */
+/* ================================================================== achievements (profile section) */
 
-export function AchievementsList() {
+/**
+ * Profile section: count + meter, the pinned showcase (or the latest medals) and what is almost unlocked.
+ * Pass `onOpenHall` to show the "Trophy hall" button (opens <AchievementsHall> from src/screens/Achievements.tsx).
+ */
+export function AchievementsList({ onOpenHall }: { onOpenHall?: () => void } = {}) {
   const p = useProgress();
-  const S = useStrings(SHOP_STRINGS);
+  const A = useStrings(ACH_STRINGS);
+  const h = useAchievements();
   const have = new Set(p.achievements);
-  const d = p.data;
-  const stat = (k: 'games_played' | 'wins' | 'level' | 'streak' | 'best_win_streak') => (d ? (k === 'level' ? p.level : d[k]) : 0);
-  const sorted = [...ACHIEVEMENTS].sort((a, b) => Number(have.has(b.code)) - Number(have.has(a.code)));
+  const total = ACHIEVEMENTS.length;
+  const pinned = h.pinned.filter(c => have.has(c));
+  const shown = (pinned.length ? pinned : [...p.achievements].reverse().filter(c => achDef(c))).slice(0, 3);
+  const near = ACHIEVEMENTS.filter(a => !have.has(a.code) && !a.secret && a.goal && a.goal.n > 1)
+    .map(a => ({ a, pr: achProgress(a, h.stats, false) })).filter(x => x.pr.pct > 0 && x.pr.pct < 1)
+    .sort((x, y) => y.pr.pct - x.pr.pct).slice(0, 2);
   return (
     <div className="achlist">
       <div className="achhead">
-        <b>{S.ach.title}</b>
-        <span>{S.ach.count(have.size, ACHIEVEMENTS.length)}</span>
+        <b>{A.title}</b>
+        <span>{A.count(have.size, total)}</span>
       </div>
-      <div className="achmeter"><motion.i initial={{ width: 0 }} animate={{ width: `${(have.size / ACHIEVEMENTS.length) * 100}%` }} transition={{ duration: 0.9 }} /></div>
-      <div className="achgrid">
-        {sorted.map((a, i) => {
-          const got = have.has(a.code);
-          const s = S.ach.list[a.code];
-          const cur = a.goal ? Math.min(a.goal.n, stat(a.goal.stat)) : 0;
-          return (
-            <motion.div key={a.code} className={`achcard ${got ? 'got' : ''}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 10) * 0.03 }}>
-              <Medal code={a.code} size={44} locked={!got} />
-              <div className="achtxt">
-                <b>{s?.name ?? a.code}</b>
-                <span>{s?.desc}</span>
-                {!got && a.goal && a.goal.n > 1 && (
-                  <div className="achprog"><i style={{ width: `${(cur / a.goal.n) * 100}%` }} /><em>{cur}/{a.goal.n}</em></div>
-                )}
-              </div>
-              <span className={`achbm ${got ? 'got' : ''}`}>{got ? '✓' : <><i className="coin" />{fmtBm(a.bm)}</>}</span>
-            </motion.div>
-          );
-        })}
-      </div>
+      <div className="achmeter"><motion.i initial={{ width: 0 }} animate={{ width: `${(have.size / total) * 100}%` }} transition={{ duration: 0.9 }} /></div>
+      {shown.length > 0 && (
+        <div className="achprofshow">
+          {shown.map(c => (
+            <button key={c} className={`achprofcard t-${achDef(c)?.tier ?? 'bronze'}`} onClick={onOpenHall} disabled={!onOpenHall}>
+              <TierMedal code={c} size={46} />
+              <span>{achNameOf(A, c)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {near.map(({ a, pr }) => (
+        <div key={a.code} className="achcard" style={{ marginTop: 8 }}>
+          <TierMedal code={a.code} size={40} locked ring={pr.pct} />
+          <div className="achtxt">
+            <b>{achNameOf(A, a.code)}</b>
+            <span>{achDescOf(A, a.code)}</span>
+            <div className="achprog"><i style={{ width: `${pr.pct * 100}%` }} /><em>{fmtBm(pr.cur)}/{fmtBm(pr.n)}</em></div>
+          </div>
+          <span className="achbm"><i className="coin" />{fmtBm(a.bm)}</span>
+        </div>
+      ))}
+      {onOpenHall && <button className="btn ghost achhallbtn" onClick={onOpenHall}><b className="serif">♛</b> {A.openHall} <em>{have.size}/{total}</em></button>}
     </div>
   );
 }

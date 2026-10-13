@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useApp } from '../store';
 import { getSupabase, type Profile } from '../supabase';
 import type { GameState } from '../engine/engine';
-import { detectAchievements } from './achievements';
 import { levelProgress } from './levels';
+import { GameTracker, type GameStats } from './tracker';
 import {
-  claimDaily, closeDailyReward, dismissToast, ensureLoaded, getState, ingestProfile, openDailyReward, patchData,
-  reportAchievement, subscribe,
+  claimDaily, closeDailyReward, dismissReveal, dismissToast, ensureLoaded, ensureRarity, getState, ingestProfile, openDailyReward, patchData,
+  pinAchievements, registerProfilePatcher, reportAchievement, reportGameStats, subscribe, syncAchievements,
 } from './store';
 
 export type { Toast } from './store';
 export type { ProgressData, GameReward } from './api';
-export { openDailyReward, closeDailyReward, reportAchievement };
+export { openDailyReward, closeDailyReward, reportAchievement, syncAchievements };
 
 /** Profile as returned after migration 003 (extra columns + the `reward` object merged by recordGame). */
 export type ProgressProfile = Profile & {
@@ -31,6 +31,9 @@ export function useProgress() {
   const uid = app.session?.user.id ?? null;
 
   useEffect(() => { void ensureLoaded(uid); }, [uid]);
+  // lets 012 RPC results (wheel, stakes, achievements) update app.profile.bm / owned everywhere
+  const patchProfile = app.patchProfile;
+  useEffect(() => { registerProfilePatcher(p => patchProfile(p as Partial<Profile>)); }, [patchProfile]);
 
   // listen to game results: recordGame() merges record_game's JSON (incl. `reward`) into app.profile
   const prof = app.profile as ProgressProfile | null;
@@ -60,12 +63,14 @@ export function useProgress() {
     achievements: d?.achievements ?? [],
     canClaim: !!d?.can_claim,
     toasts: st.toasts,
+    reveals: st.reveals,
     dailyOpen: st.dailyOpen,
     claimDaily,
     reportAchievement,
     openDaily: openDailyReward,
     closeDaily: closeDailyReward,
     dismissToast,
+    dismissReveal,
     refresh,
   };
 }
@@ -84,14 +89,55 @@ export async function syncAppProfile(app: ReturnType<typeof useApp>, patch: Part
 }
 
 /**
- * Report client-detected achievements for a running game (jacks finish, exact 125, queen bounce, four kings).
- * Call once per game screen: `useGameAchievements(g, 0)` (bots) or `useGameAchievements(r.game, r.you)` (online).
+ * The achievements hall's data: unlocked codes, stats for the progress rings, pinned showcase and rarity.
+ * Calls achievements_sync() once per mount (it also grants anything the stats already allow).
  */
-export function useGameAchievements(g: GameState | null | undefined, me: number) {
+export function useAchievements(opts: { rarity?: boolean } = {}) {
+  const p = useProgress();
+  const st = useSyncExternalStore(subscribe, getState, getState);
+  const uid = p.signedIn ? st.uid : null;
+  useEffect(() => { if (uid) void syncAchievements('hall'); }, [uid]);
+  useEffect(() => { if (opts.rarity) void ensureRarity(); }, [opts.rarity]);
+  return {
+    ready: p.ready,
+    signedIn: p.signedIn,
+    unlocked: p.achievements,
+    stats: st.ach.stats,
+    synced: st.ach.synced,
+    pinned: st.ach.pinned,
+    rarity: st.ach.rarity,
+    pin: pinAchievements,
+    sync: syncAchievements,
+  };
+}
+
+/**
+ * Achievement tracking for a running game: reports one-shot medals the moment they happen (report_achievement) and
+ * sends the whole game's counters at game over (report_game_stats). Works for bots and online games alike.
+ *   LocalGame:  useGameAchievements(g, 0)                              (or { mode: 'stake' } at a stake table)
+ *   OnlineRoom: useGameAchievements(r.game, r.you, { mode: quick ? 'quick' : 'room', host: r.you === 0 })
+ * Without `mode` it is inferred: any other human at the table → 'online', otherwise 'bots'.
+ */
+export function useGameAchievements(g: GameState | null | undefined, me: number, opts: { mode?: GameStats['mode']; host?: boolean } = {}) {
   const { session } = useApp();
   const seq = g?.seq;
+  const ref = useRef<{ t: GameTracker; prev: GameState | null; sent: boolean } | null>(null);
   useEffect(() => {
-    if (!g || !session || me < 0) return;
-    for (const code of detectAchievements(g, me)) reportAchievement(code);
-  }, [seq]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!g || me < 0) return;
+    let cur = ref.current;
+    const prev = cur?.prev ?? null;
+    // a new game: first state, a rematch (round restarted) or a different table
+    const fresh = !cur || (prev && (g.round < prev.round || g.players.length !== prev.players.length || (prev.phase === 'gameOver' && g.phase !== 'gameOver')));
+    if (fresh) {
+      const mode = opts.mode ?? (g.players.some((pl, i) => i !== me && !pl.bot) ? 'online' : 'bots');
+      cur = ref.current = { t: new GameTracker(me, mode, !!opts.host), prev: null, sent: false };
+    }
+    const c = cur!;
+    const codes = c.t.step(c.prev, g);
+    c.prev = g;
+    if (!session) return;
+    for (const code of codes) reportAchievement(code);
+    if (c.t.finished && !c.sent) { c.sent = true; void reportGameStats(c.t.stats()); }
+  }, [seq, g, me, session]); // eslint-disable-line react-hooks/exhaustive-deps
+  return ref;
 }
