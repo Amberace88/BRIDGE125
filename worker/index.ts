@@ -1,4 +1,5 @@
 import type { Env } from './room';
+import { handlePay } from './pay';
 export { Room } from './room';
 export { Lobby } from './lobby';
 
@@ -40,6 +41,7 @@ export default {
     }
     if (url.pathname === '/api/ice') return iceServers(env);
     if (url.pathname === '/api/health') return Response.json({ ok: true, ts: Date.now() });
+    if (url.pathname.startsWith('/api/pay/')) { const r = await handlePay(req, env); if (r) return r; }
     if (url.pathname.startsWith('/api/')) return new Response('not found', { status: 404 });
     return env.ASSETS.fetch(req);
   },

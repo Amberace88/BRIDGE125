@@ -13,15 +13,17 @@ import { useAvatarUrl } from '../media/avatar';
 import { FaceAvatar } from '../media/UserAvatar';
 import { VideoDock, LobbyMedia, SeatLive } from '../components/VideoDock';
 import { initMusic } from '../media/music';
+import { SocialGlyph, SocialOverlay, SocialSheets, useTableSocial } from '../social/TableSocial';
 
 initMusic();
 
-export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExit: () => void; onQuickAgain: (skip: string) => void }) {
+export function OnlineRoom({ code, onExit, onQuickAgain, onAuth }: { code: string; onExit: () => void; onQuickAgain: (skip: string) => void; onAuth?: () => void }) {
   const app = useApp();
   const { t } = app;
   const fallbackName = useMemo(() => `${t.guest} ${playerId().replace(/[^0-9]/g, '').slice(0, 3) || '7'}`, [t.guest]);
   const [name, setName] = useState(app.name || fallbackName);
-  const r = useRoom(code, app.name || fallbackName);
+  const r = useRoom(code, app.name || fallbackName, app.session?.access_token);
+  const social = useTableSocial(r);
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/r/${code}`;
   const myAvatar = useAvatarUrl();
@@ -89,7 +91,11 @@ export function OnlineRoom({ code, onExit, onQuickAgain }: { code: string; onExi
           onExit={leave}
           deadline={r.deadline} turnMs={r.turnMs} offline={r.offline}
           emotes={r.emotes} onEmote={e => r.send({ t: 'emote', e })}
-          topCenter={<div className="roomchip">{code}</div>} />
+          topCenter={<div className="roomchip">{code}</div>}
+          onSeatTap={seat => social.setSheet(seat)}
+          myRowExtra={<SocialGlyph s={social} />}
+          overlay={geo => <SocialOverlay geo={geo} r={r} s={social} />} />
+        <SocialSheets r={r} s={social} onAuth={onAuth} />
         <VideoDock api={media} nameOf={seatName} myAvatar={myAvatar} />
         <ConnBadge status={r.status} t={t} />
       </>

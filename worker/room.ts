@@ -2,10 +2,14 @@ import { DurableObject } from 'cloudflare:workers';
 import { type Action, type Card, type GameState, apply, newGame, nextRound } from '../src/engine/engine';
 import { botAction } from '../src/engine/bot';
 import { isQuickCode, QUICK_WAIT_MS, type Lobby } from './lobby';
+import { supaRpc, userFromToken, type PayEnv } from './pay';
+import { CHAT_HISTORY, RateLimiter, isQuickKey, sanitizeChat, type ChatMsg } from '../src/social/sanitize';
+import { TIP_MAX_PER_RECIPIENT_DAY, TIP_MIN, isGiftId, type SeatGift, type SocialError } from '../src/social/gifts';
 
-export interface Env { ROOMS: DurableObjectNamespace<Room>; LOBBY: DurableObjectNamespace<Lobby>; ASSETS: Fetcher }
+export interface Env extends PayEnv { ROOMS: DurableObjectNamespace<Room>; LOBBY: DurableObjectNamespace<Lobby>; ASSETS: Fetcher }
 
-interface Seat { pid: string | null; name: string; bot: boolean }
+/** `uid` = the seat's verified Supabase user id (from a `hello` token). Server-side only: clients just see `acct`. */
+interface Seat { pid: string | null; name: string; bot: boolean; uid?: string | null }
 interface RoomState {
   code: string;
   hostPid: string | null;
@@ -17,7 +21,19 @@ interface RoomState {
   emoteId: number;
   quick?: boolean;
   startAt?: number | null;
+  /** social layer: last CHAT_HISTORY chat lines, gifts on seats for the current game */
+  chat?: ChatMsg[];
+  chatId?: number;
+  gifts?: SeatGift[];
+  socialId?: number;
 }
+
+interface InMsg {
+  t: string; a?: Action; e?: string; name?: string; bluff?: boolean;
+  // social
+  token?: unknown; text?: unknown; q?: unknown; to?: unknown; gift?: unknown; amount?: unknown; id?: unknown; rid?: unknown;
+}
+const GIFTS_KEPT = 40;
 
 const MAX_SEATS = 4;
 const TURN_MS = 30_000;
@@ -44,6 +60,12 @@ function viewFor(g: GameState, seat: number): GameState {
 
 export class Room extends DurableObject<Env> {
   private s: RoomState | null = null;
+  // per-player limits (memory only: a hibernation wake-up simply forgets old hits)
+  private chatRL = new RateLimiter();
+  private giftRL = new RateLimiter(1, 1500);
+  private tipRL = new RateLimiter(1, 3000);
+  private reportRL = new RateLimiter(3, 60_000);
+  private helloRL = new RateLimiter(6, 60_000);
 
   private async load(code?: string): Promise<RoomState> {
     if (this.s) return this.s;
@@ -92,7 +114,8 @@ export class Room extends DurableObject<Env> {
     }
     this.schedule();
     await this.save();
-    this.broadcast();
+    this.broadcast(server);
+    try { server.send(JSON.stringify({ t: 'gifts', list: s.gifts ?? [] })); } catch { /* */ }
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -108,13 +131,27 @@ export class Room extends DurableObject<Env> {
     s.status = 'playing';
     s.startAt = null;
     s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })), { bluff });
+    this.clearGifts();
+  }
+
+  /** Seat gifts last for one game. */
+  private clearGifts() {
+    const s = this.s!;
+    if (!s.gifts?.length) return;
+    s.gifts = [];
+    this.sendAll({ t: 'gifts', list: [] });
+  }
+
+  private sendAll(m: object) {
+    const out = JSON.stringify(m);
+    for (const w of this.ctx.getWebSockets()) { try { w.send(out); } catch { /* */ } }
   }
 
   async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer) {
     const s = await this.load();
     const pid = this.ctx.getTags(ws)[0];
     const seat = s.seats.findIndex(x => x.pid === pid);
-    let msg: { t: string; a?: Action; e?: string; name?: string; bluff?: boolean };
+    let msg: InMsg;
     try { msg = JSON.parse(typeof raw === 'string' ? raw : new TextDecoder().decode(raw)); } catch { return; }
     const isHost = pid === s.hostPid || !this.online().has(s.hostPid ?? '');
 
@@ -155,6 +192,7 @@ export class Room extends DurableObject<Env> {
       case 'rematch': {
         if (!s.game || s.game.phase !== 'gameOver') return;
         s.game = newGame(s.seats.map(x => ({ name: x.name, bot: x.bot })), { bluff: !!s.game.rules?.bluff });
+        this.clearGifts();
         break;
       }
       case 'leave': {
@@ -163,7 +201,7 @@ export class Room extends DurableObject<Env> {
           s.seats.splice(seat, 1);
           if (s.hostPid === pid) s.hostPid = s.seats.find(x => !x.bot)?.pid ?? null;
         } else {
-          s.seats[seat].bot = true; s.seats[seat].pid = null;   // a bot takes over the seat
+          s.seats[seat].bot = true; s.seats[seat].pid = null; s.seats[seat].uid = null;   // a bot takes over the seat
           if (s.game) s.game.players[seat].bot = true;
           if (s.hostPid === pid) s.hostPid = s.seats.find(x => !x.bot)?.pid ?? null;
         }
@@ -177,6 +215,12 @@ export class Room extends DurableObject<Env> {
         for (const w of this.ctx.getWebSockets()) { try { w.send(out); } catch { /* */ } }
         return;
       }
+      // ---- social layer: account hello, chat, gifts, tips, reports
+      case 'hello': { if (await this.hello(pid, msg)) break; return; }
+      case 'chat': { await this.chat(ws, pid, seat, msg); return; }
+      case 'gift': { await this.gift(ws, pid, seat, msg); return; }
+      case 'tip': { await this.tip(ws, pid, seat, msg); return; }
+      case 'report': { await this.report(ws, pid, seat, msg); return; }
       // ---- media: WebRTC signalling relay (one target seat only) + per-seat camera/mic state (kept on the socket, not in room storage)
       case 'rtc': { this.relayRtc(s, seat, msg as unknown as RtcIn); return; }
       case 'media': { this.mediaHello(ws, s, seat, msg as unknown as MediaIn); return; }
@@ -249,6 +293,113 @@ export class Room extends DurableObject<Env> {
     this.broadcast();
   }
 
+  /* ============================================================== social layer */
+
+  /** `{t:'hello', token}` — verify the Supabase session and remember the seat's user id. true = room changed. */
+  private async hello(pid: string, m: InMsg): Promise<boolean> {
+    if (!this.helloRL.allow(pid)) return false;
+    const user = m.token ? await userFromToken(this.env, m.token) : null;
+    const s = this.s!;
+    const seat = s.seats.findIndex(x => x.pid === pid);   // re-read after the await
+    if (seat < 0) return false;
+    const uid = user?.id ?? null;
+    if ((s.seats[seat].uid ?? null) === uid) return false;
+    s.seats[seat].uid = uid;
+    return true;
+  }
+
+  private async chat(ws: WebSocket, pid: string, seat: number, m: InMsg) {
+    const s = this.s!;
+    if (seat < 0) return;
+    if (!this.chatRL.allow(pid)) { this.reply(ws, { t: 'chatErr', code: 'slow', wait: this.chatRL.waitMs(pid) }); return; }
+    let text = '', masked = false;
+    const q = isQuickKey(m.q) ? m.q : undefined;
+    if (!q) {
+      const c = sanitizeChat(m.text);
+      if (!c) return;
+      text = c.text; masked = c.masked;
+    }
+    s.chatId = (s.chatId ?? 0) + 1;
+    const msg: ChatMsg = { id: s.chatId, seat, name: s.seats[seat].name, text, at: Date.now(), ...(q ? { q } : {}), ...(masked ? { masked } : {}) };
+    s.chat = [...(s.chat ?? []).slice(-(CHAT_HISTORY - 1)), msg];
+    this.sendAll({ t: 'chat', ...msg });
+    await this.save();
+  }
+
+  private reply(ws: WebSocket, m: object) { try { ws.send(JSON.stringify(m)); } catch { /* */ } }
+
+  private socialFail(ws: WebSocket, kind: string, rid: unknown, error: SocialError) {
+    this.reply(ws, { t: kind, rid, ok: false, error });
+  }
+
+  private static httpErr(status: number): SocialError {
+    return status === 401 || status === 403 ? 'auth' : status === 503 ? 'unavailable' : 'network';
+  }
+
+  /** `{t:'gift', to, gift, token, rid}` — charged by Supabase as the sender (their token), then shown to the table. */
+  private async gift(ws: WebSocket, pid: string, seat: number, m: InMsg) {
+    const s = this.s!;
+    const to = Number(m.to);
+    if (seat < 0) return this.socialFail(ws, 'giftResult', m.rid, 'generic');
+    if (!Number.isInteger(to) || !s.seats[to]) return this.socialFail(ws, 'giftResult', m.rid, 'target');
+    if (to === seat) return this.socialFail(ws, 'giftResult', m.rid, 'self');
+    if (!isGiftId(m.gift)) return this.socialFail(ws, 'giftResult', m.rid, 'unknown');
+    if (typeof m.token !== 'string' || !m.token) return this.socialFail(ws, 'giftResult', m.rid, 'auth');
+    if (!this.giftRL.allow(pid)) return this.socialFail(ws, 'giftResult', m.rid, 'throttle');
+    const target = s.seats[to];
+    const r = await supaRpc<{ ok?: boolean; error?: SocialError; bm?: number; diamonds?: number; need?: number; cur?: string }>(this.env, 'send_gift',
+      { p_gift: m.gift, p_to: target.bot ? null : target.uid ?? null, p_room: s.code, p_to_name: target.name }, { token: m.token });
+    if (!r.ok || !r.data) return this.socialFail(ws, 'giftResult', m.rid, Room.httpErr(r.status));
+    const d = r.data;
+    this.reply(ws, { t: 'giftResult', rid: m.rid, ok: !!d.ok, error: d.error, bm: d.bm, diamonds: d.diamonds, need: d.need, cur: d.cur });
+    if (!d.ok) return;
+    const from = s.seats.findIndex(x => x.pid === pid);
+    s.socialId = (s.socialId ?? 0) + 1;
+    s.gifts = [...(s.gifts ?? []).slice(-(GIFTS_KEPT - 1)), [to, m.gift as string]];
+    this.sendAll({ t: 'gift', id: s.socialId, from, to, gift: m.gift, fromName: s.seats[from]?.name ?? '' });
+    await this.save();
+  }
+
+  /** `{t:'tip', to, amount, token, rid}` — BM from one account to another; every limit is enforced by tip_bm(). */
+  private async tip(ws: WebSocket, pid: string, seat: number, m: InMsg) {
+    const s = this.s!;
+    const to = Number(m.to), amount = Number(m.amount);
+    if (seat < 0) return this.socialFail(ws, 'tipResult', m.rid, 'generic');
+    if (!Number.isInteger(to) || !s.seats[to]) return this.socialFail(ws, 'tipResult', m.rid, 'target');
+    if (to === seat) return this.socialFail(ws, 'tipResult', m.rid, 'self');
+    if (!Number.isInteger(amount) || amount < TIP_MIN || amount > TIP_MAX_PER_RECIPIENT_DAY) return this.socialFail(ws, 'tipResult', m.rid, 'limit');
+    const target = s.seats[to];
+    if (target.bot || !target.uid) return this.socialFail(ws, 'tipResult', m.rid, 'noAccount');
+    if (typeof m.token !== 'string' || !m.token) return this.socialFail(ws, 'tipResult', m.rid, 'auth');
+    if (!this.tipRL.allow(pid)) return this.socialFail(ws, 'tipResult', m.rid, 'throttle');
+    const r = await supaRpc<{ ok?: boolean; error?: SocialError; bm?: number; left?: number }>(this.env, 'tip_bm',
+      { p_to: target.uid, p_amount: amount, p_room: s.code }, { token: m.token });
+    if (!r.ok || !r.data) return this.socialFail(ws, 'tipResult', m.rid, Room.httpErr(r.status));
+    const d = r.data;
+    this.reply(ws, { t: 'tipResult', rid: m.rid, ok: !!d.ok, error: d.error, bm: d.bm, left: d.left });
+    if (!d.ok) return;
+    const from = s.seats.findIndex(x => x.pid === pid);
+    s.socialId = (s.socialId ?? 0) + 1;
+    this.sendAll({ t: 'tip', id: s.socialId, from, to, amount, fromName: s.seats[from]?.name ?? '' });
+    await this.save();
+  }
+
+  /** `{t:'report', id, token, rid}` — the server attaches the *stored* text, so a report can't be forged. */
+  private async report(ws: WebSocket, pid: string, seat: number, m: InMsg) {
+    const s = this.s!;
+    const line = (s.chat ?? []).find(x => x.id === Number(m.id));
+    if (seat < 0 || !line) return this.socialFail(ws, 'reportResult', m.rid, 'notFound');
+    if (line.seat === seat) return this.socialFail(ws, 'reportResult', m.rid, 'self');
+    if (typeof m.token !== 'string' || !m.token) return this.socialFail(ws, 'reportResult', m.rid, 'auth');
+    if (!this.reportRL.allow(pid)) return this.socialFail(ws, 'reportResult', m.rid, 'throttle');
+    const r = await supaRpc<{ ok?: boolean; error?: SocialError }>(this.env, 'report_chat', {
+      p_room: s.code, p_seat: line.seat, p_name: line.name, p_text: line.q ? `[quick:${line.q}]` : line.text,
+      p_reported: s.seats[line.seat]?.uid ?? null, p_msg_id: line.id,
+    }, { token: m.token });
+    if (!r.ok || !r.data) return this.socialFail(ws, 'reportResult', m.rid, Room.httpErr(r.status));
+    this.reply(ws, { t: 'reportResult', rid: m.rid, ok: !!r.data.ok, error: r.data.error });
+  }
+
   /**
    * Media helpers. `rtc` forwards an opaque signalling blob (SDP / ICE candidate) to exactly one human seat.
    * `media` records the sender's camera/mic state on its socket attachment (survives hibernation), tells the
@@ -292,11 +443,11 @@ export class Room extends DurableObject<Env> {
     const on = this.online();
     return {
       code: s.code, status: s.status, maxSeats: MAX_SEATS, quick: !!s.quick,
-      seats: s.seats.map(x => ({ name: x.name, bot: x.bot, online: x.bot || on.has(x.pid ?? ''), host: x.pid === s.hostPid })),
+      seats: s.seats.map(x => ({ name: x.name, bot: x.bot, online: x.bot || on.has(x.pid ?? ''), host: x.pid === s.hostPid, acct: !x.bot && !!x.uid })),
     };
   }
 
-  private payloadFor(pid: string) {
+  private payloadFor(pid: string, withChat = false) {
     const s = this.s!;
     const seat = s.seats.findIndex(x => x.pid === pid);
     const on = this.online();
@@ -305,6 +456,7 @@ export class Room extends DurableObject<Env> {
       t: 'state', you: seat, isHost: pid === s.hostPid, room: this.roomPayload(),
       game: s.game && seat >= 0 ? viewFor(s.game, seat) : null,
       deadline: s.deadline, turnMs: TURN_MS, offline,
+      ...(withChat ? { chat: s.chat ?? [] } : {}),
     });
   }
 
@@ -312,10 +464,11 @@ export class Room extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets(pid)) { try { ws.send(this.payloadFor(pid)); } catch { /* */ } }
   }
 
-  private broadcast() {
+  /** `fresh` = a socket that just connected: its state also carries the chat history. */
+  private broadcast(fresh?: WebSocket) {
     for (const ws of this.ctx.getWebSockets()) {
       const pid = this.ctx.getTags(ws)[0];
-      try { ws.send(this.payloadFor(pid)); } catch { /* */ }
+      try { ws.send(this.payloadFor(pid, ws === fresh)); } catch { /* */ }
     }
   }
 }

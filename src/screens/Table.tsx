@@ -40,6 +40,26 @@ export interface TableProps {
   dealAnimation?: boolean;
   /** Delay before the round summary opens after the last card (ms, default 1500). */
   resultsDelayMs?: number;
+  /** Social layer (online tables): drawn over the table with the live seat geometry (chat bubbles, gifts). */
+  overlay?: (geo: TableGeo) => ReactNode;
+  /** Tap on an opponent's seat (player card: gifts, tip, mute). */
+  onSeatTap?: (seat: number) => void;
+  /** Extra frameless controls next to the emote glyph in my row (e.g. the chat glyph). */
+  myRowExtra?: ReactNode;
+}
+
+/** Stage-space geometry handed to `overlay` (px, relative to the table stage). */
+export interface TableGeo {
+  W: number; H: number; desk: boolean; me: number;
+  /** centre of a seat's avatar */
+  seat: (i: number) => { x: number; y: number };
+  /** top of my row (my seat + hand live below this line) */
+  myRowTop: number;
+  /** deck + discard pile rectangle (overlays must not cover it) */
+  table: { x: number; y: number; w: number; h: number };
+  avSize: number;
+  myTurn: boolean;
+  dealing: boolean;
 }
 
 /* ---------- forward-compatible engine shapes (bluff mode is optional) ---------- */
@@ -121,7 +141,7 @@ function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emo
 
 /* =================================================================================== */
 
-export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false }: TableProps) {
+export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false, overlay, onSeatTap, myRowExtra }: TableProps) {
   const app = useApp();
   const cos = useCosmetics();
   const EMOTES = cos.emotes;
@@ -598,7 +618,8 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       {/* opponents */}
       <motion.div className="seats" style={{ x: seatX, y: seatY }}>
         {vg.players.map((p, pi) => pi === me ? null : (
-          <div key={p.id} className="seatpos" style={{ left: seatOf(pi).x, top: seatOf(pi).y - 6 }}>
+          <div key={p.id} className={`seatpos ${onSeatTap ? 'tappable' : ''}`} style={{ left: seatOf(pi).x, top: seatOf(pi).y - 6 }}
+            {...(onSeatTap ? { role: 'button', tabIndex: 0, 'aria-label': p.name, onClick: () => onSeatTap(pi), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSeatTap(pi); } } } : {})}>
             <SeatBadge name={p.name} face={p.bot ? '🤖' : p.name.slice(0, 1).toUpperCase()} score={p.score} count={p.hand.length}
               turn={vg.current === pi && playing && !dealing} thinking={vg.current === pi && playing && !dealing} offline={offline.includes(pi)}
               ring={vg.current === pi && !dealing ? ring(avSize) : null} emote={emoteBubble(pi)} burned={burnedSet.has(pi)} ptsLabel={s.pts} />
@@ -721,7 +742,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
         <SeatBadge mine frame={cos.equipped.frame} nameColor={cos.equipped.namecolor} title={cos.equipped.title} name={app.name || t.you} face={app.avatar || (mine.name || t.you).slice(0, 1).toUpperCase()} score={mine.score} count={hn}
           turn={o.mine && !dealing} offline={false} ring={vg.current === me && !dealing ? ring(avSize) : null} emote={emoteBubble(me)}
           burned={burnedSet.has(me)} ptsLabel={s.pts} />
-        {onEmote && (
+        {(() => { const emoteEl = onEmote && (
           <div className="emotewrap">
             <button className="glyph" aria-label={s.emote} title={s.emote} aria-expanded={emoteOpen} onClick={() => setEmoteOpen(v => !v)}><IconSmile /></button>
             <AnimatePresence>
@@ -735,8 +756,15 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
               )}
             </AnimatePresence>
           </div>
-        )}
+        );
+        return myRowExtra ? <div className="myacts" style={{ display: 'flex', alignItems: 'center', gap: 2 }}>{myRowExtra}{emoteEl}</div> : emoteEl; })()}
       </div>
+
+      {/* social overlay (online): chat bubbles, gift flights, seat gifts */}
+      {overlay?.({
+        W, H, desk, me, seat: geo.current.seat, myRowTop: myRowY - 34, avSize, myTurn: canAct, dealing: !!dealing,
+        table: { x: deckPos.x - cw / 2 - 8, y: tableY - ch / 2 - 8, w: pilePos.x - deckPos.x + cw + 16, h: ch + 16 },
+      })}
 
       {/* suit chooser */}
       <AnimatePresence>

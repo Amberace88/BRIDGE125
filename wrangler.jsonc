@@ -19,5 +19,13 @@
     { "tag": "v1", "new_sqlite_classes": ["Room"] },
     { "tag": "v2", "new_sqlite_classes": ["Lobby"] }
   ],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Public values only. Secrets (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY) are set with
+  // `wrangler secret put` — see docs/PAYMENTS.md. Without them /api/pay/* answers 503 ("Payments coming soon").
+  "vars": {
+    "SUPABASE_URL": "https://iclxvshtxwukkhljetik.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_nMYB6ax0FmIitlK-vuK9Gw_7-zfEN03",
+    "PUBLIC_ORIGIN": "https://bridge125.com",
+    "STRIPE_AUTOMATIC_TAX": "0"
+  }
 }
