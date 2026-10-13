@@ -180,3 +180,18 @@ ar to pašu kontu, BM, XP, uzdevumiem, sezonas zvaigznēm un medaļām. Klienta 
 
 Pat 60 apmaksātas mini spēles dienā, visas uzvarētas eksperta līmenī, dod ≤ ~3 600 BM (+ dienas mīkla un uzdevums) — mazāk nekā 60 Bridge uzvaras
 (6 000 BM), un parastam spēlētājam tās ir dažas spēles starp partijām, tāpēc inflāciju tas būtiski nemaina.
+
+## 8. Spēļu zāles sociālais slānis (`supabase/migration_022_games_social.sql`, `/games`, `/c/<kods>`)
+
+Viss karājas uz `minigame_results` trigeriem — `record_minigame` (019) paraksts un ķermenis nemainās.
+
+| Mehānika | Kā strādā | Balva |
+|---|---|---|
+| **Dienas spēle** | Viena aktīva mini spēle katru Rīgas dienu (`minigame_of_day()`, md5 izvēle). `BEFORE INSERT` trigeris | +50 % no bāzes uzvaras/zaudējuma BM un XP (ne no dienas mīklas bonusa); bāze + bonuss < 100 BM / 85 XP (Bridge uzvara). Eksperta Zole: 60 + 30 = 90 BM |
+| **Nedēļas turnīrs** | Pirmdiena–svētdiena (Rīga), viena spēle pēc kārtas pa visām aktīvajām `minigames` (pēc `sort`; jaunas spēles pievienojas pašas). Bezmaksas — skaitās katra nedēļas spēle. Metrika: kāršu spēlēm “visvairāk uzvaru”, mīklām “labākais rezultāts”. Kvalifikācija: ≥ 3 spēles + uzvara. Admin: `tournament_set('2026-10-19', 'sudoku', 'score')` | #1 3 000 BM + tituls “Čempions” + rāmis “Pjedestāla lauri” · #2 1 800 BM + tituls “Finālists” + rāmis · #3 1 000 BM + tituls + rāmis · top 10 % 300 BM + nozīmīte. #N tikai, ja ir vairāk nekā N kvalificētu spēlētāju |
+| **Maratons** | 3 dažādas mini spēles vienā Rīgas dienā → lāde (`games_marathon_claim`) 1× dienā | 200 BM + 40 XP |
+| **Izaicini draugu** | `challenge_create` saglabā spēli, sēklu (seed), līmeni un autora rezultātu (pārbaudīts pret `minigame_results`); saite `bridge125.com/c/<kods>` derīga 30 dienas; viesis var skatīt un spēlēt (salīdzinājums lokāli), ielogots saglabā 1. mēģinājumu | Nemaksā BM — tikai gods un tabula (spēle pati maksā kā parasti) |
+| **Kāršu zāles līmenis** | Klienta aprēķins no `minigame_stats`: 10 XP/uzvara, 3/zaudējums, 15/dienas mīkla, 5/labākās sērijas diena, +25 par katru uzvarētu spēli; līmenis L = 40·(L−1)·L | Nemaksā — progresa sajūta un vitrīna |
+
+Inflācija: turnīrs izmaksā ~5 800 BM + ~0,3 × N₁₀ BM nedēļā **visiem kopā** (N₁₀ = top 10 % spēlētāju skaits), dienas spēle — līdz +50 % no vienas
+spēles bāzes (≤ ~1 000 BM dienā pat pie 30 apmaksātām eksperta uzvarām), maratons ≤ 200 BM dienā. Bridge paliek vislabāk apmaksātā spēle.

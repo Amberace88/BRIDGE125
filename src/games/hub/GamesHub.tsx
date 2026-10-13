@@ -18,14 +18,25 @@ import { useProgress } from '../../progress/useProgress';
 import { miniDef, rewardFor } from '../rewards';
 import { GameBoard } from '../GameBoard';
 import { clock, fmtNum, hubGames, textOf } from './order';
+import { useArena, type TourUnclaimed } from '../tournament/api';
+import { TournamentBanner } from '../tournament/TournamentBanner';
+import { ClaimReveal, TournamentSheet } from '../tournament/TournamentSheet';
+import { TrophyIcon } from '../tournament/icons';
+import { ChallengeCard, ChallengePicker } from '../challenge/ChallengeEntry';
+import { newSeed } from '../challenge/compare';
+import { Showcase, TodayRow } from './Showcase';
 import './games.css';
+import './arena.css';
+
+/** How the hub opens a game: plain, or as a fresh challenge (a new seed; the first result opens the share sheet). */
+export interface OpenGameOpts { seed?: string; level?: string; mode?: 'create' }
 
 /**
  * The games room (/games): Bridge 125 — the main game — as the hero, then every registered mini game
  * (src/games/registry.ts) as a tile. `modules` is only for tests / stories; the app always shows the registry.
  */
 export function GamesHub({ onClose, onPlayBridge, onOpenGame, onAuth, modules = GAMES }: {
-  onClose: () => void; onPlayBridge: () => void; onOpenGame: (id: string) => void; onAuth: () => void; modules?: readonly GameModule[];
+  onClose: () => void; onPlayBridge: () => void; onOpenGame: (id: string, opts?: OpenGameOpts) => void; onAuth: () => void; modules?: readonly GameModule[];
 }) {
   const app = useApp();
   const s = useStrings(GAMES_STRINGS);
@@ -33,6 +44,12 @@ export function GamesHub({ onClose, onPlayBridge, onOpenGame, onAuth, modules = 
   const { stats } = useGameStats();
   const p = useProgress();
   const [board, setBoard] = useState<GameModule | null>(null);
+  const arena = useArena();
+  const t = arena.data;
+  const [tourOpen, setTourOpen] = useState(false);
+  const [claim, setClaim] = useState<TourUnclaimed | null>(null);
+  const [pickOpen, setPickOpen] = useState(false);
+  const gotd = t?.gotd?.game ?? null;
   const motes = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ l: (i * 61) % 100, t: (i * 37) % 100, d: (i * 1.7) % 11, s: 1.5 + (i % 4) })), []);
 
   return (
@@ -59,6 +76,15 @@ export function GamesHub({ onClose, onPlayBridge, onOpenGame, onAuth, modules = 
           <BridgeHero s={s} lang={app.lang} level={p.ready ? p.level : undefined}
             wins={app.session && app.profile ? app.profile.wins : undefined} onPlay={() => { sfx.tap(); onPlayBridge(); }} />
 
+          {t && list.length > 0 && (
+            <TournamentBanner t={t} signedIn={!!app.session} onPlay={id => onOpenGame(id)} onBoard={() => setTourOpen(true)}
+              onClaim={() => setClaim(t.unclaimed?.[0] ?? null)} onAuth={onAuth} />
+          )}
+
+          {list.length > 0 && (
+            <TodayRow list={list} arena={t} today={arena.today} signedIn={!!app.session} onOpen={id => onOpenGame(id)} onAuth={onAuth} />
+          )}
+
           {app.session && <GameQuest s={s} />}
 
           <section className="gh-more" aria-labelledby="gh-more-h">
@@ -69,12 +95,19 @@ export function GamesHub({ onClose, onPlayBridge, onOpenGame, onAuth, modules = 
             {list.length > 0 ? (
               <div className="gh-grid">
                 {list.map((m, i) => (
-                  <GameTile key={m.id} m={m} i={i} s={s} lang={app.lang} st={stats[m.id]}
+                  <GameTile key={m.id} m={m} i={i} s={s} lang={app.lang} st={stats[m.id]} gotd={gotd === m.id} featured={t?.game === m.id}
                     onOpen={() => { sfx.tap(); onOpenGame(m.id); }} onBoard={() => { sfx.tap(); setBoard(m); }} />
                 ))}
               </div>
             ) : <EmptyRoom s={s} />}
           </section>
+
+          {list.length > 0 && (
+            <div className="ga-pair">
+              <Showcase list={list} stats={stats} onOpen={id => { sfx.tap(); onOpenGame(id); }} />
+              <ChallengeCard onOpen={() => setPickOpen(true)} />
+            </div>
+          )}
 
           {!app.session && app.online && list.length > 0 && (
             <motion.div className="gh-guest" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
@@ -88,6 +121,14 @@ export function GamesHub({ onClose, onPlayBridge, onOpenGame, onAuth, modules = 
 
       <AnimatePresence>
         {board && <GameBoard key="b" m={board} onClose={() => setBoard(null)} onAuth={onAuth} />}
+        {tourOpen && t && <TournamentSheet key="t" t={t} onClose={() => setTourOpen(false)} onAuth={onAuth} onPlay={id => { setTourOpen(false); onOpenGame(id); }} />}
+        {pickOpen && (
+          <ChallengePicker key="p" list={list} onClose={() => setPickOpen(false)}
+            onPick={id => { setPickOpen(false); onOpenGame(id, { seed: newSeed(), mode: 'create' }); }} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {claim && <ClaimReveal key="c" prize={claim} onClose={() => setClaim(null)} />}
       </AnimatePresence>
     </motion.div>
   );
@@ -162,8 +203,8 @@ function HeroFan({ lang, sx }: { lang: Lang; sx: MotionValue<number> }) {
 
 /* ------------------------------------------------------------------ a mini game tile */
 
-function GameTile({ m, i, s, lang, st, onOpen, onBoard }: {
-  m: GameModule; i: number; s: GamesStrings; lang: Lang; st?: MiniStats; onOpen: () => void; onBoard: () => void;
+function GameTile({ m, i, s, lang, st, gotd = false, featured = false, onOpen, onBoard }: {
+  m: GameModule; i: number; s: GamesStrings; lang: Lang; st?: MiniStats; gotd?: boolean; featured?: boolean; onOpen: () => void; onBoard: () => void;
 }) {
   const t = useTilt(9);
   const E = m.Emblem;
@@ -174,7 +215,7 @@ function GameTile({ m, i, s, lang, st, onOpen, onBoard }: {
   const played = (st?.played ?? 0) > 0;
   const solo = m.players.max <= 1;
   return (
-    <motion.div className={`gh-tile ${local ? 'local' : ''}`} {...t.handlers} style={{ rotateX: t.rotateX, rotateY: t.rotateY }}
+    <motion.div className={`gh-tile ${local ? 'local' : ''} ${gotd ? 'gotd' : ''} ${featured ? 'featured' : ''}`} {...t.handlers} style={{ rotateX: t.rotateX, rotateY: t.rotateY }}
       initial={{ opacity: 0, y: 24, rotateX: -14 }} animate={{ opacity: 1, y: 0, rotateX: 0 }}
       transition={{ type: 'spring', stiffness: 170, damping: 19, delay: 0.15 + i * 0.06 }}
       whileHover={{ y: -4 }} whileTap={{ scale: 0.97 }}>
@@ -192,7 +233,9 @@ function GameTile({ m, i, s, lang, st, onOpen, onBoard }: {
       <div className="gh-chips">
         {local && <span className="gh-chip local">{s.tile.local}</span>}
         <span className="gh-chip">{solo ? s.tile.solo : <><PeopleIcon />{m.players.min === m.players.max ? m.players.min : `${m.players.min}–${m.players.max}`}</>}</span>
-        {win && <span className="gh-chip bm"><i className="coin" />+{win.bm}<small>{s.tile.perWin}</small></span>}
+        {win && <span className={`gh-chip bm ${gotd ? 'x15' : ''}`}><i className="coin" />+{gotd ? Math.min(99, Math.round(win.bm * 1.5)) : win.bm}<small>{s.tile.perWin}</small></span>}
+        {gotd && <span className="gh-chip ga-x15chip" title="×1.5">×1.5</span>}
+        {featured && <span className="gh-chip ga-tourchip" aria-label="🏆"><TrophyIcon /></span>}
       </div>
       <div className="gh-foot">
         {played && st ? (

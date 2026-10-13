@@ -717,6 +717,8 @@ const ro: FeaturePack = {
       ach_fr_veteran: 'Cununa veteranului', ach_fr_prestige: 'Aura prestigiului', ach_fr_obsidian: 'Inel de obsidian', ach_nc_ember: 'Jar', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seiful', ach_fr_envoy: 'Inelul emisarului',
       s1_table: 'Club de jazz', s1_bk_gilded: 'Deco aurit', s1_bk_ticket: 'Bilet de jazz', s1_fr_gilded: 'Aura epocii jazzului', s1_t_debut: 'Debutant', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Șampanie', s1_bn_skyline: 'Orașul jazzului', s1_em_jazz: 'Formația de jazz', s1_vx_champagne: 'Ploaie de șampanie',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Laurii podiumului', tg_t_champion: 'Campion', tg_t_podium: 'Finalist',
       pk_starter: 'Set de start', pk_sakura: 'Setul Sakura', pk_racing: 'Setul Pit Lane', pk_neon: 'Setul Noapte neon', pk_aurora: 'Setul Aurora boreală', pk_montecarlo: 'Setul Monte Carlo', pk_riga: 'Setul Riga Veche', pk_royal: 'Setul Curtea regală',
     },
   },
@@ -859,6 +861,51 @@ const ro: FeaturePack = {
       error: 'Clasamentul nu s-a putut încărca.', retry: 'Încearcă din nou', you: 'tu', guest: 'Conectează-te ca să intri în clasament.',
     },
     levels: { easy: 'Ușor', normal: 'Normal', hard: 'Greu', expert: 'Expert' },
+  },
+  arena: {
+    hall: {
+      title: 'Nivelul sălii de cărți', level: 'Nivel', toNext: 'până la nivelul următor',
+      ranks: ['Nou-venit', 'Obișnuit al casei', 'As al cărților', 'Jucător de miză mare', 'Legenda sălii'],
+      showcase: 'Vitrina ta', empty: 'Termină un joc și recordurile tale apar aici.', best: 'Cel mai bun', fastest: 'Cel mai rapid', streak: 'Serie', wins: 'Victorii',
+    },
+    today: {
+      gotd: 'Jocul zilei', bonus: '+50% recompense', gotdSub: 'Azi fiecare partidă din acest joc aduce de o dată și jumătate mai mult.', earned: 'Bonus azi', play: 'Joacă',
+      marathon: 'Maraton', marathonSub: 'Joacă azi 3 jocuri diferite', open: 'Deschide cufărul', opened: 'Deschis — cufăr nou mâine', chest: 'Cufăr', signIn: 'Conectează-te pentru cufăr',
+    },
+    tour: {
+      kicker: 'Turneul săptămânii', title: 'Turneu', endsIn: 'Se încheie în', units: { d: 'z', h: 'h', m: 'min', s: 's' },
+      metric: { wins: 'Cele mai multe victorii', score: 'Cel mai bun scor' }, points: { wins: 'vict.', score: 'pct.' },
+      rank: 'Locul tău', unranked: 'Încă fără loc', qualify: 'Calificare: 3 jocuri + o victorie', players: 'Jucători', free: 'Participare gratuită',
+      play: 'Joacă acum', standings: 'Clasament', prizes: 'Premii', prizeLine: '+ titlu și ramă',
+      tiers: { gold: 'Locul 1', silver: 'Locul 2', bronze: 'Locul 3', top10: 'Top 10%' },
+      items: { champion: 'Titlul „Campion”', podium: 'Titlul „Finalist”', frame: 'Rama „Laurii podiumului”', badge: 'Insigna top 10%' },
+      rules: g => `Contează fiecare partidă de ${g} jucată săptămâna aceasta. Participarea e gratuită; premiile se plătesc la finalul săptămânii (luni, ora Rigăi).`,
+      empty: 'Încă n-a jucat nimeni — preia conducerea.', error: 'Clasamentul nu s-a putut încărca.', retry: 'Reîncearcă', you: 'tu',
+      guest: 'Conectează-te ca să participi — e gratuit.', signIn: 'Conectare', lastWeek: 'Săptămâna trecută', noGame: 'În curând în aplicația ta',
+      claim: { title: 'Premiul turneului!', sub: g => `Rezultatul tău la ${g} săptămâna trecută`, collect: 'Ridică', collecting: 'Se ridică…', done: 'Adăugat în garderoba ta', equip: 'Echipează-l din Profil → Stil' },
+    },
+    challenge: {
+      cta: 'Provoacă un prieten', ctaSub: 'Joacă o mână și trimite-i exact aceeași.', pick: 'Alege un joc', pickSub: 'Joacă mai întâi tu — rezultatul tău trebuie depășit.',
+      mine: 'Provocările tale', answers: 'răspunsuri', beaten: 'te-au depășit', noneYet: 'Încă n-ai trimis provocări.',
+      prompt: 'Provoacă un prieten', sameDeal: 'Aceeași mână', ownDeal: 'Bate-mi scorul', yourResult: 'Rezultatul tău',
+      creating: 'Se creează provocarea…', link: 'Linkul provocării', copy: 'Copiază linkul', copied: 'Copiat', share: 'Trimite', image: 'Distribuie imaginea', saved: 'Imagine salvată — link copiat',
+      error: 'Provocarea nu a putut fi creată.', retry: 'Reîncearcă', signIn: 'Conectare', signInSub: 'Provocările se salvează în contul tău.', limit: 'Ajung provocările pentru azi.',
+      shareText: (g, r) => `Îmi poți bate ${r} la ${g}? Aceeași mână, o singură încercare — Bridge 125`,
+      landing: {
+        kicker: 'Provocare', from: n => `${n} te provoacă`, toBeat: 'De depășit', play: 'Acceptă și joacă',
+        sameDeal: 'Primești exact aceeași mână', ownDeal: 'Mâna ta — doar depășește scorul',
+        expired: 'Această provocare a expirat.', unknown: 'Această provocare nu există.', loading: 'Se amestecă…',
+        mine: 'Aceasta e provocarea ta — trimite-o unui prieten.', board: 'Cine a acceptat-o', home: 'Deschide Bridge 125',
+        guest: 'Joci ca vizitator — conectează-te ca să-ți salvezi rezultatul.', notHere: 'Jocul nu e încă în versiunea ta — actualizează aplicația.', offline: 'Provocările au nevoie de conexiune.',
+      },
+      vs: {
+        win: 'Ai câștigat provocarea!', lose: 'Nu de data asta', tie: 'Egalitate', you: 'Tu', versus: 'vs', back: 'Înapoi la jocuri', again: 'Joacă din nou',
+        revenge: 'Provoacă-l înapoi', saved: 'Rezultat salvat', guestNote: 'Conectează-te ca să-ți salvezi rezultatul și să apari în clasamentul provocării.', first: 'Contează doar prima încercare.',
+        share: 'Distribuie rezultatul', shareText: (g, s) => `Provocare la ${g}: ${s}. E rândul tău — Bridge 125`,
+      },
+      won: 'Câștigat', lost: 'Pierdut', score: 'Scor', time: 'Timp',
+      card: { kicker: 'Provocare', cta: 'Mă poți depăși?', vs: 'VS' },
+    },
   },
 };
 

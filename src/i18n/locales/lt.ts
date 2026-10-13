@@ -714,6 +714,8 @@ const lt: FeaturePack = {
       ach_fr_veteran: 'Veterano vainikas', ach_fr_prestige: 'Prestižo aureolė', ach_fr_obsidian: 'Obsidiano žiedas', ach_nc_ember: 'Žarija', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seifas', ach_fr_envoy: 'Pasiuntinio žiedas',
       s1_table: 'Džiazo klubas', s1_bk_gilded: 'Auksinis art deco', s1_bk_ticket: 'Džiazo bilietas', s1_fr_gilded: 'Džiazo amžiaus aureolė', s1_t_debut: 'Debiutantas', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Šampanas', s1_bn_skyline: 'Džiazo miestas', s1_em_jazz: 'Džiazo orkestras', s1_vx_champagne: 'Šampano lietus',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Pakylos laurai', tg_t_champion: 'Čempionas', tg_t_podium: 'Finalininkas',
       pk_starter: 'Pradžios rinkinys', pk_sakura: 'Sakuros rinkinys', pk_racing: 'Pit Lane rinkinys', pk_neon: 'Neono rinkinys', pk_aurora: 'Pašvaistės rinkinys', pk_montecarlo: 'Monte Karlo rinkinys', pk_riga: 'Senosios Rygos rinkinys', pk_royal: 'Karališkas rinkinys',
     },
   },
@@ -856,6 +858,51 @@ const lt: FeaturePack = {
       error: 'Nepavyko įkelti lyderių lentelės.', retry: 'Bandyti dar kartą', you: 'tu', guest: 'Prisijunk, kad patektum į lentelę.',
     },
     levels: { easy: 'Lengvas', normal: 'Įprastas', hard: 'Sunkus', expert: 'Ekspertas' },
+  },
+  arena: {
+    hall: {
+      title: 'Kortų salės lygis', level: 'Lygis', toNext: 'iki kito lygio',
+      ranks: ['Naujokas', 'Nuolatinis svečias', 'Kortų meistras', 'Didelių statymų žaidėjas', 'Salės legenda'],
+      showcase: 'Tavo vitrina', empty: 'Baik žaidimą — čia atsiras tavo rekordai.', best: 'Geriausias', fastest: 'Greičiausiai', streak: 'Serija', wins: 'Pergalės',
+    },
+    today: {
+      gotd: 'Dienos žaidimas', bonus: '+50 % prizų', gotdSub: 'Šiandien kiekviena šio žaidimo partija atneša pusantro karto daugiau.', earned: 'Šiandienos premija', play: 'Žaisti',
+      marathon: 'Maratonas', marathonSub: 'Šiandien sužaisk 3 skirtingus žaidimus', open: 'Atidaryti skrynią', opened: 'Atidaryta — nauja skrynia rytoj', chest: 'Skrynia', signIn: 'Prisijunk dėl skrynios',
+    },
+    tour: {
+      kicker: 'Savaitės turnyras', title: 'Turnyras', endsIn: 'Baigsis po', units: { d: 'd', h: 'val', m: 'min', s: 's' },
+      metric: { wins: 'Daugiausia pergalių', score: 'Geriausias rezultatas' }, points: { wins: 'perg.', score: 'tšk.' },
+      rank: 'Tavo vieta', unranked: 'Dar be vietos', qualify: 'Atranka: 3 žaidimai + pergalė', players: 'Žaidėjai', free: 'Dalyvavimas nemokamas',
+      play: 'Žaisti dabar', standings: 'Lentelė', prizes: 'Prizai', prizeLine: '+ titulas ir rėmelis',
+      tiers: { gold: '1 vieta', silver: '2 vieta', bronze: '3 vieta', top10: 'Top 10 %' },
+      items: { champion: 'Titulas „Čempionas“', podium: 'Titulas „Finalininkas“', frame: 'Rėmelis „Pakylos laurai“', badge: 'Top 10 % ženklelis' },
+      rules: g => `Skaičiuojama kiekviena šią savaitę sužaista ${g} partija. Dalyvavimas nemokamas; prizai išmokami savaitei pasibaigus (pirmadienį, Rygos laiku).`,
+      empty: 'Dar niekas nežaidė — perimk lyderystę.', error: 'Lentelės įkelti nepavyko.', retry: 'Bandyti dar', you: 'tu',
+      guest: 'Prisijunk ir dalyvauk — nemokamai.', signIn: 'Prisijungti', lastWeek: 'Praėjusi savaitė', noGame: 'Netrukus tavo programėlėje',
+      claim: { title: 'Turnyro prizas!', sub: g => `Tavo rezultatas ${g} praėjusią savaitę`, collect: 'Atsiimti', collecting: 'Atsiimama…', done: 'Pridėta į tavo garderobą', equip: 'Užsidėk: Profilis → Stilius' },
+    },
+    challenge: {
+      cta: 'Mesk iššūkį draugui', ctaSub: 'Sužaisk dalijimą ir nusiųsk draugui lygiai tokį patį.', pick: 'Pasirink žaidimą', pickSub: 'Pirmiausia sužaisk pats — tavo rezultatą reikės pagerinti.',
+      mine: 'Tavo iššūkiai', answers: 'atsakymai', beaten: 'aplenkė tave', noneYet: 'Dar neišsiuntei iššūkių.',
+      prompt: 'Mesk iššūkį draugui', sameDeal: 'Tas pats dalijimas', ownDeal: 'Pagerink mano rezultatą', yourResult: 'Tavo rezultatas',
+      creating: 'Kuriamas iššūkis…', link: 'Iššūkio nuoroda', copy: 'Kopijuoti nuorodą', copied: 'Nukopijuota', share: 'Siųsti', image: 'Dalintis paveikslėliu', saved: 'Paveikslėlis išsaugotas — nuoroda nukopijuota',
+      error: 'Iššūkio sukurti nepavyko.', retry: 'Bandyti dar', signIn: 'Prisijungti', signInSub: 'Iššūkiai saugomi tavo paskyroje.', limit: 'Šiandien iššūkių užtenka.',
+      shareText: (g, r) => `Ar pagerinsi mano ${r} žaidime ${g}? Tas pats dalijimas, vienas bandymas — Bridge 125`,
+      landing: {
+        kicker: 'Iššūkis', from: n => `${n} meta tau iššūkį`, toBeat: 'Reikia pagerinti', play: 'Priimti ir žaisti',
+        sameDeal: 'Gausi lygiai tą patį dalijimą', ownDeal: 'Tavo dalijimas — tiesiog pagerink rezultatą',
+        expired: 'Šio iššūkio galiojimas baigėsi.', unknown: 'Tokio iššūkio nėra.', loading: 'Maišome…',
+        mine: 'Tai tavo iššūkis — nusiųsk jį draugui.', board: 'Kas priėmė iššūkį', home: 'Atidaryti Bridge 125',
+        guest: 'Žaidi kaip svečias — prisijunk, kad išsaugotum rezultatą.', notHere: 'Šio žaidimo tavo versijoje dar nėra — atnaujink programėlę.', offline: 'Iššūkiams reikia ryšio.',
+      },
+      vs: {
+        win: 'Laimėjai iššūkį!', lose: 'Ne šį kartą', tie: 'Lygiosios', you: 'Tu', versus: 'prieš', back: 'Atgal į žaidimus', again: 'Žaisti dar',
+        revenge: 'Mesk atsakomąjį iššūkį', saved: 'Rezultatas išsaugotas', guestNote: 'Prisijunk, kad išsaugotum rezultatą ir patektum į iššūkio lentelę.', first: 'Skaičiuojamas tik pirmas bandymas.',
+        share: 'Dalintis rezultatu', shareText: (g, s) => `Iššūkis žaidime ${g}: ${s}. Tavo eilė — Bridge 125`,
+      },
+      won: 'Laimėta', lost: 'Pralaimėta', score: 'Taškai', time: 'Laikas',
+      card: { kicker: 'Iššūkis', cta: 'Ar mane aplenksi?', vs: 'VS' },
+    },
   },
 };
 

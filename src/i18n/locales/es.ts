@@ -711,6 +711,8 @@ const es: FeaturePack = {
       ach_fr_veteran: 'Laurel del veterano', ach_fr_prestige: 'Halo de prestigio', ach_fr_obsidian: 'Anillo de obsidiana', ach_nc_ember: 'Brasa', ach_nc_aurum: 'Aurum', ach_bn_vault: 'La Cámara', ach_fr_envoy: 'Anillo del Emisario',
       s1_table: 'Club de jazz', s1_bk_gilded: 'Déco dorado', s1_bk_ticket: 'Entrada de jazz', s1_fr_gilded: 'Halo de la era del jazz', s1_t_debut: 'Debutante', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Champán', s1_bn_skyline: 'Ciudad del jazz', s1_em_jazz: 'Banda de jazz', s1_vx_champagne: 'Lluvia de champán',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Laurel del podio', tg_t_champion: 'Campeón', tg_t_podium: 'Finalista',
       pk_starter: 'Pack de inicio', pk_sakura: 'Set Sakura', pk_racing: 'Set Pit Lane', pk_neon: 'Set Noche neón', pk_aurora: 'Set Aurora boreal', pk_montecarlo: 'Set Montecarlo', pk_riga: 'Set Riga vieja', pk_royal: 'Set Corte real',
     },
   },
@@ -853,6 +855,51 @@ const es: FeaturePack = {
       error: 'No se pudo cargar la clasificación.', retry: 'Reintentar', you: 'tú', guest: 'Inicia sesión para entrar en la clasificación.',
     },
     levels: { easy: 'Fácil', normal: 'Normal', hard: 'Difícil', expert: 'Experto' },
+  },
+  arena: {
+    hall: {
+      title: 'Nivel de la sala', level: 'Nivel', toNext: 'para el siguiente nivel',
+      ranks: ['Recién llegado', 'Habitual', 'As de las cartas', 'Gran apostador', 'Leyenda de la sala'],
+      showcase: 'Tu vitrina', empty: 'Termina una partida y tus récords aparecerán aquí.', best: 'Mejor', fastest: 'Más rápido', streak: 'Racha', wins: 'Victorias',
+    },
+    today: {
+      gotd: 'Juego del día', bonus: '+50 % de premios', gotdSub: 'Hoy cada partida de este juego paga una vez y media.', earned: 'Bono de hoy', play: 'Jugar',
+      marathon: 'Maratón', marathonSub: 'Juega hoy 3 juegos distintos', open: 'Abrir cofre', opened: 'Abierto — nuevo cofre mañana', chest: 'Cofre', signIn: 'Inicia sesión para el cofre',
+    },
+    tour: {
+      kicker: 'Torneo semanal', title: 'Torneo', endsIn: 'Termina en', units: { d: 'd', h: 'h', m: 'min', s: 's' },
+      metric: { wins: 'Más victorias', score: 'Mejor puntuación' }, points: { wins: 'vict.', score: 'pts' },
+      rank: 'Tu puesto', unranked: 'Aún sin puesto', qualify: 'Clasificación: 3 partidas + una victoria', players: 'Jugadores', free: 'Entrada gratis',
+      play: 'Jugar ya', standings: 'Clasificación', prizes: 'Premios', prizeLine: '+ título y marco',
+      tiers: { gold: '1.º', silver: '2.º', bronze: '3.º', top10: 'Top 10 %' },
+      items: { champion: 'Título «Campeón»', podium: 'Título «Finalista»', frame: 'Marco «Laurel del podio»', badge: 'Insignia top 10 %' },
+      rules: g => `Cuenta cada partida de ${g} que juegues esta semana. La entrada es gratis; los premios se pagan al cerrar la semana (lunes, hora de Riga).`,
+      empty: 'Aún no ha jugado nadie: ponte en cabeza.', error: 'No se pudo cargar la clasificación.', retry: 'Reintentar', you: 'tú',
+      guest: 'Inicia sesión para participar: es gratis.', signIn: 'Iniciar sesión', lastWeek: 'Semana pasada', noGame: 'Pronto en tu app',
+      claim: { title: '¡Premio del torneo!', sub: g => `Tu resultado en ${g} la semana pasada`, collect: 'Recoger', collecting: 'Recogiendo…', done: 'Añadido a tu vestuario', equip: 'Póntelo en Perfil → Estilo' },
+    },
+    challenge: {
+      cta: 'Reta a un amigo', ctaSub: 'Juega una mano y envíale exactamente la misma.', pick: 'Elige un juego', pickSub: 'Juega tú primero: tu resultado será el que hay que superar.',
+      mine: 'Tus retos', answers: 'respuestas', beaten: 'te superaron', noneYet: 'Aún no has enviado retos.',
+      prompt: 'Reta a un amigo', sameDeal: 'Misma mano', ownDeal: 'Supera mi marca', yourResult: 'Tu resultado',
+      creating: 'Creando tu reto…', link: 'Enlace del reto', copy: 'Copiar enlace', copied: 'Copiado', share: 'Enviar', image: 'Compartir imagen', saved: 'Imagen guardada: enlace copiado',
+      error: 'No se pudo crear el reto.', retry: 'Reintentar', signIn: 'Iniciar sesión', signInSub: 'Los retos se guardan en tu cuenta.', limit: 'Ya son suficientes retos por hoy.',
+      shareText: (g, r) => `¿Puedes superar mi ${r} en ${g}? Misma mano, un intento — Bridge 125`,
+      landing: {
+        kicker: 'Reto', from: n => `${n} te reta`, toBeat: 'Marca a superar', play: 'Aceptar y jugar',
+        sameDeal: 'Te toca exactamente la misma mano', ownDeal: 'Tu propia mano: solo supera la marca',
+        expired: 'Este reto ha caducado.', unknown: 'Este reto no existe.', loading: 'Barajando…',
+        mine: 'Este es tu reto: envíaselo a un amigo.', board: 'Quién lo aceptó', home: 'Abrir Bridge 125',
+        guest: 'Juegas como invitado: inicia sesión para guardar tu resultado.', notHere: 'Este juego aún no está en tu versión: actualiza la app.', offline: 'Los retos necesitan conexión.',
+      },
+      vs: {
+        win: '¡Has ganado el reto!', lose: 'Esta vez no', tie: 'Empate', you: 'Tú', versus: 'contra', back: 'Volver a los juegos', again: 'Jugar otra vez',
+        revenge: 'Devuélvele el reto', saved: 'Resultado guardado', guestNote: 'Inicia sesión para guardar tu resultado y aparecer en la tabla del reto.', first: 'Solo cuenta tu primer intento.',
+        share: 'Compartir resultado', shareText: (g, s) => `Reto en ${g}: ${s}. Te toca — Bridge 125`,
+      },
+      won: 'Ganada', lost: 'Perdida', score: 'Puntos', time: 'Tiempo',
+      card: { kicker: 'Reto', cta: '¿Puedes superarme?', vs: 'VS' },
+    },
   },
 };
 

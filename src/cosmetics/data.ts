@@ -8,6 +8,7 @@
 import { BANNER_ART } from './art';
 import { ACH_BANNERS, ACH_FRAMES, ACH_NAME_COLORS, ACH_TITLES } from '../economy/cosmetics';
 import { S1_BANNERS, S1_COSMETIC_IDS, S1_EMOTES, S1_FRAMES, S1_NAME_COLORS, S1_TITLES, S1_VICTORIES } from '../season/cosmetics';
+import { TG_COSMETIC_IDS, TG_FRAMES, TG_TITLES } from '../games/tournament/cosmetics';
 
 export type CosKind = 'face' | 'frame' | 'victory' | 'emotes' | 'title' | 'namecolor' | 'banner';
 export const COS_KINDS: CosKind[] = ['face', 'frame', 'victory', 'emotes', 'title', 'namecolor', 'banner'];
@@ -47,6 +48,8 @@ export const FRAMES: FrameStyle[] = [
   { id: 'ach_fr_envoy', name: "Envoy's Ring", premium: true },
   // Season Pass (migration 016)
   ...S1_FRAMES,
+  // weekly mini-game tournament podium (migration 022)
+  ...TG_FRAMES,
 ];
 
 /** Win celebrations: `<VictoryEffect id>` (src/cosmetics/VictoryEffect.tsx). */
@@ -83,6 +86,8 @@ export const TITLES: TitleBadge[] = [
   { id: 't_grand_tour', name: 'Grand Tourist', glyph: '⚜', premium: true },
   ...ACH_TITLES,
   ...S1_TITLES,
+  // weekly mini-game tournament podium (migration 022)
+  ...TG_TITLES,
 ];
 
 /** Name colours (CSS classes `.nc-<id>` in styles/cosmetics.css). */
@@ -126,7 +131,7 @@ export const COS_COLUMN: Record<CosKind, string> = {
 };
 
 /** Earned-only items (never in the shop): shown in the wardrobe as locked until unlocked by play. */
-export const EARNED_IDS = new Set(['t_grand_tour', 'ach_fr_envoy', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id), ...S1_COSMETIC_IDS]);
+export const EARNED_IDS = new Set(['t_grand_tour', 'ach_fr_envoy', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id), ...S1_COSMETIC_IDS, ...TG_COSMETIC_IDS]);
 
 const PREMIUM = new Set(COS_KINDS.flatMap(k => COS_LISTS[k].filter(i => i.premium).map(i => i.id)));
 export const isCosPremium = (id: string) => PREMIUM.has(id);

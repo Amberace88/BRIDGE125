@@ -709,6 +709,8 @@ const az: FeaturePack = {
       ach_fr_veteran: 'Veteran çələngi', ach_fr_prestige: 'Prestij halosu', ach_fr_obsidian: 'Obsidian halqa', ach_nc_ember: 'Köz', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Xəzinə', ach_fr_envoy: 'Elçi üzüyü',
       s1_table: 'Caz klubu', s1_bk_gilded: 'Zərli art-deko', s1_bk_ticket: 'Caz bileti', s1_fr_gilded: 'Caz dövrü halosu', s1_t_debut: 'Debütant', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Şampan', s1_bn_skyline: 'Caz şəhəri', s1_em_jazz: 'Caz orkestri', s1_vx_champagne: 'Şampan yağışı',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Podium dəfnəsi', tg_t_champion: 'Çempion', tg_t_podium: 'Finalçı',
       pk_starter: 'Başlanğıc dəsti', pk_sakura: '«Sakura»', pk_racing: '«Pit-leyn»', pk_neon: '«Neon gecə»', pk_aurora: '«Qütb parıltısı»', pk_montecarlo: '«Monte-Karlo»', pk_riga: '«Köhnə Riqa»', pk_royal: '«Kral sarayı»',
     },
   },
@@ -851,6 +853,51 @@ const az: FeaturePack = {
       error: 'Reytinqi yükləmək olmadı.', retry: 'Yenidən cəhd et', you: 'sən', guest: 'Reytinqə düşmək üçün daxil ol.',
     },
     levels: { easy: 'Asan', normal: 'Normal', hard: 'Çətin', expert: 'Ekspert' },
+  },
+  arena: {
+    hall: {
+      title: 'Kart zalının səviyyəsi', level: 'Səviyyə', toNext: 'növbəti səviyyəyə qədər',
+      ranks: ['Yeni gələn', 'Daimi qonaq', 'Kart ustası', 'Böyük mərc oyunçusu', 'Zalın əfsanəsi'],
+      showcase: 'Vitrinin', empty: 'Oyunu bitir — rekordların burada görünəcək.', best: 'Ən yaxşı', fastest: 'Ən sürətli', streak: 'Seriya', wins: 'Qələbələr',
+    },
+    today: {
+      gotd: 'Günün oyunu', bonus: '+50% mükafat', gotdSub: 'Bu gün onun hər partiyası bir yarım dəfə çox qazandırır.', earned: 'Bugünkü bonus', play: 'Oyna',
+      marathon: 'Marafon', marathonSub: 'Bu gün 3 fərqli oyun oyna', open: 'Sandığı aç', opened: 'Açıldı — yeni sandıq sabah', chest: 'Sandıq', signIn: 'Sandıq üçün daxil ol',
+    },
+    tour: {
+      kicker: 'Həftənin turniri', title: 'Turnir', endsIn: 'Bitməsinə', units: { d: 'g', h: 's', m: 'dəq', s: 'san' },
+      metric: { wins: 'Ən çox qələbə', score: 'Ən yaxşı xal' }, points: { wins: 'qəl.', score: 'xal' },
+      rank: 'Yerin', unranked: 'Hələ yer yoxdur', qualify: 'Seçmə: 3 oyun + qələbə', players: 'Oyunçular', free: 'İştirak pulsuzdur',
+      play: 'İndi oyna', standings: 'Cədvəl', prizes: 'Mükafatlar', prizeLine: '+ titul və çərçivə',
+      tiers: { gold: '1-ci yer', silver: '2-ci yer', bronze: '3-cü yer', top10: 'Top 10%' },
+      items: { champion: '“Çempion” titulu', podium: '“Finalçı” titulu', frame: '“Podium dəfnəsi” çərçivəsi', badge: '“Top 10%” nişanı' },
+      rules: g => `Bu həftə oynadığın hər ${g} partiyası sayılır. İştirak pulsuzdur; mükafatlar həftə bitəndə verilir (bazar ertəsi, Riqa vaxtı ilə).`,
+      empty: 'Hələ heç kim oynamayıb — liderliyi ələ al.', error: 'Cədvəl yüklənmədi.', retry: 'Yenidən', you: 'sən',
+      guest: 'İştirak üçün daxil ol — pulsuzdur.', signIn: 'Daxil ol', lastWeek: 'Keçən həftə', noGame: 'Tezliklə tətbiqində',
+      claim: { title: 'Turnir mükafatı!', sub: g => `Keçən həftə ${g} oyunundakı nəticən`, collect: 'Götür', collecting: 'Götürülür…', done: 'Qarderobuna əlavə olundu', equip: 'Profil → Üslub bölməsində tax' },
+    },
+    challenge: {
+      cta: 'Dostunu çağır', ctaSub: 'Paylamanı oyna və dostuna eynisini göndər.', pick: 'Oyun seç', pickSub: 'Əvvəlcə özün oyna — nəticəni keçmək lazım olacaq.',
+      mine: 'Çağırışların', answers: 'cavab', beaten: 'səni keçdi', noneYet: 'Hələ çağırış göndərməmisən.',
+      prompt: 'Dostunu çağır', sameDeal: 'Eyni paylama', ownDeal: 'Nəticəmi keç', yourResult: 'Nəticən',
+      creating: 'Çağırış yaradılır…', link: 'Çağırış linki', copy: 'Linki kopyala', copied: 'Kopyalandı', share: 'Göndər', image: 'Şəkillə paylaş', saved: 'Şəkil saxlanıldı — link kopyalandı',
+      error: 'Çağırışı yaratmaq alınmadı.', retry: 'Yenidən', signIn: 'Daxil ol', signInSub: 'Çağırışlar hesabında saxlanılır.', limit: 'Bu günə çağırış kifayətdir.',
+      shareText: (g, r) => `${g} oyununda ${r} nəticəmi keçə bilərsən? Eyni paylama, bir cəhd — Bridge 125`,
+      landing: {
+        kicker: 'Çağırış', from: n => `${n} səni çağırır`, toBeat: 'Keçmək lazımdır', play: 'Qəbul et və oyna',
+        sameDeal: 'Sənə eyni paylama düşəcək', ownDeal: 'Öz paylaman — sadəcə nəticəni keç',
+        expired: 'Bu çağırışın müddəti bitib.', unknown: 'Belə çağırış yoxdur.', loading: 'Qarışdırırıq…',
+        mine: 'Bu sənin çağırışındır — onu dostuna göndər.', board: 'Kim qəbul etdi', home: 'Bridge 125-i aç',
+        guest: 'Qonaq kimi oynayırsan — nəticəni saxlamaq üçün daxil ol.', notHere: 'Bu oyun hələ sənin versiyanda yoxdur — tətbiqi yenilə.', offline: 'Çağırışlar üçün bağlantı lazımdır.',
+      },
+      vs: {
+        win: 'Çağırışı qazandın!', lose: 'Bu dəfə yox', tie: 'Heç-heçə', you: 'Sən', versus: 'qarşı', back: 'Oyunlara qayıt', again: 'Yenə oyna',
+        revenge: 'Cavab çağırışı göndər', saved: 'Nəticə saxlanıldı', guestNote: 'Nəticəni saxlamaq və çağırış cədvəlinə düşmək üçün daxil ol.', first: 'Yalnız ilk cəhd sayılır.',
+        share: 'Nəticəni paylaş', shareText: (g, s) => `${g} çağırışı: ${s}. Növbə səndədir — Bridge 125`,
+      },
+      won: 'Qələbə', lost: 'Məğlubiyyət', score: 'Xal', time: 'Vaxt',
+      card: { kicker: 'Çağırış', cta: 'Məni keçə bilərsən?', vs: 'VS' },
+    },
   },
 };
 

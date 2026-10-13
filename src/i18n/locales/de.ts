@@ -711,6 +711,8 @@ const de: FeaturePack = {
       ach_fr_veteran: 'Veteranenkranz', ach_fr_prestige: 'Prestige-Aura', ach_fr_obsidian: 'Obsidianring', ach_nc_ember: 'Glut', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Der Tresor', ach_fr_envoy: 'Ring des Gesandten',
       s1_table: 'Jazzclub', s1_bk_gilded: 'Goldenes Déco', s1_bk_ticket: 'Jazz-Ticket', s1_fr_gilded: 'Aura der Jazz-Ära', s1_t_debut: 'Debütant', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Champagner', s1_bn_skyline: 'Jazz-Skyline', s1_em_jazz: 'Jazzband', s1_vx_champagne: 'Champagnerdusche',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Podestlorbeer', tg_t_champion: 'Champion', tg_t_podium: 'Finalist',
       pk_starter: 'Starter-Set', pk_sakura: 'Sakura-Set', pk_racing: 'Boxengassen-Set', pk_neon: 'Neon-Nacht-Set', pk_aurora: 'Nordlicht-Set', pk_montecarlo: 'Monte-Carlo-Set', pk_riga: 'Alt-Riga-Set', pk_royal: 'Hofstaat-Set',
     },
   },
@@ -853,6 +855,51 @@ const de: FeaturePack = {
       error: 'Die Bestenliste konnte nicht geladen werden.', retry: 'Nochmal versuchen', you: 'du', guest: 'Melde dich an, um in die Bestenliste zu kommen.',
     },
     levels: { easy: 'Leicht', normal: 'Normal', hard: 'Schwer', expert: 'Experte' },
+  },
+  arena: {
+    hall: {
+      title: 'Kartensaal-Level', level: 'Level', toNext: 'bis zum nächsten Level',
+      ranks: ['Neuling', 'Stammgast', 'Kartenprofi', 'High Roller', 'Legende des Saals'],
+      showcase: 'Deine Vitrine', empty: 'Beende ein Spiel – dann erscheinen hier deine Rekorde.', best: 'Bestwert', fastest: 'Am schnellsten', streak: 'Serie', wins: 'Siege',
+    },
+    today: {
+      gotd: 'Spiel des Tages', bonus: '+50 % Belohnung', gotdSub: 'Heute bringt jede Partie davon anderthalbmal so viel.', earned: 'Bonus heute', play: 'Spielen',
+      marathon: 'Marathon', marathonSub: 'Spiel heute 3 verschiedene Spiele', open: 'Truhe öffnen', opened: 'Geöffnet – neue Truhe morgen', chest: 'Truhe', signIn: 'Melde dich für die Truhe an',
+    },
+    tour: {
+      kicker: 'Wochenturnier', title: 'Turnier', endsIn: 'Endet in', units: { d: 'T', h: 'Std', m: 'Min', s: 'Sek' },
+      metric: { wins: 'Meiste Siege', score: 'Beste Punktzahl' }, points: { wins: 'Siege', score: 'Pkt.' },
+      rank: 'Dein Platz', unranked: 'Noch ohne Platz', qualify: 'Qualifikation: 3 Spiele + ein Sieg', players: 'Spieler', free: 'Teilnahme gratis',
+      play: 'Jetzt spielen', standings: 'Tabelle', prizes: 'Preise', prizeLine: '+ Titel & Rahmen',
+      tiers: { gold: '1. Platz', silver: '2. Platz', bronze: '3. Platz', top10: 'Top 10 %' },
+      items: { champion: 'Titel „Champion“', podium: 'Titel „Finalist“', frame: 'Rahmen „Podestlorbeer“', badge: 'Top-10-%-Abzeichen' },
+      rules: g => `Jede Partie ${g}, die du diese Woche spielst, zählt. Die Teilnahme ist gratis; die Preise gibt es am Wochenende (Montag, Rigaer Zeit).`,
+      empty: 'Noch hat niemand gespielt – übernimm die Führung.', error: 'Die Tabelle konnte nicht geladen werden.', retry: 'Nochmal', you: 'du',
+      guest: 'Melde dich an, um mitzumachen – gratis.', signIn: 'Anmelden', lastWeek: 'Letzte Woche', noGame: 'Bald in deiner App',
+      claim: { title: 'Turnierpreis!', sub: g => `Dein Ergebnis in ${g} letzte Woche`, collect: 'Abholen', collecting: 'Wird abgeholt…', done: 'Zu deiner Garderobe hinzugefügt', equip: 'Anlegen unter Profil → Stil' },
+    },
+    challenge: {
+      cta: 'Fordere einen Freund heraus', ctaSub: 'Spiel ein Blatt und schick ihm genau dasselbe.', pick: 'Wähle ein Spiel', pickSub: 'Spiel zuerst selbst – dein Ergebnis muss geschlagen werden.',
+      mine: 'Deine Herausforderungen', answers: 'Antworten', beaten: 'haben dich geschlagen', noneYet: 'Noch keine Herausforderungen verschickt.',
+      prompt: 'Fordere einen Freund heraus', sameDeal: 'Gleiches Blatt', ownDeal: 'Schlag meine Punkte', yourResult: 'Dein Ergebnis',
+      creating: 'Herausforderung wird erstellt…', link: 'Link zur Herausforderung', copy: 'Link kopieren', copied: 'Kopiert', share: 'Senden', image: 'Bild teilen', saved: 'Bild gespeichert – Link kopiert',
+      error: 'Die Herausforderung konnte nicht erstellt werden.', retry: 'Nochmal', signIn: 'Anmelden', signInSub: 'Herausforderungen werden in deinem Konto gespeichert.', limit: 'Für heute sind es genug Herausforderungen.',
+      shareText: (g, r) => `Schlägst du meine ${r} in ${g}? Gleiches Blatt, ein Versuch – Bridge 125`,
+      landing: {
+        kicker: 'Herausforderung', from: n => `${n} fordert dich heraus`, toBeat: 'Zu schlagen', play: 'Annehmen & spielen',
+        sameDeal: 'Du bekommst genau dasselbe Blatt', ownDeal: 'Dein eigenes Blatt – schlag einfach die Punkte',
+        expired: 'Diese Herausforderung ist abgelaufen.', unknown: 'Diese Herausforderung gibt es nicht.', loading: 'Wird gemischt…',
+        mine: 'Das ist deine Herausforderung – schick sie einem Freund.', board: 'Wer sie angenommen hat', home: 'Bridge 125 öffnen',
+        guest: 'Du spielst als Gast – melde dich an, um dein Ergebnis zu speichern.', notHere: 'Dieses Spiel gibt es in deiner Version noch nicht – aktualisiere die App.', offline: 'Herausforderungen brauchen eine Verbindung.',
+      },
+      vs: {
+        win: 'Du hast die Herausforderung gewonnen!', lose: 'Diesmal nicht', tie: 'Unentschieden', you: 'Du', versus: 'gegen', back: 'Zurück zu den Spielen', again: 'Nochmal spielen',
+        revenge: 'Fordere zurück', saved: 'Ergebnis gespeichert', guestNote: 'Melde dich an, um dein Ergebnis zu speichern und in der Tabelle zu erscheinen.', first: 'Nur dein erster Versuch zählt.',
+        share: 'Ergebnis teilen', shareText: (g, s) => `Herausforderung in ${g}: ${s}. Du bist dran – Bridge 125`,
+      },
+      won: 'Gewonnen', lost: 'Verloren', score: 'Punkte', time: 'Zeit',
+      card: { kicker: 'Herausforderung', cta: 'Schlägst du mich?', vs: 'VS' },
+    },
   },
 };
 
