@@ -266,7 +266,7 @@ describe('module + strings', () => {
         if (!st) break;
         if (!seen.has(st.tech)) {
           seen.add(st.tech);
-          for (const l of ['en', 'lv', 'ru', 'uk']) {
+          for (const { id: l } of LANGS) {
             const d = describeStep(st, SUDOKU_STRINGS[l]!);
             expect(d.title.length, `${l} ${st.tech}`).toBeGreaterThan(2);
             expect(d.text, `${l} ${st.tech}`).not.toMatch(/undefined|NaN|\[object/);
@@ -283,8 +283,25 @@ describe('module + strings', () => {
     expect(sudoku.players).toEqual({ min: 1, max: 1 });
     for (const l of LANGS) { expect(TITLE[l.id]).toBeTruthy(); expect(TAGLINE[l.id]).toBeTruthy(); }
   });
-  it('has complete en / lv / ru / uk and the main buttons in all 17 languages', () => {
-    for (const l of ['lv', 'ru', 'uk']) expect(missingKeys(SUDOKU_STRINGS.en, SUDOKU_STRINGS[l])).toEqual([]);
+  it('is complete in all 17 languages — no key ever falls back to English', () => {
+    expect(LANGS).toHaveLength(17);
+    for (const { id } of LANGS) expect(missingKeys(SUDOKU_STRINGS.en, SUDOKU_STRINGS[id]), id).toEqual([]);
+    for (const { id } of LANGS) {
+      const s = SUDOKU_STRINGS[id]!;
+      const out = [
+        s.dailyNo(12), s.nextIn('5h 07m'), s.streak(1), s.streak(3), s.streak(22), s.solvedN(1), s.solvedN(5), s.solvedIn('4:12'),
+        s.hint.more(1), s.hint.more(4), s.hint.row(3), s.hint.col(7), s.hint.box(5), s.hint.list([4]), s.hint.list([1, 5, 8]),
+        s.hint.text.fullHouse('R', 4), s.hint.text.nakedSingle(4), s.hint.text.hiddenSingle('R', 4), s.hint.text.pointing('B', 'R', 4),
+        s.hint.text.claiming('R', 'B', 4), s.hint.text.naked('R', '1, 2'), s.hint.text.hidden('R', '1, 2'), s.hint.text.fish('X-Wing', 4),
+        s.hint.text.wing('XY-Wing', 4), s.hint.text.then(4), s.win.reward(40),
+      ];
+      for (const t of out) expect(t, id).not.toMatch(/undefined|NaN|\[object/);
+    }
+    expect(SUDOKU_STRINGS.pl!.streak(5)).toBe('5 dni z rzędu');
+    expect(SUDOKU_STRINGS.de!.hint.list([1, 5, 8])).toBe('1, 5 und 8');
+    expect(SUDOKU_STRINGS.be!.hint.more(3)).toBe('+3 крокі');
+  });
+  it('has the main buttons in all 17 languages', () => {
     for (const l of LANGS) {
       const s = SUDOKU_STRINGS[l.id]!;
       expect(s, l.id).toBeTruthy();

@@ -1,8 +1,19 @@
-// FreeCell strings. en / lv / ru / uk are complete; the other languages carry the title, tagline and the main
-// buttons, and fall back to English key by key for the rest.
+// FreeCell strings, complete in all 17 languages: en / lv / ru / uk here, the other 13 in ./lang/<code>.ts.
 import type { Lang } from '../../i18n';
-import { withFallback, type DeepPartial } from '../../i18n/pick';
 import { TAGLINE, TITLE } from './meta';
+import lt from './lang/lt';
+import et from './lang/et';
+import pl from './lang/pl';
+import de from './lang/de';
+import be from './lang/be';
+import kk from './lang/kk';
+import uz from './lang/uz';
+import az from './lang/az';
+import ka from './lang/ka';
+import hy from './lang/hy';
+import ro from './lang/ro';
+import bg from './lang/bg';
+import es from './lang/es';
 
 export interface FcStrings {
   title: string;
@@ -250,36 +261,12 @@ const uk: FcStrings = {
   shuffling: 'Роздаю…',
 };
 
-type Main = Pick<FcStrings, 'play' | 'newGame' | 'continue' | 'daily' | 'undo' | 'hint' | 'menu' | 'won' | 'time' | 'moves'>;
+const FULL: Record<Lang, FcStrings> = { en, lv, ru, uk, lt, et, pl, de, be, kk, uz, az, ka, hy, ro, bg, es };
 
-const MAIN: Partial<Record<Lang, Main>> = {
-  lt: { play: 'Žaisti', newGame: 'Naujas dalijimas', continue: 'Tęsti', daily: 'Dienos dalijimas', undo: 'Atšaukti', hint: 'Patarimas', menu: 'Meniu', won: 'Išdėliota!', time: 'Laikas', moves: 'Ėjimai' },
-  et: { play: 'Mängi', newGame: 'Uus jagamine', continue: 'Jätka', daily: 'Päeva jagamine', undo: 'Võta tagasi', hint: 'Vihje', menu: 'Menüü', won: 'Lahendatud!', time: 'Aeg', moves: 'Käigud' },
-  pl: { play: 'Graj', newGame: 'Nowe rozdanie', continue: 'Kontynuuj', daily: 'Rozdanie dnia', undo: 'Cofnij', hint: 'Podpowiedź', menu: 'Menu', won: 'Ułożone!', time: 'Czas', moves: 'Ruchy' },
-  de: { play: 'Spielen', newGame: 'Neues Spiel', continue: 'Weiter', daily: 'Tagesspiel', undo: 'Rückgängig', hint: 'Tipp', menu: 'Menü', won: 'Gelöst!', time: 'Zeit', moves: 'Züge' },
-  be: { play: 'Гуляць', newGame: 'Новая раздача', continue: 'Працягнуць', daily: 'Раздача дня', undo: 'Адмяніць', hint: 'Падказка', menu: 'Меню', won: 'Раскладзена!', time: 'Час', moves: 'Хады' },
-  kk: { play: 'Ойнау', newGame: 'Жаңа тарату', continue: 'Жалғастыру', daily: 'Күн таратуы', undo: 'Болдырмау', hint: 'Кеңес', menu: 'Мәзір', won: 'Шешілді!', time: 'Уақыт', moves: 'Жүрістер' },
-  uz: { play: 'O‘ynash', newGame: 'Yangi tarqatish', continue: 'Davom etish', daily: 'Kun tarqatishi', undo: 'Bekor qilish', hint: 'Maslahat', menu: 'Menyu', won: 'Yechildi!', time: 'Vaqt', moves: 'Yurishlar' },
-  az: { play: 'Oyna', newGame: 'Yeni paylama', continue: 'Davam et', daily: 'Günün paylaması', undo: 'Geri al', hint: 'İpucu', menu: 'Menyu', won: 'Həll olundu!', time: 'Vaxt', moves: 'Gedişlər' },
-  ka: { play: 'თამაში', newGame: 'ახალი დარიგება', continue: 'გაგრძელება', daily: 'დღის დარიგება', undo: 'გაუქმება', hint: 'მინიშნება', menu: 'მენიუ', won: 'ამოხსნილია!', time: 'დრო', moves: 'სვლები' },
-  hy: { play: 'Խաղալ', newGame: 'Նոր բաժանում', continue: 'Շարունակել', daily: 'Օրվա բաժանում', undo: 'Չեղարկել', hint: 'Հուշում', menu: 'Մենյու', won: 'Լուծված է!', time: 'Ժամանակ', moves: 'Քայլեր' },
-  ro: { play: 'Joacă', newGame: 'Împărțire nouă', continue: 'Continuă', daily: 'Împărțirea zilei', undo: 'Anulează', hint: 'Indiciu', menu: 'Meniu', won: 'Rezolvat!', time: 'Timp', moves: 'Mutări' },
-  bg: { play: 'Играй', newGame: 'Ново раздаване', continue: 'Продължи', daily: 'Раздаване на деня', undo: 'Отмени', hint: 'Подсказка', menu: 'Меню', won: 'Подредено!', time: 'Време', moves: 'Ходове' },
-  es: { play: 'Jugar', newGame: 'Nueva partida', continue: 'Continuar', daily: 'Partida del día', undo: 'Deshacer', hint: 'Pista', menu: 'Menú', won: '¡Resuelto!', time: 'Tiempo', moves: 'Movimientos' },
-};
-
-const FULL: Partial<Record<Lang, FcStrings>> = { en, lv, ru, uk };
-const cache = new Map<string, FcStrings>();
-
+/** Strings for a language — every app language is complete; an unknown code gets English. */
 export function fcStrings(lang: string): FcStrings {
-  const hit = cache.get(lang);
-  if (hit) return hit;
-  const full = FULL[lang as Lang];
-  const main = MAIN[lang as Lang];
-  const out = full ?? withFallback(en, main ? ({ ...main, title: TITLE[lang as Lang], tagline: TAGLINE[lang as Lang] } as DeepPartial<FcStrings>) : undefined);
-  cache.set(lang, out);
-  return out;
+  return FULL[lang as Lang] ?? en;
 }
 
 /** for tests */
-export const FC_LANGS = { full: Object.keys(FULL), main: Object.keys(MAIN), en };
+export const FC_LANGS = { full: Object.keys(FULL), en };

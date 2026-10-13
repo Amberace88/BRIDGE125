@@ -1,7 +1,20 @@
-import { type DeepPartial, type Strings, registerStrings, withFallback } from '../../i18n/pick';
+import { type Strings, registerStrings } from '../../i18n/pick';
 import type { NoteKind, Suit, ThousandRules } from './engine';
 import type { TLevel } from './bot';
 import { TAGLINES, TITLES } from './titles';
+import lt from './lang/lt';
+import et from './lang/et';
+import pl from './lang/pl';
+import de from './lang/de';
+import be from './lang/be';
+import kk from './lang/kk';
+import uz from './lang/uz';
+import az from './lang/az';
+import ka from './lang/ka';
+import hy from './lang/hy';
+import ro from './lang/ro';
+import bg from './lang/bg';
+import es from './lang/es';
 
 export { TAGLINES, TITLES } from './titles';
 
@@ -469,30 +482,6 @@ function ruPl(n: number, one: string, few: string, many: string) {
   return many;
 }
 
-type P = DeepPartial<ThousandStrings>;
-const main = (t: string, tg: string, x: { start: string; howTo: string; pass: string; bid: (n: number) => string; next: string; trump: string; rules: string; resume: string; newGame: string; talon: string; marriage: string }): P => ({
-  title: t, tagline: tg, lobby: { start: x.start, howTo: x.howTo }, bid: { pass: x.pass, bid: x.bid }, sheet: { next: x.next }, trump: x.trump, talon: x.talon,
-  marriage: x.marriage, menu: { rules: x.rules, resume: x.resume, newGame: x.newGame },
-});
-/** Other languages: title, tagline and the main buttons; everything else falls back to English. */
-const PART: Record<string, P> = {
-  lt: main(TITLES.lt, TAGLINES.lt, { start: 'Prie stalo', howTo: 'Kaip žaisti', pass: 'Pas', bid: n => `Siūlyti ${n}`, next: 'Kitas dalijimas', trump: 'Koziris', rules: 'Taisyklės', resume: 'Tęsti', newGame: 'Naujas žaidimas', talon: 'Talionas', marriage: 'Santuoka' }),
-  et: main(TITLES.et, TAGLINES.et, { start: 'Laua taha', howTo: 'Kuidas mängida', pass: 'Pass', bid: n => `Paku ${n}`, next: 'Järgmine jagamine', trump: 'Trump', rules: 'Reeglid', resume: 'Jätka', newGame: 'Uus mäng', talon: 'Talong', marriage: 'Abielu' }),
-  pl: main(TITLES.pl, TAGLINES.pl, { start: 'Do stołu', howTo: 'Jak grać', pass: 'Pas', bid: n => `Licytuj ${n}`, next: 'Następne rozdanie', trump: 'Atut', rules: 'Zasady', resume: 'Kontynuuj', newGame: 'Nowa gra', talon: 'Musik', marriage: 'Meldunek' }),
-  de: main(TITLES.de, TAGLINES.de, { start: 'Platz nehmen', howTo: 'Spielregeln', pass: 'Passe', bid: n => `${n} reizen`, next: 'Nächstes Spiel', trump: 'Trumpf', rules: 'Regeln', resume: 'Weiter', newGame: 'Neues Spiel', talon: 'Stock', marriage: 'Paar' }),
-  be: main(TITLES.be, TAGLINES.be, { start: 'За стол', howTo: 'Як гуляць', pass: 'Пас', bid: n => `Заказаць ${n}`, next: 'Наступная раздача', trump: 'Козыр', rules: 'Правілы', resume: 'Працягнуць', newGame: 'Новая партыя', talon: 'Прыкуп', marriage: 'Мар’яж' }),
-  kk: main(TITLES.kk, TAGLINES.kk, { start: 'Үстелге', howTo: 'Қалай ойнау', pass: 'Пас', bid: n => `${n} тапсырыс`, next: 'Келесі тарату', trump: 'Көзір', rules: 'Ережелер', resume: 'Жалғастыру', newGame: 'Жаңа ойын', talon: 'Прикуп', marriage: 'Марьяж' }),
-  uz: main(TITLES.uz, TAGLINES.uz, { start: 'Stolga', howTo: 'Qanday o‘ynash', pass: 'Pas', bid: n => `${n} buyurtma`, next: 'Keyingi tarqatish', trump: 'Kozir', rules: 'Qoidalar', resume: 'Davom etish', newGame: 'Yangi o‘yin', talon: 'Prikup', marriage: 'Maryaj' }),
-  az: main(TITLES.az, TAGLINES.az, { start: 'Masaya', howTo: 'Necə oynamalı', pass: 'Pas', bid: n => `${n} sifariş`, next: 'Növbəti paylama', trump: 'Kozır', rules: 'Qaydalar', resume: 'Davam et', newGame: 'Yeni oyun', talon: 'Prikup', marriage: 'Maryaj' }),
-  ka: main(TITLES.ka, TAGLINES.ka, { start: 'მაგიდასთან', howTo: 'როგორ ვითამაშოთ', pass: 'პასი', bid: n => `შეკვეთა ${n}`, next: 'შემდეგი დარიგება', trump: 'კოზირი', rules: 'წესები', resume: 'გაგრძელება', newGame: 'ახალი თამაში', talon: 'პრიკუპი', marriage: 'მარიაჟი' }),
-  hy: main(TITLES.hy, TAGLINES.hy, { start: 'Սեղանի մոտ', howTo: 'Ինչպես խաղալ', pass: 'Պաս', bid: n => `Պատվիրել ${n}`, next: 'Հաջորդ բաժանումը', trump: 'Կոզիր', rules: 'Կանոններ', resume: 'Շարունակել', newGame: 'Նոր խաղ', talon: 'Պրիկուպ', marriage: 'Մարյաժ' }),
-  ro: main(TITLES.ro, TAGLINES.ro, { start: 'La masă', howTo: 'Cum se joacă', pass: 'Pas', bid: n => `Licitez ${n}`, next: 'Următoarea mână', trump: 'Atu', rules: 'Reguli', resume: 'Continuă', newGame: 'Joc nou', talon: 'Talon', marriage: 'Mariaj' }),
-  bg: main(TITLES.bg, TAGLINES.bg, { start: 'На масата', howTo: 'Как се играе', pass: 'Пас', bid: n => `Обявявам ${n}`, next: 'Следващо раздаване', trump: 'Коз', rules: 'Правила', resume: 'Продължи', newGame: 'Нова игра', talon: 'Прикуп', marriage: 'Женитба' }),
-  es: main(TITLES.es, TAGLINES.es, { start: 'Sentarse', howTo: 'Cómo jugar', pass: 'Paso', bid: n => `Pujar ${n}`, next: 'Siguiente mano', trump: 'Triunfo', rules: 'Reglas', resume: 'Continuar', newGame: 'Nueva partida', talon: 'Talón', marriage: 'Matrimonio' }),
-};
-
-export const THOUSAND: Strings<ThousandStrings> = {
-  en, ru, uk, lv,
-  ...Object.fromEntries(Object.entries(PART).map(([k, v]) => [k, withFallback(en, v)])),
-};
+/** The other 13 languages, complete: one file each in ./lang (checked key by key in strings.test.ts). */
+export const THOUSAND: Strings<ThousandStrings> = { en, ru, uk, lv, lt, et, pl, de, be, kk, uz, az, ka, hy, ro, bg, es };
 registerStrings('thousand', THOUSAND);

@@ -45,21 +45,28 @@ describe('board adapter', () => {
 });
 
 describe('strings', () => {
-  it('en / lv / ru / uk are complete', () => {
-    for (const l of SOL_LANGS.full) expect(missingKeys(solStrings('en'), solStrings(l))).toEqual([]);
-    expect(SOL_LANGS.full.sort()).toEqual(['en', 'lv', 'ru', 'uk']);
+  it('all 17 languages are complete — no key ever falls back to English', () => {
+    expect(LANGS).toHaveLength(17);
+    expect(SOL_LANGS.full.sort()).toEqual(LANGS.map(l => l.id).sort());
+    for (const { id } of LANGS) expect(missingKeys(SOL_LANGS.en, solStrings(id)), id).toEqual([]);
   });
-  it('every app language has a title, tagline and the main buttons', () => {
+  it('every app language has its title, tagline and working text functions', () => {
     for (const { id } of LANGS) {
       expect(TITLE[id]).toBeTruthy();
       expect(TAGLINE[id]).toBeTruthy();
       const s = solStrings(id);
       expect(s.title).toBe(TITLE[id]);
-      if (id !== 'en') for (const k of ['play', 'newGame', 'daily', 'undo', 'hint'] as const) expect(s[k]).toBeTruthy();
+      const out = [s.draw(1), s.draw(3), s.suits(1), s.suits(2), s.suits(4), s.dealNo(42), s.dailyBest('3:05', 1), s.dailyBest('3:05', 122), s.undoCost(10)];
+      for (const t of out) expect(t, id).not.toMatch(/undefined|NaN|\[object/);
+      expect(s.suits(4), id).toContain('4');
     }
     expect(solStrings('lv').title).toBe('Pasjanss');
     expect(solStrings('ru').title).toBe('Пасьянс');
     expect(solStrings('de').newGame).toBe('Neues Spiel');
+    expect(solStrings('pl').suits(4)).toBe('4 kolory');
+    expect(solStrings('pl').dailyBest('1:00', 5)).toBe('Rekord 1:00 · 5 ruchów');
+    expect(solStrings('be').klondike).toBe('Касынка');
+    expect(solStrings('xx')).toBe(SOL_LANGS.en);
   });
 });
 

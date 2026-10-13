@@ -1,12 +1,21 @@
-import { withFallback, type DeepPartial, type Strings } from '../../i18n/pick';
-import type { Lang } from '../../i18n';
+import type { Strings } from '../../i18n/pick';
 import type { LayoutId } from './core/layouts';
 import { TAGLINE, TITLE } from './meta';
+import lt from './lang/lt';
+import et from './lang/et';
+import pl from './lang/pl';
+import de from './lang/de';
+import be from './lang/be';
+import kk from './lang/kk';
+import uz from './lang/uz';
+import az from './lang/az';
+import ka from './lang/ka';
+import hy from './lang/hy';
+import ro from './lang/ro';
+import bg from './lang/bg';
+import es from './lang/es';
 
-/**
- * Mahjong strings. en / lv / ru / uk are complete; the other 13 languages carry the title, tagline, the layout names
- * and the main buttons, and fall back to English key by key (withFallback) for the rest.
- */
+/** Mahjong strings, complete in all 17 languages: en / lv / ru / uk here, the other 13 in ./lang/<code>.ts. */
 export interface MahjongStrings {
   title: string;
   tagline: string;
@@ -263,46 +272,5 @@ const uk: MahjongStrings = {
   keys: 'H підказка · S перемішати · Z скасувати · Пробіл пауза',
 };
 
-type Main = Pick<MahjongStrings, 'back' | 'daily' | 'free' | 'newGame' | 'continue' | 'play' | 'resume' | 'layouts'> & { tools: Omit<MahjongStrings['tools'], 'settings' | 'zoom'> };
-const main = (
-  back: string, daily: string, free: string, newGame: string, cont: string, play: string, resume: string,
-  layouts: [string, string, string, string, string], tools: [string, string, string, string],
-): Main => ({
-  back, daily, free, newGame, continue: cont, play, resume,
-  layouts: { turtle: layouts[0], fortress: layouts[1], pyramid: layouts[2], dragon: layouts[3], pagoda: layouts[4] },
-  tools: { undo: tools[0], hint: tools[1], shuffle: tools[2], pause: tools[3] },
-});
-
-const PARTIAL: Partial<Record<Lang, DeepPartial<MahjongStrings>>> = {
-  lt: main('Atgal', 'Dienos madžongas', 'Laisvas žaidimas', 'Naujas žaidimas', 'Tęsti', 'Žaisti', 'Tęsti',
-    ['Vėžlys', 'Tvirtovė', 'Piramidė', 'Drakonas', 'Pagoda'], ['Atšaukti', 'Užuomina', 'Sumaišyti', 'Pauzė']),
-  et: main('Tagasi', 'Päeva mahjong', 'Vabamäng', 'Uus mäng', 'Jätka', 'Mängi', 'Jätka',
-    ['Kilpkonn', 'Kindlus', 'Püramiid', 'Draakon', 'Pagood'], ['Võta tagasi', 'Vihje', 'Sega', 'Paus']),
-  pl: main('Wstecz', 'Mahjong dnia', 'Gra swobodna', 'Nowa gra', 'Kontynuuj', 'Graj', 'Wznów',
-    ['Żółw', 'Twierdza', 'Piramida', 'Smok', 'Pagoda'], ['Cofnij', 'Podpowiedź', 'Potasuj', 'Pauza']),
-  de: main('Zurück', 'Tages-Mahjong', 'Freies Spiel', 'Neues Spiel', 'Weiterspielen', 'Spielen', 'Fortsetzen',
-    ['Schildkröte', 'Festung', 'Pyramide', 'Drache', 'Pagode'], ['Rückgängig', 'Tipp', 'Mischen', 'Pause']),
-  be: main('Назад', 'Маджонг дня', 'Вольная гульня', 'Новая гульня', 'Працягнуць', 'Гуляць', 'Працягнуць',
-    ['Чарапаха', 'Крэпасць', 'Піраміда', 'Цмок', 'Пагада'], ['Адмяніць', 'Падказка', 'Перамяшаць', 'Паўза']),
-  kk: main('Артқа', 'Күн маджонгы', 'Еркін ойын', 'Жаңа ойын', 'Жалғастыру', 'Ойнау', 'Жалғастыру',
-    ['Тасбақа', 'Қамал', 'Пирамида', 'Айдаһар', 'Пагода'], ['Болдырмау', 'Кеңес', 'Араластыру', 'Үзіліс']),
-  uz: main('Orqaga', 'Kun mahjongi', 'Erkin o‘yin', 'Yangi o‘yin', 'Davom etish', 'O‘ynash', 'Davom etish',
-    ['Toshbaqa', 'Qal’a', 'Piramida', 'Ajdaho', 'Pagoda'], ['Bekor qilish', 'Maslahat', 'Aralashtirish', 'Pauza']),
-  az: main('Geri', 'Günün mahjongu', 'Sərbəst oyun', 'Yeni oyun', 'Davam et', 'Oyna', 'Davam et',
-    ['Tısbağa', 'Qala', 'Piramida', 'Əjdaha', 'Paqoda'], ['Geri al', 'İpucu', 'Qarışdır', 'Fasilə']),
-  ka: main('უკან', 'დღის მაჯონგი', 'თავისუფალი თამაში', 'ახალი თამაში', 'გაგრძელება', 'თამაში', 'გაგრძელება',
-    ['კუ', 'ციხესიმაგრე', 'პირამიდა', 'დრაკონი', 'პაგოდა'], ['გაუქმება', 'მინიშნება', 'არევა', 'პაუზა']),
-  hy: main('Հետ', 'Օրվա մաջոնգ', 'Ազատ խաղ', 'Նոր խաղ', 'Շարունակել', 'Խաղալ', 'Շարունակել',
-    ['Կրիա', 'Ամրոց', 'Բուրգ', 'Վիշապ', 'Պագոդա'], ['Հետարկել', 'Հուշում', 'Խառնել', 'Դադար']),
-  ro: main('Înapoi', 'Mahjongul zilei', 'Joc liber', 'Joc nou', 'Continuă', 'Joacă', 'Reia',
-    ['Broasca țestoasă', 'Fortăreața', 'Piramida', 'Dragonul', 'Pagoda'], ['Anulează', 'Indiciu', 'Amestecă', 'Pauză']),
-  bg: main('Назад', 'Маджонг на деня', 'Свободна игра', 'Нова игра', 'Продължи', 'Играй', 'Продължи',
-    ['Костенурка', 'Крепост', 'Пирамида', 'Дракон', 'Пагода'], ['Отмени', 'Подсказка', 'Разбъркай', 'Пауза']),
-  es: main('Atrás', 'Mahjong del día', 'Juego libre', 'Nueva partida', 'Continuar', 'Jugar', 'Reanudar',
-    ['Tortuga', 'Fortaleza', 'Pirámide', 'Dragón', 'Pagoda'], ['Deshacer', 'Pista', 'Barajar', 'Pausa']),
-};
-
-export const MAHJONG_STRINGS: Strings<MahjongStrings> = { en, lv, ru, uk };
-for (const [lang, part] of Object.entries(PARTIAL) as [Lang, DeepPartial<MahjongStrings>][]) {
-  MAHJONG_STRINGS[lang] = withFallback(en, { ...part, title: TITLE[lang], tagline: TAGLINE[lang] });
-}
+/** All 17 languages, complete: en / lv / ru / uk here, the other 13 in ./lang/<code>.ts (checked in mahjong.test.ts). */
+export const MAHJONG_STRINGS: Strings<MahjongStrings> = { en, lv, ru, uk, lt, et, pl, de, be, kk, uz, az, ka, hy, ro, bg, es };

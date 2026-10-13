@@ -9,6 +9,7 @@ import { canMatch, giveUp, hintFor, hintMove, isGame, match, newGame, restartGam
 import { COMBO_MAX, COMBO_MS, finalScore, matchPoints, nextCombo, clearBonus } from './core/score';
 import { rng } from './core/rng';
 import { MAHJONG_STRINGS } from './strings';
+import { missingKeys } from '../../i18n/pick';
 import { TITLE, TAGLINE } from './meta';
 import { mahjong } from './index';
 
@@ -279,10 +280,21 @@ describe('module + strings', () => {
     for (const l of LANGS) { expect(TITLE[l as 'en'], l).toBeTruthy(); expect(TAGLINE[l as 'en'], l).toBeTruthy(); }
   });
 
-  it('en / lv / ru / uk are complete; every language has strings for every layout', () => {
-    const keys = (o: unknown, p = ''): string[] => (o && typeof o === 'object' ? Object.entries(o).flatMap(([k, v]) => keys(v, p + k + '.')) : [p]);
-    const en = keys(MAHJONG_STRINGS.en).sort();
-    for (const l of ['lv', 'ru', 'uk']) expect(keys(MAHJONG_STRINGS[l]).sort(), l).toEqual(en);
+  it('all 17 languages are complete — no key ever falls back to English', () => {
+    expect(LANGS).toHaveLength(17);
+    for (const l of LANGS) expect(missingKeys(MAHJONG_STRINGS.en, MAHJONG_STRINGS[l]), l).toEqual([]);
+    for (const l of LANGS) {
+      const s = MAHJONG_STRINGS[l]!;
+      const out = [s.dailyNo(4), s.nextIn('3h 05m'), s.tiles(144), s.tiles(2), s.left(1), s.left(36), s.pairs(1), s.pairs(4), s.pairs(22),
+        s.streak(1), s.streak(5), s.clearedN(1), s.clearedN(12), s.combo(3), s.noMoves.shuffle(2)];
+      for (const t of out) expect(t, l).not.toMatch(/undefined|NaN|\[object/);
+    }
+    expect(MAHJONG_STRINGS.pl!.pairs(3)).toBe('3 ruchy');
+    expect(MAHJONG_STRINGS.ro!.tiles(144)).toBe('144 de piese');
+    expect(MAHJONG_STRINGS.lt!.tiles(22)).toBe('22 plytelės');
+  });
+
+  it('every language has strings for every layout', () => {
     for (const l of LANGS) {
       const s = MAHJONG_STRINGS[l]!;
       expect(s.title, l).toBe(TITLE[l as 'en']);

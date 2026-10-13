@@ -4,6 +4,19 @@ import type { ZLevel } from './bot';
 
 export { TAGLINES, TITLES } from './titles';
 import { TAGLINES } from './titles';
+import lt from './lang/lt';
+import et from './lang/et';
+import pl from './lang/pl';
+import de from './lang/de';
+import be from './lang/be';
+import kk from './lang/kk';
+import uz from './lang/uz';
+import az from './lang/az';
+import ka from './lang/ka';
+import hy from './lang/hy';
+import ro from './lang/ro';
+import bg from './lang/bg';
+import es from './lang/es';
 
 export interface RulesText {
   title: string;
@@ -436,5 +449,6 @@ const uk: ZoleStrings = {
   },
 };
 
-export const ZOLE: Strings<ZoleStrings> = { en, lv, ru, uk };
+/** The other 13 languages, complete: one file each in ./lang (checked key by key in strings.test.ts). */
+export const ZOLE: Strings<ZoleStrings> = { en, lv, ru, uk, lt, et, pl, de, be, kk, uz, az, ka, hy, ro, bg, es };
 registerStrings('zole', ZOLE);

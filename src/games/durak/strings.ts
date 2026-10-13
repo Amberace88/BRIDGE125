@@ -1,7 +1,20 @@
-import { type DeepPartial, type Strings, registerStrings, withFallback } from '../../i18n/pick';
+import { type Strings, registerStrings } from '../../i18n/pick';
 import { TAGLINE, TITLE } from './meta';
+import lt from './lang/lt';
+import et from './lang/et';
+import pl from './lang/pl';
+import de from './lang/de';
+import be from './lang/be';
+import kk from './lang/kk';
+import uz from './lang/uz';
+import az from './lang/az';
+import ka from './lang/ka';
+import hy from './lang/hy';
+import ro from './lang/ro';
+import bg from './lang/bg';
+import es from './lang/es';
 
-/** Durak's own strings. en / lv / ru / uk are complete; the other languages translate the main words (rest: English). */
+/** Durak's own strings, complete in all 17 languages: en / lv / ru / uk here, the other 13 in ./lang/<code>.ts. */
 export interface DurakStrings {
   title: string; tagline: string;
   play: string; resume: string; newGame: string; players: string; level: string; easy: string; normal: string; hard: string;
@@ -228,27 +241,9 @@ const lv: DurakStrings = {
   botNames: ['Artjoms', 'Marina', 'Olegs', 'Vika', 'Stass'],
 };
 
-type P = DeepPartial<DurakStrings>;
-/** Other languages: title, tagline and the main buttons; everything else falls back to English. */
-const PART: Record<string, P> = {
-  lt: { title: TITLE.lt, tagline: TAGLINE.lt, play: 'Dalinti', resume: 'Tęsti žaidimą', newGame: 'Naujas žaidimas', bito: 'Atmušta', take: 'Imu', pass: 'Pas', transfer: 'Perduoti', trump: 'Koziris', rules: 'Taisyklės', end: { durak: 'Durnius!', notDurak: 'Ne durnius!', again: 'Dar kartą' } },
-  et: { title: TITLE.et, tagline: TAGLINE.et, play: 'Jaga', resume: 'Jätka mängu', newGame: 'Uus mäng', bito: 'Löödud', take: 'Võtan', pass: 'Pass', transfer: 'Edasi', trump: 'Trump', rules: 'Reeglid', end: { durak: 'Turakas!', notDurak: 'Pole turakas!', again: 'Veel kord' } },
-  pl: { title: TITLE.pl, tagline: TAGLINE.pl, play: 'Rozdaj', resume: 'Kontynuuj grę', newGame: 'Nowa gra', bito: 'Pobite', take: 'Biorę', pass: 'Pas', transfer: 'Przekaż', trump: 'Atut', rules: 'Zasady', end: { durak: 'Dureń!', notDurak: 'Nie dureń!', again: 'Jeszcze raz' } },
-  de: { title: TITLE.de, tagline: TAGLINE.de, play: 'Geben', resume: 'Spiel fortsetzen', newGame: 'Neues Spiel', bito: 'Fertig', take: 'Nehmen', pass: 'Passe', transfer: 'Weitergeben', trump: 'Trumpf', rules: 'Regeln', end: { durak: 'Durak!', notDurak: 'Kein Durak!', again: 'Noch einmal' } },
-  be: { title: TITLE.be, tagline: TAGLINE.be, play: 'Раздаць', resume: 'Працягнуць гульню', newGame: 'Новая гульня', bito: 'Біта', take: 'Бяру', pass: 'Пас', transfer: 'Перавесці', trump: 'Козыр', rules: 'Правілы', end: { durak: 'Дурань!', notDurak: 'Не дурань!', again: 'Яшчэ партыю' } },
-  kk: { title: TITLE.kk, tagline: TAGLINE.kk, play: 'Тарату', resume: 'Ойынды жалғастыру', newGame: 'Жаңа ойын', bito: 'Бито', take: 'Аламын', pass: 'Пас', transfer: 'Аудару', trump: 'Көзір', rules: 'Ережелер', end: { durak: 'Дурак!', notDurak: 'Дурак емес!', again: 'Тағы бір рет' } },
-  uz: { title: TITLE.uz, tagline: TAGLINE.uz, play: 'Tarqatish', resume: 'Oʻyinni davom ettirish', newGame: 'Yangi oʻyin', bito: 'Bito', take: 'Olaman', pass: 'Pas', transfer: 'Oʻtkazish', trump: 'Kozir', rules: 'Qoidalar', end: { durak: 'Durak!', notDurak: 'Durak emas!', again: 'Yana bir bor' } },
-  az: { title: TITLE.az, tagline: TAGLINE.az, play: 'Payla', resume: 'Oyuna davam et', newGame: 'Yeni oyun', bito: 'Bito', take: 'Götürürəm', pass: 'Pas', transfer: 'Ötür', trump: 'Kozır', rules: 'Qaydalar', end: { durak: 'Durak!', notDurak: 'Durak deyil!', again: 'Bir daha' } },
-  ka: { title: TITLE.ka, tagline: TAGLINE.ka, play: 'დარიგება', resume: 'თამაშის გაგრძელება', newGame: 'ახალი თამაში', bito: 'ბიტო', take: 'ვიღებ', pass: 'პასი', transfer: 'გადაცემა', trump: 'კოზირი', rules: 'წესები', end: { durak: 'დურაკი!', notDurak: 'დურაკი არა!', again: 'კიდევ ერთხელ' } },
-  hy: { title: TITLE.hy, tagline: TAGLINE.hy, play: 'Բաժանել', resume: 'Շարունակել խաղը', newGame: 'Նոր խաղ', bito: 'Բիտո', take: 'Վերցնում եմ', pass: 'Պաս', transfer: 'Փոխանցել', trump: 'Կոզիր', rules: 'Կանոններ', end: { durak: 'Դուրակ!', notDurak: 'Դուրակ չէ!', again: 'Եվս մեկ անգամ' } },
-  ro: { title: TITLE.ro, tagline: TAGLINE.ro, play: 'Împarte', resume: 'Continuă jocul', newGame: 'Joc nou', bito: 'Gata', take: 'Iau', pass: 'Pas', transfer: 'Transferă', trump: 'Atu', rules: 'Reguli', end: { durak: 'Prostul!', notDurak: 'Nu ești prostul!', again: 'Încă o dată' } },
-  bg: { title: TITLE.bg, tagline: TAGLINE.bg, play: 'Раздай', resume: 'Продължи играта', newGame: 'Нова игра', bito: 'Бито', take: 'Взимам', pass: 'Пас', transfer: 'Прехвърли', trump: 'Коз', rules: 'Правила', end: { durak: 'Дурак!', notDurak: 'Не си дурак!', again: 'Още една' } },
-  es: { title: TITLE.es, tagline: TAGLINE.es, play: 'Repartir', resume: 'Continuar partida', newGame: 'Nueva partida', bito: 'Hecho', take: 'Tomo', pass: 'Paso', transfer: 'Pasar', trump: 'Triunfo', rules: 'Reglas', end: { durak: '¡Durak!', notDurak: '¡No eres el tonto!', again: 'Otra vez' } },
-};
+/** The other 13 languages are complete too: one file each in ./lang (checked key by key in strings.test.ts). */
+const MORE: Record<string, DurakStrings> = { lt, et, pl, de, be, kk, uz, az, ka, hy, ro, bg, es };
 
-export const DURAK_STRINGS: Strings<DurakStrings> = {
-  en, ru, uk, lv,
-  ...Object.fromEntries(Object.entries(PART).map(([k, v]) => [k, withFallback(en, v)])),
-};
+export const DURAK_STRINGS: Strings<DurakStrings> = { en, ru, uk, lv, ...MORE };
 registerStrings('durak', DURAK_STRINGS);
 

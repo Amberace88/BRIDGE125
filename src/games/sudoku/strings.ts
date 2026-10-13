@@ -1,13 +1,22 @@
-import { withFallback, type DeepPartial, type Strings } from '../../i18n/pick';
-import type { Lang } from '../../i18n';
+import type { Strings } from '../../i18n/pick';
 import type { Level } from './core/grid';
 import type { Technique } from './core/logic';
 import { TAGLINE, TITLE } from './meta';
+import lt from './lang/lt';
+import et from './lang/et';
+import pl from './lang/pl';
+import de from './lang/de';
+import be from './lang/be';
+import kk from './lang/kk';
+import uz from './lang/uz';
+import az from './lang/az';
+import ka from './lang/ka';
+import hy from './lang/hy';
+import ro from './lang/ro';
+import bg from './lang/bg';
+import es from './lang/es';
 
-/**
- * Sudoku strings. en / lv / ru / uk are complete; the other 13 languages carry the title, tagline and the main buttons
- * and fall back to English key by key (withFallback) for the rest.
- */
+/** Sudoku strings, complete in all 17 languages: en / lv / ru / uk here, the other 13 in ./lang/<code>.ts. */
 export interface SudokuStrings {
   title: string;
   tagline: string;
@@ -355,46 +364,5 @@ const uk: SudokuStrings = {
   lost: { title: 'Помилки скінчилися', sub: 'Три помилки — цього разу перемогла сітка.' },
 };
 
-type Main = Pick<SudokuStrings, 'back' | 'daily' | 'classic' | 'newGame' | 'continue' | 'play' | 'next' | 'pause' | 'resume' | 'levels'> & { tools: Omit<SudokuStrings['tools'], 'settings'> };
-const main = (
-  back: string, daily: string, classic: string, newGame: string, cont: string, play: string, next: string,
-  pause: string, resume: string, levels: [string, string, string, string], tools: [string, string, string, string, string],
-): Main => ({
-  back, daily, classic, newGame, continue: cont, play, next, pause, resume,
-  levels: { easy: levels[0], medium: levels[1], hard: levels[2], expert: levels[3] },
-  tools: { undo: tools[0], redo: tools[1], erase: tools[2], notes: tools[3], hint: tools[4] },
-});
-
-const PARTIAL: Partial<Record<Lang, DeepPartial<SudokuStrings>>> = {
-  lt: main('Atgal', 'Dienos Sudoku', 'Laisvas žaidimas', 'Naujas žaidimas', 'Tęsti', 'Žaisti', 'Kitas galvosūkis',
-    'Pauzė', 'Tęsti', ['Lengvas', 'Vidutinis', 'Sunkus', 'Ekspertas'], ['Atšaukti', 'Grąžinti', 'Ištrinti', 'Pastabos', 'Užuomina']),
-  et: main('Tagasi', 'Päeva Sudoku', 'Vabamäng', 'Uus mäng', 'Jätka', 'Mängi', 'Järgmine mõistatus',
-    'Paus', 'Jätka', ['Lihtne', 'Keskmine', 'Raske', 'Ekspert'], ['Võta tagasi', 'Tee uuesti', 'Kustuta', 'Märkmed', 'Vihje']),
-  pl: main('Wstecz', 'Sudoku dnia', 'Gra swobodna', 'Nowa gra', 'Kontynuuj', 'Graj', 'Następna łamigłówka',
-    'Pauza', 'Wznów', ['Łatwy', 'Średni', 'Trudny', 'Ekspert'], ['Cofnij', 'Ponów', 'Wymaż', 'Notatki', 'Podpowiedź']),
-  de: main('Zurück', 'Tages-Sudoku', 'Freies Spiel', 'Neues Spiel', 'Weiterspielen', 'Spielen', 'Nächstes Rätsel',
-    'Pause', 'Fortsetzen', ['Leicht', 'Mittel', 'Schwer', 'Experte'], ['Rückgängig', 'Wiederholen', 'Löschen', 'Notizen', 'Tipp']),
-  be: main('Назад', 'Судоку дня', 'Вольная гульня', 'Новая гульня', 'Працягнуць', 'Гуляць', 'Наступная',
-    'Паўза', 'Працягнуць', ['Лёгкі', 'Сярэдні', 'Складаны', 'Эксперт'], ['Адмяніць', 'Паўтарыць', 'Сцерці', 'Нататкі', 'Падказка']),
-  kk: main('Артқа', 'Күн судокуы', 'Еркін ойын', 'Жаңа ойын', 'Жалғастыру', 'Ойнау', 'Келесі',
-    'Үзіліс', 'Жалғастыру', ['Оңай', 'Орташа', 'Қиын', 'Сарапшы'], ['Болдырмау', 'Қайталау', 'Өшіру', 'Белгілер', 'Кеңес']),
-  uz: main('Orqaga', 'Kun sudokusi', 'Erkin o‘yin', 'Yangi o‘yin', 'Davom etish', 'O‘ynash', 'Keyingisi',
-    'Pauza', 'Davom etish', ['Oson', 'O‘rta', 'Qiyin', 'Ekspert'], ['Bekor qilish', 'Qaytarish', 'O‘chirish', 'Qaydlar', 'Maslahat']),
-  az: main('Geri', 'Günün Sudokusu', 'Sərbəst oyun', 'Yeni oyun', 'Davam et', 'Oyna', 'Növbəti',
-    'Fasilə', 'Davam et', ['Asan', 'Orta', 'Çətin', 'Ekspert'], ['Geri al', 'Təkrarla', 'Sil', 'Qeydlər', 'İpucu']),
-  ka: main('უკან', 'დღის სუდოკუ', 'თავისუფალი თამაში', 'ახალი თამაში', 'გაგრძელება', 'თამაში', 'შემდეგი',
-    'პაუზა', 'გაგრძელება', ['მარტივი', 'საშუალო', 'რთული', 'ექსპერტი'], ['გაუქმება', 'დაბრუნება', 'წაშლა', 'ჩანაწერები', 'მინიშნება']),
-  hy: main('Հետ', 'Օրվա սուդոկու', 'Ազատ խաղ', 'Նոր խաղ', 'Շարունակել', 'Խաղալ', 'Հաջորդը',
-    'Դադար', 'Շարունակել', ['Հեշտ', 'Միջին', 'Դժվար', 'Փորձագետ'], ['Հետարկել', 'Կրկնել', 'Ջնջել', 'Նշումներ', 'Հուշում']),
-  ro: main('Înapoi', 'Sudoku zilei', 'Joc liber', 'Joc nou', 'Continuă', 'Joacă', 'Următorul puzzle',
-    'Pauză', 'Reia', ['Ușor', 'Mediu', 'Greu', 'Expert'], ['Anulează', 'Refă', 'Șterge', 'Notițe', 'Indiciu']),
-  bg: main('Назад', 'Судоку на деня', 'Свободна игра', 'Нова игра', 'Продължи', 'Играй', 'Следващо',
-    'Пауза', 'Продължи', ['Лесно', 'Средно', 'Трудно', 'Експерт'], ['Отмени', 'Повтори', 'Изтрий', 'Бележки', 'Подсказка']),
-  es: main('Atrás', 'Sudoku del día', 'Juego libre', 'Nueva partida', 'Continuar', 'Jugar', 'Siguiente sudoku',
-    'Pausa', 'Reanudar', ['Fácil', 'Medio', 'Difícil', 'Experto'], ['Deshacer', 'Rehacer', 'Borrar', 'Notas', 'Pista']),
-};
-
-export const SUDOKU_STRINGS: Strings<SudokuStrings> = { en, lv, ru, uk };
-for (const [lang, part] of Object.entries(PARTIAL) as [Lang, DeepPartial<SudokuStrings>][]) {
-  SUDOKU_STRINGS[lang] = withFallback(en, { ...part, title: TITLE[lang], tagline: TAGLINE[lang] });
-}
+/** All 17 languages, complete: en / lv / ru / uk here, the other 13 in ./lang/<code>.ts (checked in sudoku.test.ts). */
+export const SUDOKU_STRINGS: Strings<SudokuStrings> = { en, lv, ru, uk, lt, et, pl, de, be, kk, uz, az, ka, hy, ro, bg, es };

@@ -35,9 +35,9 @@ describe('layout', () => {
 });
 
 describe('strings', () => {
-  it('en / lv / ru / uk are complete', () => {
-    for (const l of ['lv', 'ru', 'uk']) expect(missingKeys(FC_LANGS.en, fcStrings(l)), l).toEqual([]);
-    expect(FC_LANGS.full.sort()).toEqual(['en', 'lv', 'ru', 'uk']);
+  it('all 17 languages are complete — no key ever falls back to English', () => {
+    expect(FC_LANGS.full.sort()).toEqual([...LANGS].sort());
+    for (const l of LANGS) expect(missingKeys(FC_LANGS.en, fcStrings(l)), l).toEqual([]);
   });
 
   it('every language has a title, a tagline and the main buttons', () => {
@@ -49,7 +49,18 @@ describe('strings', () => {
       expect(s.title).toBe(TITLE[l]);
       if (l !== 'en') expect(s.newGame, l).not.toBe(FC_LANGS.en.newGame);
     }
+    for (const l of LANGS) {
+      const s = fcStrings(l);
+      for (const t of [s.dealNo(617), s.tooMany(1), s.tooMany(3), s.tooMany(12), s.dailyBest('2:10', 1), s.dailyBest('2:10', 84), s.unsolvable(11982)]) {
+        expect(t, l).not.toMatch(/undefined|NaN|\[object/);
+      }
+    }
     expect(fcStrings('lv').tooMany(1)).toContain('kārti');
+    expect(fcStrings('pl').tooMany(3)).toContain('3 karty');
+    expect(fcStrings('pl').dailyBest('1:00', 22)).toContain('22 ruchy');
+    expect(fcStrings('ro').dailyBest('1:00', 20)).toContain('20 de mutări');
+    expect(fcStrings('es').title).toBe('Carta Blanca');
+    expect(fcStrings('xx')).toBe(FC_LANGS.en);
     expect(fcStrings('ru').dailyBest('1:00', 3)).toContain('хода');
   });
 
