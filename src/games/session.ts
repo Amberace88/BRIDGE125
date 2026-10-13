@@ -2,11 +2,14 @@ import { track } from '../analytics';
 import { getSupabase } from '../supabase';
 import type { GameResult } from './types';
 import { recordLocal } from './useGameStats';
+import { submitResult } from '../offline/sync';
+import { isOffline } from '../offline/net';
+import { storedUid } from '../offline/session';
 
 /**
  * Report a finished mini game: analytics now, rewards/quests/season/leaderboards on the server (RPC `record_minigame`,
- * migration 019). Resolves to the server's answer (new BM / XP / level …) or null when offline, signed out or not
- * migrated yet — the game must never block on it.
+ * migration 019). Resolves to the server's answer (new BM / XP / level …) or null when offline (then the result waits
+ * in the offline queue and is sent later), signed out or not migrated yet — the game must never block on it.
  *
  * The answer is also applied app-wide (./effects.ts): balance + level in the header, level-up toast, medals, quest
  * progress toast and the hub's stats. The player's record is kept on this device too, so guests see their bests.
@@ -18,16 +21,17 @@ export async function reportGame(r: GameResult): Promise<Record<string, unknown>
   try {
     const sb = await getSupabase();
     if (!sb) return null;
-    const { data: s } = await sb.auth.getSession();
-    if (!s.session) return null;
-    const { data, error } = await sb.rpc('record_minigame', {
+    const { data: s } = await sb.auth.getSession().catch(() => ({ data: { session: null } }));
+    const uid = s.session?.user.id ?? (isOffline() ? storedUid() : null);
+    if (!uid) return null;
+    // through the offline queue: stored on the device with a nonce, sent now or as soon as the connection is back
+    // (src/offline/sync.ts applies a late answer app-wide, same as below)
+    const out = await submitResult('mini', uid, {
       p_game: r.game, p_won: r.won, p_score: r.score ?? null, p_seconds: Math.round(r.seconds),
       p_level: r.level ?? null, p_day: r.day ?? null, p_details: r.details ?? {},
-    });
-    if (error) return null;
-    const out = (data as Record<string, unknown>) ?? null;
-    if (out?.ok) void import('./effects').then(m => m.applyMiniResult(s.session!.user.id, out)).catch(() => {});
-    return out;
+    }) as Record<string, unknown> | null;
+    if (out?.ok) void import('./effects').then(m => m.applyMiniResult(uid, out)).catch(() => {});
+    return out ?? null;
   } catch { return null; }
 }
 

@@ -30,6 +30,8 @@ export default defineConfig({
     preloadCriticalFonts([/golos-text-latin-400-normal-[\w-]+\.woff2$/, /cormorant-garamond-latin-700-normal-[\w-]+\.woff2$/]),
   ],
   build: {
+    // dist/.vite/manifest.json → scripts/sw-manifest.mjs builds the service worker's precache list from it (then deletes it)
+    manifest: true,
     rolldownOptions: {
       output: {
         // long-lived vendor chunks: app deploys don't invalidate them, and the Supabase SDK stays out of the first paint

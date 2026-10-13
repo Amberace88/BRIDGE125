@@ -18,6 +18,8 @@ import { sfx } from '../sound';
 import { SeasonDockBtn } from '../season/parts';
 import { GamesDockBtn } from '../games/hub/GamesDockBtn';
 import '../styles/home.css';
+import { useOnline } from '../offline/net';
+import { OFFLINE } from '../offline/strings';
 
 interface Props {
   onPlay: () => void; onResume: (() => void) | null; onRules: () => void; onProfile: () => void; onAuth: () => void;
@@ -63,6 +65,10 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
   const app = useApp();
   const { t, lang } = app;
   const h = useStrings(HOME);
+  // offline: online-only actions stay visible but rest (App shows the "needs internet" nudge if tapped)
+  const online = useOnline();
+  const off = online ? '' : 'net-off';
+  const netS = useStrings(OFFLINE);
   const vw = useViewport();
   const wide = vw >= 920;
   const cw = wide ? 150 : Math.round(Math.min(104, vw * 0.235));
@@ -149,8 +155,8 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
         <a className="logo" href="/" aria-label="Bridge 125" onClick={e => e.preventDefault()}><img className="mark" src="/logo-mark.svg" alt="" width="40" height="40" fetchPriority="high" /><span className="word">BRIDGE <b>125</b></span></a>
         <nav>
           {wide && <button className="navlink" onClick={onRules}>{t.nav.howToPlay}</button>}
-          {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}
-          {wide && <button className="navlink" onClick={shop}>{h.shop.title}</button>}
+          {wide && <button className={`navlink ${off}`} onClick={onLeaders}>{t.lb.open}</button>}
+          {wide && <button className={`navlink ${off}`} onClick={shop}>{h.shop.title}</button>}
           {app.isAdmin && wide && <button className="adminpill" onClick={onAdmin} title="Admin">📊<span>Admin</span></button>}
           {wide && ins.available && <button className="installpill" onClick={onInstall}><span aria-hidden>⬇</span>{t.install.button}</button>}
           {wide && <LangPicker />}
@@ -221,24 +227,25 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
                     <form className="joinform" onSubmit={e => { e.preventDefault(); join(); }}>
                       <input className="field code" value={code} maxLength={6} placeholder={t.room.enterCode} aria-label={t.room.code}
                         onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} />
-                      <button className="btn ghost sm" disabled={code.length < 4} type="submit">{t.room.join}</button>
+                      <button className="btn ghost sm" disabled={code.length < 4 || !online} type="submit">{t.room.join}</button>
                     </form>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <button className={`btn big h5-start ${mode === 'online' ? 'live' : 'acc'}`} onClick={start} disabled={qBusy} aria-busy={qBusy}>
+            <button className={`btn big h5-start ${mode === 'online' ? 'live' : 'acc'} ${mode !== 'bots' ? off : ''}`} onClick={start} disabled={qBusy || (!online && mode !== 'bots')} aria-busy={qBusy}>
               {mode === 'online' ? <span className="qdot" aria-hidden><i /></span> : <span className="suitspin" aria-hidden>{mode === 'friends' ? '♥' : '♠'}</span>}
               <span className="lbl">{startLabel}</span>
               {qBusy ? <span className="spinner" /> : <span className="arr" aria-hidden>→</span>}
             </button>
             {qErr && <div className="qerr" role="alert">{t.quick.error}</div>}
+            {!online && mode !== 'bots' && <div className="net-hint">{netS.needsNet}</div>}
 
-            <nav className="h5-dock" aria-label="Bridge 125">
+            <nav className={`h5-dock ${online ? '' : 'is-offline'}`} aria-label="Bridge 125">
               {onJourney && <DockBtn icon={<JourneyIcon />} label={h.dock.journey} badge={jStars > 0 ? `${jStars}/${TOTAL_STARS}` : undefined} hot onClick={onJourney} />}
               {onSeason && <SeasonDockBtn onClick={onSeason} />}
-              {onStakes && <DockBtn icon={<ChipsIcon />} label={h.dock.stakes} onClick={onStakes} />}
+              {onStakes && <DockBtn icon={<ChipsIcon />} label={h.dock.stakes} onClick={onStakes} className={off} />}
               {onAchievements && <DockBtn icon={<TrophyIcon />} label={h.dock.trophies} onClick={onAchievements} />}
               {onVault && <DockBtn icon={<VaultIcon />} label={h.dock.vault} onClick={onVault} />}
               {onGames && <GamesDockBtn onClick={onGames} />}
@@ -248,14 +255,14 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
             {onDaily && <DailyCard onOpen={onDaily} />}
 
             <div className={`h5-store ${onMerch ? '' : 'one'}`}>
-              <StoreTile icon={<GemIcon />} title={h.shop.title} sub={h.shop.sub} onClick={shop} />
-              {onMerch && <StoreTile icon={<BagIcon />} title={h.merch.title} sub={h.merch.sub} onClick={onMerch} />}
+              <StoreTile icon={<GemIcon />} title={h.shop.title} sub={h.shop.sub} onClick={shop} className={off} />
+              {onMerch && <StoreTile icon={<BagIcon />} title={h.merch.title} sub={h.merch.sub} onClick={onMerch} className={off} />}
             </div>
 
             {!wide && (
               <div className="h5-links">
                 <button className="btn ghost" onClick={onRules}>{t.howToPlay}</button>
-                <button className="btn ghost" onClick={onLeaders}><span aria-hidden style={{ fontSize: 15 }}>🏆</span>{t.lb.open}</button>
+                <button className={`btn ghost ${off}`} onClick={onLeaders}><span aria-hidden style={{ fontSize: 15 }}>🏆</span>{t.lb.open}</button>
               </div>
             )}
             {!wide && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}><LangPicker variant="pill" /></div>}
@@ -326,9 +333,9 @@ function ModeTabs({ mode, labels, onChange }: { mode: Mode; labels: Record<Mode,
   );
 }
 
-function StoreTile({ icon, title, sub, onClick }: { icon: ReactNode; title: string; sub: string; onClick: () => void }) {
+function StoreTile({ icon, title, sub, onClick, className = '' }: { icon: ReactNode; title: string; sub: string; onClick: () => void; className?: string }) {
   return (
-    <button className="h5-tile" onClick={onClick}>
+    <button className={`h5-tile ${className}`} onClick={onClick}>
       <span className="ico">{icon}</span>
       <span className="tt"><b>{title}</b><small>{sub}</small></span>
       <span className="go" aria-hidden>›</span>
@@ -337,9 +344,9 @@ function StoreTile({ icon, title, sub, onClick }: { icon: ReactNode; title: stri
 }
 
 /** Frameless icon link (Home quick row): brass glyph, small caption, optional badge. */
-function DockBtn({ icon, label, badge, hot = false, onClick }: { icon: ReactNode; label: string; badge?: string; hot?: boolean; onClick: () => void }) {
+function DockBtn({ icon, label, badge, hot = false, onClick, className = '' }: { icon: ReactNode; label: string; badge?: string; hot?: boolean; onClick: () => void; className?: string }) {
   return (
-    <motion.button className={`h5-dockbtn ${hot ? 'hot' : ''}`} onClick={() => { sfx.tap(); onClick(); }} whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }}>
+    <motion.button className={`h5-dockbtn ${hot ? 'hot' : ''} ${className}`} onClick={() => { sfx.tap(); onClick(); }} whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }}>
       <span className="di" aria-hidden>{icon}</span>
       <span className="dl">{label}</span>
       {badge && <span className="db">{badge}</span>}

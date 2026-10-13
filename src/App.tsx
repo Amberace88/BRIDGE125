@@ -41,6 +41,9 @@ import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
 import type { GameState } from './engine/engine';
 import { gameById } from './games/registry';
+import { OfflineLayer } from './offline/OfflineLayer';
+import { showNeedsNet } from './offline/nudge';
+import { useOnline } from './offline/net';
 
 type Route =
   | { name: 'home' }
@@ -81,6 +84,9 @@ function Shell() {
   const [sheet, setSheet] = useState<'profile' | 'auth' | 'leaders' | 'install' | 'stakes' | null>(null);
   const [shopTab, setShopTab] = useState<ShopTab | undefined>(undefined);
   const app = useApp();
+  // offline: online-only actions (matchmaking, rooms, shop, merch, leaderboards, stakes, season) only nudge
+  const online = useOnline();
+  const needNet = <A extends unknown[]>(fn: (...a: A) => void) => (...a: A) => { if (online) fn(...a); else showNeedsNet(); };
   // the very first screen appears without the route cross-fade (it would only hold back the first paint)
   const [navs, setNavs] = useState(0);
   useEffect(() => { whenIdle(() => LocalGame.preload(), 4000, 4000); }, []);
@@ -124,6 +130,7 @@ function Shell() {
 
   /** Matchmaking: resolves when we are on our way to a table; rejects so the button can show an error. */
   const quick = async (skip = '') => {
+    if (!navigator.onLine) { showNeedsNet(); throw new Error('offline'); }
     const code = await findQuickMatch(skip);
     if (!skip) track('quick_match');
     go({ name: 'room', code }, `/r/${code}`, route.name === 'room');
@@ -140,23 +147,23 @@ function Shell() {
               onQuick={() => quick()}
               onRules={() => openOverlay('rules')}
               onLegal={k => openOverlay(k)}
-              onLeaders={() => setSheet('leaders')}
+              onLeaders={needNet(() => setSheet('leaders'))}
               onInstall={() => setSheet('install')}
               onAdmin={() => openOverlay('admin')}
-              onShop={() => openShop()}
-              onMerch={() => openOverlay('merch')}
+              onShop={needNet(() => openShop())}
+              onMerch={needNet(() => openOverlay('merch'))}
               onJourney={() => go({ name: 'journey' }, '/journey')}
               onDaily={() => go({ name: 'daily' }, '/daily')}
               onQuests={() => openOverlay('quests')}
               onAchievements={() => openOverlay('achievements')}
               onVault={() => openOverlay('vault')}
-              onSeason={() => openOverlay('season')}
+              onSeason={needNet(() => openOverlay('season'))}
               onGames={() => openOverlay('games')}
-              onStakes={() => setSheet('stakes')}
+              onStakes={needNet(() => setSheet('stakes'))}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
-              onCreateRoom={() => { const c = newRoomCode(); track('room_create'); go({ name: 'room', code: c }, `/r/${c}`); }}
-              onJoinRoom={c => go({ name: 'room', code: c }, `/r/${c}`)} />
+              onCreateRoom={needNet(() => { const c = newRoomCode(); track('room_create'); go({ name: 'room', code: c }, `/r/${c}`); })}
+              onJoinRoom={needNet((c: string) => go({ name: 'room', code: c }, `/r/${c}`))} />
           </motion.div>
         )}
         {route.name === 'local' && (
@@ -224,8 +231,9 @@ function Shell() {
       </AnimatePresence>
       </Suspense>
       <CosmeticsSync />
+      <OfflineLayer />
       <Deferred delay={2500}>
-        <SocialRoot />
+        {online && <SocialRoot />}
         <QuestToasts />
         <ReferralRoot onAuth={auth} />
         <SeasonToast muted={overlay === 'season'} onOpen={() => { setSheet(null); openOverlay('season'); }} />

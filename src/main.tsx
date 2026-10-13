@@ -5,6 +5,7 @@ import App from './App';
 import { captureInstallPrompt } from './install';
 import { adoptUrlLang, localeReady } from './store';
 import { whenIdle } from './lazy';
+import { registerServiceWorker } from './offline/sw';
 
 adoptUrlLang();   // /de/… landing-page links → German UI, plain path for the router
 captureInstallPrompt();
@@ -17,6 +18,5 @@ try { if ((JSON.parse(localStorage.getItem('b125.music') ?? '{}') as { on?: unkn
 const render = () => createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
 Promise.race([localeReady(), new Promise(r => setTimeout(r, 2500))]).then(render, render);
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
-}
+// offline play: the service worker precaches the app (public/sw.js); updates wait for the player's tap
+if (import.meta.env.PROD) registerServiceWorker();

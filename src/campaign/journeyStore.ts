@@ -4,8 +4,9 @@ import { useApp } from '../store';
 // so Home's star badge doesn't pull it into the first paint
 const progressStore = () => import('../progress/store');
 import { track } from '../analytics';
+import { submitResult } from '../offline/sync';
 import { ALL_MATCH_IDS, defaultRoute, isRouteId, routeForLang, type RouteId, type StarMap } from './data';
-import { journeyCompleteRpc, journeyImportRpc, journeyProgressRpc, journeySetRouteRpc, type JourneyCompleteResult } from './api';
+import { journeyImportRpc, journeyProgressRpc, journeySetRouteRpc, type JourneyCompleteResult } from './api';
 
 /**
  * Journey progress (best stars per match) and the player's ROUTE, shared by every useJourney() caller.
@@ -154,22 +155,31 @@ export async function completeMatch(matchId: string, stars: number, route: Route
   if (!state.route) { writeRoute(uid ? userRouteKey(uid) : GUEST_ROUTE, route); set({ route }); }
   track('journey_win', { match: matchId, stars, prev, route });
   if (!uid) return { ok: true, guest: true, stars: Math.max(prev, stars), prev, new_stars: Math.max(0, stars - prev), first: prev === 0 };
-  let r = await journeyCompleteRpc(matchId, stars, route);
-  if (r && !r.ok && r.error === 'slow') {
-    await new Promise(res => setTimeout(res, Math.min(45, Math.max(1, r?.retry_in ?? 10)) * 1000));
-    r = await journeyCompleteRpc(matchId, stars, route);
-  }
+  // through the offline queue: in order, with a nonce; offline (or rate-limited) the stars are already saved above and
+  // the server gets them — and pays the rewards — as soon as the connection is back (applyQueuedJourney)
+  const r = await submitResult('journey', uid, { match_id: matchId, stars, route }) as JourneyCompleteResult | null;
   if (!r) return { ok: true, offline: true, stars: Math.max(prev, stars), prev, new_stars: Math.max(0, stars - prev), first: prev === 0 };
-  if (r.ok) {
-    const { patchData, pushToast } = await progressStore();
-    patchData({
-      ...(typeof r.bm === 'number' ? { bm: r.bm } : {}), ...(r.owned ? { owned: r.owned } : {}),
-      ...(typeof r.xp === 'number' && typeof r.level === 'number' ? { xp: r.xp, level: r.level } : {}),
-    });
-    const rw = r.reward;
-    if (rw && (rw.level ?? 0) > (rw.level_from ?? 0)) setTimeout(() => pushToast({ kind: 'level', level: rw.level!, bm: rw.level_bm ?? 0 }), 2200);
-  }
+  if (r.ok) await applyJourneyResult(r);
   return r;
+}
+
+async function applyJourneyResult(r: JourneyCompleteResult) {
+  const { patchData, pushToast } = await progressStore();
+  patchData({
+    ...(typeof r.bm === 'number' ? { bm: r.bm } : {}), ...(r.owned ? { owned: r.owned } : {}),
+    ...(typeof r.xp === 'number' && typeof r.level === 'number' ? { xp: r.xp, level: r.level } : {}),
+  });
+  const rw = r.reward;
+  if (rw && (rw.level ?? 0) > (rw.level_from ?? 0)) setTimeout(() => pushToast({ kind: 'level', level: rw.level!, bm: rw.level_bm ?? 0 }), 2200);
+}
+
+/** Offline queue applier: a match won offline reached the server — rewards + the XP toast. */
+export async function applyQueuedJourney(d: unknown) {
+  const r = d as JourneyCompleteResult | null;
+  if (!r?.ok) return;
+  await applyJourneyResult(r);
+  const rw = r.reward;
+  if (rw && (rw.bm > 0 || rw.xp > 0)) (await progressStore()).pushToast({ kind: 'xp', xp: rw.xp, bm: rw.bm, won: true });
 }
 
 export function useJourney() {

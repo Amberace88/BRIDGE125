@@ -137,3 +137,16 @@ export async function claimDailyRewards(uid: string) {
   }
 }
 export const dismissClaimed = () => set({ claimed: [] });
+
+/**
+ * Back online (src/offline/sync.ts): send stored results that never reached the server — played offline, or the
+ * request failed. The server only takes today's day (and yesterday's until 00:20 Riga); older ones are dropped quietly.
+ */
+export async function resubmitPendingDaily() {
+  const today = rigaDay(), grace = rigaDay(new Date(Date.now() - 20 * 60 * 1000));
+  for (const [day, e] of Object.entries(state.entries)) {
+    if (!e || e.submitted || e.rejected) continue;
+    if (day !== today && day !== grace) { patchEntry(day, { rejected: 'day' }); continue; }
+    await submitDaily(day);
+  }
+}

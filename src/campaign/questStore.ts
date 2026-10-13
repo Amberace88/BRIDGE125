@@ -2,11 +2,12 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { useApp } from '../store';
 import { patchData, pushToast } from '../progress/store';
 import { track } from '../analytics';
+import { submitResult } from '../offline/sync';
 import {
   CHEST, REROLL_COST, addDays, applyEvents, assignQuests, clampEvents, diffRows, rigaDay, rigaMidnight, rowOf, weekStart,
   type QuestChange, type QuestEvents, type QuestRow,
 } from './quests';
-import { claimChestRpc, claimQuestRpc, questProgressRpc, questsRpc, rerollQuestRpc, type QuestActionResult, type QuestBoardData } from './api';
+import { claimChestRpc, claimQuestRpc, questsRpc, rerollQuestRpc, type QuestActionResult, type QuestBoardData } from './api';
 
 /**
  * Quest board shared by Quests.tsx, <QuestTracker/> and the end-of-game toast.
@@ -76,6 +77,25 @@ function fromServer(d: QuestBoardData): Board {
   };
 }
 
+/* ------------------------------------------------------------------ offline copy of the server board */
+// Signed in and offline: the last server board (with the progress made since) stands in, for the same Riga day.
+const srvKey = (uid: string) => 'b125.quests.srv.' + uid;
+function saveSrv(uid: string | null, b: Board | null) {
+  if (!uid || !b || b.local) return;
+  try { localStorage.setItem(srvKey(uid), JSON.stringify(b)); } catch { /* */ }
+}
+function cachedSrv(uid: string): Board | null {
+  try {
+    const b = JSON.parse(localStorage.getItem(srvKey(uid)) ?? 'null') as Board | null;
+    return b && b.today === rigaDay() && Array.isArray(b.daily) && Array.isArray(b.weekly) ? b : null;
+  } catch { return null; }
+}
+function setServerBoard(uid: string, d: QuestBoardData) {
+  const board = fromServer(d);
+  set({ board });
+  saveSrv(uid, board);
+}
+
 /* ------------------------------------------------------------------ loading */
 
 let inflight: Promise<void> | null = null;
@@ -91,7 +111,8 @@ export function loadQuests(uid: string | null, force = false): Promise<void> {
   set({ status: state.board ? state.status : 'loading' });
   const p = questsRpc().then(d => {
     if (state.uid !== uid) return;
-    set({ status: 'ready', board: d ? fromServer(d) : localBoard() });
+    if (d) { setServerBoard(uid, d); set({ status: 'ready' }); }
+    else set({ status: 'ready', board: cachedSrv(uid) ?? localBoard() });
   }).finally(() => { if (inflight === p) inflight = null; });
   inflight = p;
   return p;
@@ -128,6 +149,7 @@ export async function submitGameEvents(events: QuestEvents): Promise<void> {
   // optimistic local view so the toast is instant
   const optimistic = { ...before, daily: applyEvents(before.daily, ev), weekly: applyEvents(before.weekly, ev) };
   set({ board: optimistic });
+  saveSrv(state.uid, optimistic);
   toast(diffRows([...before.daily, ...before.weekly], [...optimistic.daily, ...optimistic.weekly]));
   await flush();
 }
@@ -138,13 +160,17 @@ async function flush(): Promise<void> {
   if (!Object.keys(ev).length) return;
   pending = {};
   const uid = state.uid;
-  const r = await questProgressRpc(clampEvents(ev));
+  if (!uid) return;
+  // through the offline queue (nonce, server rate limit, today's Riga day): null = kept on the device and sent later
+  const r = await submitResult('quest', uid, { events: clampEvents(ev) }) as QuestActionResult | null;
   if (state.uid !== uid) return;
-  if (r?.ok && r.board) { set({ board: fromServer(r.board) }); return; }
-  if (r && !r.ok && r.error === 'slow') {
-    for (const [k, v] of Object.entries(ev)) pending[k as keyof QuestEvents] = (pending[k as keyof QuestEvents] ?? 0) + (v ?? 0);
-    timer = setTimeout(() => { void flush(); }, Math.min(60, Math.max(2, r.retry_in ?? 20)) * 1000);
-  }
+  if (r?.ok && r.board) setServerBoard(uid, r.board);
+}
+
+/** Offline queue applier: quest progress of a game played offline reached the server. */
+export function applyQueuedQuest(d: unknown, item: { uid: string }) {
+  const r = d as QuestActionResult | null;
+  if (r?.ok && r.board && state.uid === item.uid) setServerBoard(item.uid, r.board);
 }
 
 /**

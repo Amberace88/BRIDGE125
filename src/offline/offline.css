@@ -1,0 +1,59 @@
+/* Offline UI: the frameless status pill, the update toast, online-only controls while offline. */
+
+.netpill {
+  position: fixed; top: calc(var(--safe-t) + 8px); left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 32px);
+  z-index: 140; pointer-events: none;
+  display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 12px 0 10px; border-radius: 999px;
+  font: 600 12px/1 var(--sans); letter-spacing: .01em; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: color-mix(in srgb, #06110f 74%, transparent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .34), inset 0 0 0 1px color-mix(in srgb, var(--acc) 22%, transparent);
+  backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
+}
+.netpill > span { display: block; overflow: hidden; text-overflow: ellipsis; }
+.netdot { position: relative; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc); }
+.netpill.is-offline .netdot { background: #d9a441; box-shadow: 0 0 0 3px color-mix(in srgb, #d9a441 22%, transparent); }
+.netpill.is-offline .netdot::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid color-mix(in srgb, #d9a441 50%, transparent);
+  animation: netping 2.4s ease-out infinite;
+}
+.netpill.is-back .netdot { background: #4fd18b; box-shadow: 0 0 0 3px color-mix(in srgb, #4fd18b 24%, transparent); }
+.netpill.is-sync .netdot { background: transparent; border: 1.5px solid var(--acc-hi); border-right-color: transparent; width: 9px; height: 9px; animation: netspin .8s linear infinite; }
+.netpill.is-nudge { animation: netnudge .42s ease; box-shadow: 0 6px 20px rgba(0, 0, 0, .34), inset 0 0 0 1px color-mix(in srgb, #d9a441 60%, transparent); }
+.netline {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 139; pointer-events: none; transform-origin: 50% 50%;
+  background: linear-gradient(90deg, transparent, #d9a441 18%, #f0c76a 50%, #d9a441 82%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, #d9a441 55%, transparent);
+  animation: netbreathe 3.2s ease-in-out infinite;
+}
+@keyframes netbreathe { 50% { opacity: .55; } }
+@keyframes netping { 0% { transform: scale(.6); opacity: .9; } 80%, 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes netspin { to { transform: rotate(360deg); } }
+@keyframes netnudge { 0%, 100% { translate: 0 0; } 25% { translate: -5px 0; } 50% { translate: 4px 0; } 75% { translate: -2px 0; } }
+
+.swupdate {
+  position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 32px);
+  bottom: calc(var(--safe-b) + 18px); z-index: 141;
+  display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 22px;
+  background: color-mix(in srgb, #06110f 86%, transparent);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .5), inset 0 0 0 1px color-mix(in srgb, var(--acc) 34%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.swupdate button { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.swupdate-go {
+  display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 6px 16px 6px 12px; border-radius: 18px; text-align: left; text-wrap: balance;
+  font: 650 13.5px/1.2 var(--sans) !important; color: var(--acc-ink) !important;
+  background: linear-gradient(180deg, var(--acc-hi), var(--acc)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+.swupdate-ic { display: inline-block; font-size: 16px; animation: netspin 3.2s linear infinite; }
+.swupdate-x { width: 34px; height: 34px; border-radius: 50%; font-size: 20px !important; color: var(--mute) !important; }
+.swupdate-x:hover { color: var(--text) !important; }
+
+/* online-only controls while offline: still visible (so the player knows they exist), clearly resting */
+.net-off, .h5-dock.is-offline .ssn-dock { opacity: .42; filter: saturate(.35); }
+.net-off:active { transform: none !important; }
+.net-hint { margin-top: 8px; text-align: center; font-size: 12.5px; font-weight: 600; color: #e8c37a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .netpill.is-offline .netdot::after, .netpill.is-sync .netdot, .swupdate-ic, .netpill.is-nudge, .netline { animation: none; }
+}

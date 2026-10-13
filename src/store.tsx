@@ -133,8 +133,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!session) { setProfile(null); return; }
-    getSupabase().then(sb => sb?.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data }) => {
+    // the last profile row stays on the device: offline, the header still shows the player's name, level and balance
+    const cacheKey = 'b125.profile.cache.' + session.user.id;
+    getSupabase().then(sb => sb?.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(({ data, error }) => {
+      if (!data && error) { try { const c = JSON.parse(localStorage.getItem(cacheKey) ?? 'null') as Profile | null; if (c?.id === session.user.id) setProfile(p => p ?? c); } catch { /* */ } }
       if (!data) return;
+      try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* */ }
       setProfile(data as Profile);
       const patch: Partial<Prefs> = {};
       if (data.username) patch.name = data.username;
@@ -210,7 +214,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const patchProfile = useCallback((patch: Partial<Profile>) => setProfile(p => (p ? { ...p, ...patch } : p)), []);
   const recordGame = (won: boolean, mode?: 'bots' | 'room' | 'quick') => {
     if (!session) return;
-    getSupabase().then(sb => sb?.rpc('record_game', mode ? { won, mode } : { won }).then(({ data }) => { if (data) setProfile(p => (p ? { ...p, ...(data as object) } : p)); }));
+    // through the offline queue (record_game_plus, nonce): an offline result is kept and sent when the connection is back
+    void import('./offline/sync')
+      .then(m => m.submitResult('game', session.user.id, mode ? { won, mode } : { won }))
+      .then(data => { if (data) setProfile(p => (p ? { ...p, ...(data as object) } : p)); });
   };
 
   const value = useMemo<Ctx>(() => ({

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { offlineAwareFetch } from './offline/net';
 
 // Public client config (publishable key is safe to ship in the browser; RLS protects the data).
 const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? 'https://iclxvshtxwukkhljetik.supabase.co';
@@ -12,6 +13,8 @@ export function getSupabase(): Promise<SupabaseClient | null> {
   if (!hasSupabase) return Promise.resolve(null);
   pending ??= import('@supabase/supabase-js').then(({ createClient }) => createClient(url, key, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    // offline: calls fail instantly (no request, no console noise); results are queued by src/offline
+    global: { fetch: offlineAwareFetch },
   }));
   return pending;
 }

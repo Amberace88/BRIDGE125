@@ -1,7 +1,8 @@
 import { track } from '../analytics';
 import { achDef } from './achievements';
+import { submitResult } from '../offline/sync';
 import {
-  achievementRarityRpc, achievementsSyncRpc, claimDailyRpc, fetchProgress, pinAchievementsRpc, reportAchievementRpc, reportGameStatsRpc,
+  achievementRarityRpc, achievementsSyncRpc, claimDailyRpc, fetchProgress, pinAchievementsRpc, reportAchievementRpc,
   type AchSyncResult, type DailyResult, type GameReward, type PinResult, type ProgressData, type RarityData,
 } from './api';
 
@@ -173,16 +174,17 @@ export async function pinAchievements(codes: string[]): Promise<PinResult> {
   return r;
 }
 
-/** Game over: send the tracker's counters (server clamps them). Retries once when throttled. */
+/** Game over: send the tracker's counters (server clamps them) — through the offline queue (rate limit, nonce, later). */
 export async function reportGameStats(stats: object) {
-  if (!state.uid) return;
-  for (let i = 0; i < 2; i++) {
-    let r = null;
-    try { r = await reportGameStatsRpc(stats); } catch { return; }
-    if (r?.ok) { applyAchResult(r, 'game'); return; }
-    if (r?.error !== 'slow') return;
-    await new Promise(res => setTimeout(res, 21_000));
-  }
+  const uid = state.uid;
+  if (!uid) return;
+  const r = await submitResult('stats', uid, { stats }) as AchSyncResult | null;
+  if (r?.ok && state.uid === uid) applyAchResult(r, 'game');
+}
+/** Offline queue applier: the counters of a game played offline reached the server. */
+export function applyQueuedStats(d: unknown, item: { uid: string }) {
+  const r = d as AchSyncResult | null;
+  if (r?.ok && state.uid === item.uid) applyAchResult(r, 'game');
 }
 
 // ------------------------------------------------------------------ game results (via store.profile.reward)

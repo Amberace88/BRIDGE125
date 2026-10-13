@@ -6,10 +6,14 @@ import type { Profile } from '../supabase';
 import { applyAchResult, pushProfile } from '../progress/store';
 import { useProgress } from '../progress/useProgress';
 import {
-  buyBoostRpc, economyStateRpc, forgeRelicRpc, prestigeRpc, recordGamePlusRpc, spendShieldRpc, stakeFinishRpc, stakeForfeitRpc, stakeStartRpc,
+  buyBoostRpc, economyStateRpc, forgeRelicRpc, prestigeRpc, spendShieldRpc, stakeForfeitRpc, stakeStartRpc,
   wheelSpinRpc, type ActiveStake, type BoostResult, type EconomyState, type ForgeResult, type PrestigeResult, type SpinResult,
-  type StakeSettle, type StakeStartResult,
+  type StakeFinishResult, type StakeSettle, type StakeStartResult,
 } from './api';
+import { submitResult } from '../offline/sync';
+import { patchAppProfile } from '../offline/sink';
+import { isOffline } from '../offline/net';
+import { storedUid } from '../offline/session';
 import { STAKE_TIERS, type BoostKind } from './config';
 import { isShielded, shieldStep, stakeIdOf } from './shield';
 
@@ -185,25 +189,40 @@ export async function finishStakeGame(app: AppLike, won: boolean, stakeId?: numb
     await loadEconomy(uid ?? null, true);
     if (store.status === 'ready' && store.s?.stake?.id !== stakeId) { await recordGamePlus(app, won, 'bots'); return null; }
   }
-  const r = await stakeFinishRpc(won);
-  if (!r) { app.recordGame(won, 'bots'); return null; }
-  app.patchProfile(r as unknown as Partial<Profile>);       // same merge as store.recordGame → XP/level/achievement toasts
+  // through the offline queue: sent now, or (offline / network error) kept on the device and settled later
+  const r = await submitResult('stake', sessionUid(app), { won }) as StakeFinishResult | null;
+  if (!r) return null;
+  applyStake(app.patchProfile, r);
+  return r.stake ?? null;
+}
+
+const sessionUid = (app: AppLike) => (app.session as { user?: { id?: string } } | null)?.user?.id ?? store.uid ?? '';
+
+function applyStake(patch: (p: Partial<Profile>) => void, r: StakeFinishResult) {
+  patch(r as unknown as Partial<Profile>);       // same merge as store.recordGame → XP/level/achievement toasts
   patchS({ stake: null, ...(typeof r.bm === 'number' ? { bm: r.bm } : {}) });
   void loadEconomy(store.uid, true);
   if (r.stake) track('stake_finish', { tier: r.stake.tier, status: r.stake.status, payout: r.stake.payout });
-  return r.stake ?? null;
 }
+function applyGame(patch: (p: Partial<Profile>) => void, r: Record<string, unknown>) {
+  patch(r as unknown as Partial<Profile>);
+  if (typeof r.bm === 'number') patchS({ bm: r.bm as number });
+}
+/** Offline queue appliers (src/offline/sync.ts): a result answered after its screen was left. */
+export const applyQueuedGame = (d: unknown) => { if (d && typeof d === 'object') applyGame(p => patchAppProfile(p as Record<string, unknown>), d as Record<string, unknown>); };
+export const applyQueuedStake = (d: unknown) => { if (d && typeof d === 'object') applyStake(p => patchAppProfile(p as Record<string, unknown>), d as StakeFinishResult); };
 
 /**
  * Drop-in for `app.recordGame(won, mode)` that also applies boosts (XP ×2, Lucky shuffle) — record_game_plus.
  * Falls back to app.recordGame when migration 012 is not applied yet.
  */
 export async function recordGamePlus(app: AppLike, won: boolean, mode?: 'bots' | 'room' | 'quick'): Promise<void> {
-  if (!app.session) return;
-  const r = await recordGamePlusRpc(won, mode);
-  if (!r) { app.recordGame(won, mode); return; }
-  app.patchProfile(r as unknown as Partial<Profile>);
-  if (typeof r.bm === 'number') patchS({ bm: r.bm as number });
+  const uid = app.session ? sessionUid(app) : (isOffline() ? storedUid() : null);
+  if (!uid) return;
+  // through the offline queue (nonce → never paid twice): null = kept on the device, applied when it goes through
+  const r = await submitResult('game', uid, mode ? { won, mode } : { won }) as Record<string, unknown> | null;
+  if (!r) return;
+  applyGame(app.patchProfile, r);
 }
 
 /**
