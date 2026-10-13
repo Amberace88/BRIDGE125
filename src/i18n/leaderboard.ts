@@ -125,4 +125,81 @@ const ro: LbStrings = {
   emptyWeek: 'Nicio victorie săptămâna asta — fii primul.',
 };
 
-export const LB: Strings<LbStrings> = { en, lv, ru, uk, lt, et, pl, de, ro, es };
+const be: LbStrings = {
+  tabs: { wins: 'За ўвесь час', week: 'Тыдзень', bm: 'Багацеі', level: 'Узровень' },
+  metric: { wins: 'перамог', week: 'перамог за тыдзень', bm: 'BM', level: 'узровень' },
+  hint: { wins: 'Найбольш перамог', week: 'Перамогі за апошнія 7 дзён', bm: 'Найбольшы баланс Bridge Money', level: 'Найвышэйшы ўзровень' },
+  lvl: n => `Узр. ${n}`,
+  youRank: n => `Вы: #${n}`,
+  refresh: 'Абнавіць', updated: 'Абноўлена', pull: 'Пацягніце, каб абнавіць', release: 'Адпусціце, каб абнавіць', retry: 'Паўтарыць',
+  guestTitle: 'Трапце ў табліцу', guestSub: 'Увайдзіце — кожная згуляная партыя ідзе ў ваш рэйтынг.', noGames: 'яшчэ няма гульняў',
+  emptyWeek: 'На гэтым тыдні перамог яшчэ няма — будзьце першым.',
+};
+
+const kk: LbStrings = {
+  tabs: { wins: 'Барлық уақыт', week: 'Осы апта', bm: 'Ең бай', level: 'Деңгей' },
+  metric: { wins: 'жеңіс', week: 'апталық жеңіс', bm: 'BM', level: 'деңгей' },
+  hint: { wins: 'Ең көп жеңіс', week: 'Соңғы 7 күндегі жеңістер', bm: 'Ең үлкен Bridge Money балансы', level: 'Ең жоғары деңгей' },
+  lvl: n => `Дең. ${n}`,
+  youRank: n => `Сіз: #${n}`,
+  refresh: 'Жаңарту', updated: 'Жаңартылды', pull: 'Жаңарту үшін тартыңыз', release: 'Жаңарту үшін жіберіңіз', retry: 'Қайталау',
+  guestTitle: 'Кестеге шығыңыз', guestSub: 'Кіріңіз — әр ойын рейтингіңізге есептеледі.', noGames: 'әлі ойын жоқ',
+  emptyWeek: 'Бұл аптада әлі жеңіс жоқ — бірінші болыңыз.',
+};
+
+const uz: LbStrings = {
+  tabs: { wins: 'Barcha vaqt', week: 'Shu hafta', bm: 'Eng boylar', level: 'Daraja' },
+  metric: { wins: 'gʻalaba', week: 'haftalik gʻalaba', bm: 'BM', level: 'daraja' },
+  hint: { wins: 'Eng koʻp gʻalaba', week: 'Oxirgi 7 kundagi gʻalabalar', bm: 'Eng katta Bridge Money balansi', level: 'Eng yuqori daraja' },
+  lvl: n => `Dar. ${n}`,
+  youRank: n => `Siz: #${n}`,
+  refresh: 'Yangilash', updated: 'Yangilandi', pull: 'Yangilash uchun torting', release: 'Yangilash uchun qoʻyib yuboring', retry: 'Qayta urinish',
+  guestTitle: 'Jadvalga chiqing', guestSub: 'Kiring — har bir oʻyin reytingingizga hisoblanadi.', noGames: 'hali oʻyin yoʻq',
+  emptyWeek: 'Bu hafta hali gʻalaba yoʻq — birinchi boʻling.',
+};
+
+const az: LbStrings = {
+  tabs: { wins: 'Bütün dövr', week: 'Bu həftə', bm: 'Ən varlılar', level: 'Səviyyə' },
+  metric: { wins: 'qələbə', week: 'həftəlik qələbə', bm: 'BM', level: 'səviyyə' },
+  hint: { wins: 'Ən çox qələbə', week: 'Son 7 gündəki qələbələr', bm: 'Ən böyük Bridge Money balansı', level: 'Ən yüksək səviyyə' },
+  lvl: n => `Səv. ${n}`,
+  youRank: n => `Siz: #${n}`,
+  refresh: 'Yenilə', updated: 'Yeniləndi', pull: 'Yeniləmək üçün çəkin', release: 'Yeniləmək üçün buraxın', retry: 'Yenidən',
+  guestTitle: 'Cədvələ düşün', guestSub: 'Daxil olun — hər oyun reytinqinizə sayılır.', noGames: 'hələ oyun yoxdur',
+  emptyWeek: 'Bu həftə hələ qələbə yoxdur — birinci siz olun.',
+};
+
+const ka: LbStrings = {
+  tabs: { wins: 'ყველა დრო', week: 'ეს კვირა', bm: 'უმდიდრესები', level: 'დონე' },
+  metric: { wins: 'მოგება', week: 'მოგება ამ კვირაში', bm: 'BM', level: 'დონე' },
+  hint: { wins: 'ყველაზე მეტი მოგება', week: 'მოგებები ბოლო 7 დღეში', bm: 'Bridge Money-ს ყველაზე დიდი ბალანსი', level: 'ყველაზე მაღალი დონე' },
+  lvl: n => `დონე ${n}`,
+  youRank: n => `თქვენ: #${n}`,
+  refresh: 'განახლება', updated: 'განახლდა', pull: 'ჩამოწიეთ განსაახლებლად', release: 'გაუშვით განსაახლებლად', retry: 'ხელახლა',
+  guestTitle: 'მოხვდით ცხრილში', guestSub: 'შედით — ყოველი თამაში თქვენს რეიტინგში ითვლება.', noGames: 'ჯერ თამაში არ არის',
+  emptyWeek: 'ამ კვირაში ჯერ მოგება არ არის — იყავით პირველი.',
+};
+
+const hy: LbStrings = {
+  tabs: { wins: 'Բոլոր ժամանակները', week: 'Այս շաբաթ', bm: 'Ամենահարուստները', level: 'Մակարդակ' },
+  metric: { wins: 'հաղթանակ', week: 'հաղթանակ այս շաբաթ', bm: 'BM', level: 'մակարդակ' },
+  hint: { wins: 'Ամենաշատ հաղթանակներ', week: 'Հաղթանակներ վերջին 7 օրում', bm: 'Bridge Money-ի ամենամեծ հաշվեկշիռը', level: 'Ամենաբարձր մակարդակը' },
+  lvl: n => `Մկ. ${n}`,
+  youRank: n => `Դուք՝ #${n}`,
+  refresh: 'Թարմացնել', updated: 'Թարմացված է', pull: 'Քաշեք՝ թարմացնելու համար', release: 'Բաց թողեք՝ թարմացնելու համար', retry: 'Կրկին',
+  guestTitle: 'Մտեք աղյուսակ', guestSub: 'Մուտք գործեք․ յուրաքանչյուր խաղ հաշվվում է ձեր վարկանիշում։', noGames: 'դեռ խաղ չկա',
+  emptyWeek: 'Այս շաբաթ դեռ հաղթանակ չկա․ եղեք առաջինը։',
+};
+
+const bg: LbStrings = {
+  tabs: { wins: 'За всички времена', week: 'Тази седмица', bm: 'Най-богати', level: 'Ниво' },
+  metric: { wins: 'победи', week: 'победи тази седмица', bm: 'BM', level: 'ниво' },
+  hint: { wins: 'Най-много победи', week: 'Победи през последните 7 дни', bm: 'Най-голям баланс Bridge Money', level: 'Най-високо ниво' },
+  lvl: n => `Ниво ${n}`,
+  youRank: n => `Ти: #${n}`,
+  refresh: 'Обнови', updated: 'Обновено', pull: 'Дръпни, за да обновиш', release: 'Пусни, за да обновиш', retry: 'Опитай пак',
+  guestTitle: 'Влез в класацията', guestSub: 'Влез в профила си — всяка изиграна игра се брои за мястото ти.', noGames: 'още няма игри',
+  emptyWeek: 'Тази седмица още няма победи — бъди първият.',
+};
+
+export const LB: Strings<LbStrings> = { en, lv, ru, uk, lt, et, pl, de, ro, es, be, kk, uz, az, ka, hy, bg };
