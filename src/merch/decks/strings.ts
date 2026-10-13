@@ -1,4 +1,4 @@
-import type { Strings } from '../../i18n/pick';
+import type { Strings } from '../../i18n/stringsType';
 
 /**
  * Deck collection copy, keyed by product id. `DeckCopy` has the same shape as ProductCopy in src/i18n/merch.ts, so

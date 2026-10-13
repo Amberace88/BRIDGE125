@@ -12,7 +12,8 @@ import { useApp } from '../store';
  * `registerStrings('home', HOME)` — and the pack is deep-merged over English when the language loads,
  * so a key added to English later simply shows in English until it is translated (never `undefined`).
  */
-export type Strings<T> = { en: T } & { [lang: string]: T | undefined };
+import type { Strings } from './stringsType';
+export type { Strings };
 
 /** Recursively optional: what a translation pack may provide for a module. Functions and arrays are leaves. */
 export type DeepPartial<T> =
