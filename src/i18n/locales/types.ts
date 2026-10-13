@@ -9,6 +9,8 @@ import type { JourneyStrings, QuestStrings } from '../journey';
 import type { AchStrings } from '../achievements';
 import type { EcoStrings } from '../economy';
 import type { CosStrings } from '../../cosmetics/i18n';
+import type { DailyStrings } from '../daily';
+import type { InviteStrings } from '../invite';
 
 /**
  * Feature strings for one lazily loaded language — one chunk per language, fetched together with the core
@@ -28,4 +30,7 @@ export interface FeaturePack {
   economy: DeepPartial<EcoStrings>;
   /** Wardrobe, shop categories and cosmetic item names (src/cosmetics/i18n.ts). Optional: a pack without it shows English. */
   cosmetics?: DeepPartial<CosStrings>;
+  /** Daily challenge + invite friends: optional — a pack without them shows English until translated. */
+  daily?: DeepPartial<DailyStrings>;
+  invite?: DeepPartial<InviteStrings>;
 }

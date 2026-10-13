@@ -42,6 +42,8 @@ export const FRAMES: FrameStyle[] = [
   { id: 'fr_diamond', name: 'Diamond', premium: true },
   // earned, never sold (achievements, collections, prestige — migration 012)
   ...ACH_FRAMES,
+  // invite-only: both players get it when an invited friend finishes 3 games (migration 014)
+  { id: 'ach_fr_envoy', name: "Envoy's Ring", premium: true },
 ];
 
 /** Win celebrations: `<VictoryEffect id>` (src/cosmetics/VictoryEffect.tsx). */
@@ -116,7 +118,7 @@ export const COS_COLUMN: Record<CosKind, string> = {
 };
 
 /** Earned-only items (never in the shop): shown in the wardrobe as locked until unlocked by play. */
-export const EARNED_IDS = new Set(['t_grand_tour', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id)]);
+export const EARNED_IDS = new Set(['t_grand_tour', 'ach_fr_envoy', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id)]);
 
 const PREMIUM = new Set(COS_KINDS.flatMap(k => COS_LISTS[k].filter(i => i.premium).map(i => i.id)));
 export const isCosPremium = (id: string) => PREMIUM.has(id);

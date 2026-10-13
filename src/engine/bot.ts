@@ -1,12 +1,14 @@
 import {
-  type Action, type Card, type GameState, type Suit, GAME_OVER_AT, RESET_AT, SUITS,
-  apply, cardPoints, is6S, isBluff, isQS, legalSingles, makeDeck, nextIdx, options, validatePlay,
+  type Action, type Card, type GameState, type Rng, type Suit, GAME_OVER_AT, RESET_AT, SUITS,
+  apply, cardPoints, is6S, isBluff, isQS, legalSingles, makeDeck, mixSeed, mulberry32, nextIdx, options, validatePlay,
 } from './engine';
 
 export type BotLevel = 'easy' | 'normal' | 'hard' | 'expert';
 export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard', 'expert'];
 
-const rnd = () => Math.random();
+/** The bots' source of randomness: Math.random, or a seeded rng for the duration of one seeded decision. */
+let rndSrc: Rng = Math.random;
+const rnd = () => rndSrc();
 const play = (cards: Card[]): Action => ({ type: 'play', cardIds: cards.map(c => c.id) });
 const pts = (cs: Card[]) => cs.reduce((a, c) => a + cardPoints(c), 0);
 const hidden = (id: string): Card => ({ id, r: '6', s: 'S' });
@@ -24,10 +26,17 @@ export function botView(st: GameState, p: number): GameState {
   };
 }
 
-/** Decide one action for player p (the current player). Always returns an action `apply()` accepts. */
-export function botAction(st: GameState, p: number, level: BotLevel = 'normal'): Action {
-  const a = decide(botView(st, p), p, level);
-  return ensureValid(st, p, a);
+/**
+ * Decide one action for player p (the current player). Always returns an action `apply()` accepts.
+ * Seeded games (st.seed set — the Daily challenge) are deterministic: the same state always gets the same decision,
+ * because the rng is derived from (seed, round, seq, seat). Pass `rng` to override.
+ */
+export function botAction(st: GameState, p: number, level: BotLevel = 'normal', rng?: Rng): Action {
+  const r = rng ?? (st.seed !== undefined ? mulberry32(mixSeed(st.seed, st.round, st.seq, p, 3)) : undefined);
+  if (!r) return ensureValid(st, p, decide(botView(st, p), p, level));
+  const prev = rndSrc;
+  rndSrc = r;
+  try { return ensureValid(st, p, decide(botView(st, p), p, level)); } finally { rndSrc = prev; }
 }
 
 // ---------------------------------------------------------------- safety net

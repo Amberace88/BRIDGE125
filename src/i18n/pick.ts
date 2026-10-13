@@ -70,7 +70,8 @@ const MODULES = new Map<string, Strings<any>>();
 const PACKS = new Map<string, Record<string, unknown>>();
 
 function apply(name: string, mod: Strings<any>, lang: string, pack: Record<string, unknown>) {
-  if (pack[name] !== undefined) mod[lang] = withFallback(mod.en, pack[name]);
+  // a pack without this module (optional keys in FeaturePack) installs plain English for it
+  if (pack[name] !== undefined || mod[lang] === undefined) mod[lang] = withFallback(mod.en, pack[name]);
 }
 
 /** Called once at the end of every feature string module. Packs that loaded earlier are applied at once. */

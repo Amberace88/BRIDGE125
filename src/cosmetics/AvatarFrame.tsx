@@ -106,6 +106,8 @@ const DECOR: Record<string, { back?: ReactNode; front?: ReactNode }> = {
   ach_fr_veteran: { front: <>{glint('-4%', '74%', '.6s')}</> },
   ach_fr_prestige: { back: <span className="afr-glow" aria-hidden />, front: <>{glint('70%', '-6%')}{glint('-2%', '70%', '1.2s')}</> },
   ach_fr_obsidian: { back: <span className="afr-glow" aria-hidden /> },
+  // invite-only (migration 014): two gems — you and your friend — circling the ring
+  ach_fr_envoy: { back: <span className="afr-glow" aria-hidden />, front: <span className="afr-orbit" aria-hidden><i /><i /></span> },
 };
 
 /** Frame ids with decor: 'fr_<k>' for the shop frames, the earned 'ach_fr_*' ids as they are. */

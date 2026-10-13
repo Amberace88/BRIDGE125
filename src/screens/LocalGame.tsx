@@ -17,6 +17,8 @@ import { STAKE_TABLE } from '../economy/config';
 import { markStakeGame, stripStake } from '../economy/shield';
 import { StakeHud } from '../economy/StakePicker';
 import { finishStakeGame, recordGamePlus, useStakeGame } from '../economy/useEconomy';
+import type { DailyRun } from '../daily/session';
+import { DAILY, dailyGame } from '../daily/config';
 
 import { clearSavedGame, saveGame } from './savedGame';
 
@@ -31,10 +33,12 @@ const freshDeal = (g: GameState) => g.events.length === 0 && g.pile.length === 1
  * With `stake` (entry already paid via StakePicker) it is a high-stakes table: 3 hard bots, no bluff, the stake id rides
  * on the GameState (so "continue" resumes it), the Shield boost may soften one Q♠ penalty, game over settles the pot.
  */
-export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameState | null; onExit: () => void; campaign?: CampaignRun; stake?: ActiveStake }) {
+export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: GameState | null; onExit: () => void; campaign?: CampaignRun; stake?: ActiveStake; daily?: DailyRun }) {
   const app = useApp();
   const { t } = app;
-  const fresh = () => campaign
+  const fresh = () => daily
+    ? dailyGame(daily.day, app.name || t.you, t.botNames)
+    : campaign
     ? setupMatch(campaign.match, campaign.names)
     : stake
     ? markStakeGame(newGame([
@@ -54,14 +58,24 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
   const { tally, reset: resetTally } = useGameTally(g, 0);
   const god = useGodFlags();
   const recorded = useRef(false);
-  const level = campaign?.match.level ?? (isStake ? STAKE_TABLE.level : app.level);
+  const level = daily ? DAILY.level : campaign?.match.level ?? (isStake ? STAKE_TABLE.level : app.level);
   const turnMs = campaign ? twistInfo(campaign.match.twist).turnMs : undefined;
-  const mode = campaign ? 'journey' : isStake ? 'stake' : 'bots';
+  const mode = daily ? 'daily' : campaign ? 'journey' : isStake ? 'stake' : 'bots';
   // bots dress by difficulty (expert tables look premium); fixed per seat for the whole game
   const botsKey = g.players.map(p => (p.bot ? 1 : 0)).join('');
   const looks = useMemo(() => g.players.map((p, i) => (p.bot ? botLook(level, i) : null)), [botsKey, level]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (!campaign) saveGame(g); }, [g, campaign]);
+  useEffect(() => { if (!campaign && !daily) saveGame(g); }, [g, campaign, daily]);
+  // Daily challenge: my turns (a turn starts whenever play comes to me) — part of the score
+  const myTurns = useRef(daily?.turns ?? 0);
+  const wasMine = useRef(!!resume && resume.current === 0 && (resume.phase === 'play' || resume.phase === 'chooseSuit'));
+  useEffect(() => {
+    if (!daily) return;
+    const mine = g.current === 0 && (g.phase === 'play' || g.phase === 'chooseSuit');
+    if (mine && !wasMine.current) myTurns.current += 1;
+    wasMine.current = mine;
+    daily.onState?.(g, myTurns.current);
+  }, [g.seq]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!resume) track('game_start', { mode, players: g.players.length, level, ...(campaign ? { match: campaign.match.id } : {}) });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -74,7 +88,10 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
       if (isStake) void finishStakeGame(app, won, st.stakeId);
       else void recordGamePlus(app, won, 'bots');
       track('game_end', { mode, won, rounds: g.round, players: g.players.length, ...(campaign ? { match: campaign.match.id } : {}) });
-      if (campaign) {
+      if (daily) {
+        reportGame(tally.current, won, 'bots');
+        daily.onEnd({ won, points: g.players[0].score, roundsWon: tally.current.rounds_won, rounds: g.round, queens: tally.current.queenHits, turns: Math.max(1, myTurns.current), g });
+      } else if (campaign) {
         const myScore = g.players[0].score;
         const stars = starsFor(campaign.match, { won, queenHits: tally.current.queenHits, myScore });
         reportGame(tally.current, won, 'journey', { won, stars });
@@ -133,13 +150,14 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
       deadline={turnMs ? deadline : undefined} turnMs={turnMs}
       onAct={a => setG(cur => (isStake ? st.step(cur, apply(cur, 0, a)) : apply(cur, 0, a)))}
       onNextRound={() => setG(cur => advance(cur))}
-      onRematch={campaign || isStake ? undefined : () => {
+      onRematch={campaign || isStake || daily ? undefined : () => {
         recorded.current = false; resetTally();
         track('game_start', { mode: 'bots', players: g.players.length, rematch: true });
         setG(newGame(g.players.map(p => ({ name: p.name, bot: p.bot })), { bluff: !!g.rules?.bluff }));
       }}
-      onExit={() => { if (!campaign) clearSavedGame(); onExit(); }} />
+      onExit={() => { if (!campaign && !daily) clearSavedGame(); onExit(); }} />
     {campaign?.overlay}
+    {daily?.overlay}
     {isStake && <StakeHud pot={st.active?.pot} shield={st.armed} shielded={st.shielded} />}
     </>
   );

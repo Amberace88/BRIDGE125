@@ -62,6 +62,8 @@ export interface GameRules {
   gameOverAt?: number;
   /** Journey twist: when a player burns on exactly 125, every other player takes this many points (default 0). */
   burnSplash?: number;
+  /** Daily challenge: the game also ends after this many rounds (lowest total wins). Default: no limit. */
+  maxRounds?: number;
 }
 
 /**
@@ -105,9 +107,23 @@ export interface GameState {
   lastPlay?: LastPlay | null;
   /** Bluff mode only: the current player was hit by this many aces and may only pass (or challenge). */
   aceSkip?: number;
+  /**
+   * Seeded games only (Daily challenge): the base seed. Every round's deal is derived from (seed, round), so all
+   * players get the same deals whatever they play; mid-round reshuffles use `rs`. Normal games leave both undefined
+   * and keep using Math.random / the rng passed in.
+   */
+  seed?: number;
+  /** Seeded games only: running PRNG state for reshuffles, re-derived from (seed, round) at every deal. */
+  rs?: number;
 }
 
-export interface NewGameOpts { bluff?: boolean }
+export interface NewGameOpts {
+  bluff?: boolean;
+  /** Deterministic game: same seed → same deals, same reshuffles, same bot decisions for the same moves. */
+  seed?: number;
+  /** End the game after this many rounds (see GameRules.maxRounds). */
+  maxRounds?: number;
+}
 export const isBluff = (st: GameState) => !!st.rules?.bluff;
 /** Cards a Q♠ costs (table rule, default 5). */
 export const queenDraw = (st: GameState) => st.rules?.queenDraw ?? 5;
@@ -115,6 +131,47 @@ export const queenDraw = (st: GameState) => st.rules?.queenDraw ?? 5;
 export const gameOverAt = (st: GameState) => st.rules?.gameOverAt ?? GAME_OVER_AT;
 
 export type Rng = () => number;
+
+/* ---------------------------------------------------------------- seeded randomness (Daily challenge) */
+
+/** Mix any number of integers into one 32-bit seed (murmur3-style finaliser per step). */
+export function mixSeed(...xs: number[]): number {
+  let h = 0x9e3779b9 | 0;
+  for (const x of xs) {
+    h = Math.imul(h ^ (x | 0), 0x85ebca6b);
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16;
+  }
+  return h >>> 0;
+}
+
+/** 32-bit seed from a string (FNV-1a), e.g. a calendar day: `seedFrom('daily:2026-10-13')`. */
+export function seedFrom(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return mixSeed(h >>> 0);
+}
+
+/** One mulberry32 step: returns [value in [0,1), next state]. */
+function mulberryStep(a: number): [number, number] {
+  const next = (a + 0x6d2b79f5) >>> 0;
+  let t = next;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return [((t ^ (t >>> 14)) >>> 0) / 4294967296, next];
+}
+
+/** A small, fast, seedable PRNG (mulberry32). */
+export function mulberry32(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => { const [v, n] = mulberryStep(a); a = n; return v; };
+}
+
+/** The reshuffle rng of a seeded state: advances `st.rs` in place (call on a cloned state only). */
+function stateRng(st: GameState): Rng {
+  return () => { const [v, n] = mulberryStep(st.rs ?? 0); st.rs = n; return v; };
+}
 
 export function makeDeck(): Card[] {
   const d: Card[] = [];
@@ -146,6 +203,8 @@ export function newGame(names: { name: string; bot: boolean }[], rngOrOpts?: Rng
     mustCover: false, drawnThisTurn: false, round: 0, starter: 0, events: [], seq: 0, lastResult: null, winners: [],
     rules: { bluff: !!opts.bluff }, lastPlay: null, aceSkip: 0,
   };
+  if (opts.maxRounds) st.rules!.maxRounds = opts.maxRounds;
+  if (opts.seed !== undefined) st.seed = opts.seed >>> 0;
   return dealRound(st, rng, 0);
 }
 
@@ -153,6 +212,11 @@ export function dealRound(prev: GameState, rng: Rng, starter: number): GameState
   const st = clone(prev);
   st.round += 1;
   st.starter = starter;
+  if (st.seed !== undefined) {
+    // seeded: the deal depends only on (seed, round) — never on how earlier rounds were played
+    rng = mulberry32(mixSeed(st.seed, st.round, 1));
+    st.rs = mixSeed(st.seed, st.round, 2);
+  }
   st.deck = shuffle(makeDeck(), rng);
   st.pile = [];
   const n = st.players.length;
@@ -246,7 +310,7 @@ function drawCards(st: GameState, p: number, n: number, forced = false): number 
     if (!st.deck.length) {
       if (st.pile.length <= 1) break;
       const t = st.pile.pop()!;
-      st.deck = shuffle(st.pile, Math.random);
+      st.deck = shuffle(st.pile, st.seed !== undefined ? stateRng(st) : Math.random);
       st.pile = [t];
       st.events.push({ t: 'reshuffle' });
     }
@@ -594,7 +658,8 @@ function roundEnd(st: GameState, winner: number, finalCards: Card[], _rng: Rng, 
   }
   st.lastResult = { winner, mult, jacks, rows };
   st.events.push({ t: 'roundEnd', winner, mult });
-  if (st.players.some(pl => pl.score >= gameOverAt(st))) {
+  const lastRound = !!st.rules?.maxRounds && st.round >= st.rules.maxRounds;
+  if (lastRound || st.players.some(pl => pl.score >= gameOverAt(st))) {
     const min = Math.min(...st.players.map(pl => pl.score));
     st.winners = st.players.map((pl, i) => (pl.score === min ? i : -1)).filter(i => i >= 0);
     st.phase = 'gameOver';

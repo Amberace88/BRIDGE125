@@ -21,6 +21,7 @@ import { bannerCss } from '../cosmetics/data';
 import { AudioSettings } from '../voice/AudioControls';
 import { WalletPanel } from '../social/WalletPanel';
 import { HOME } from '../i18n/home';
+import { InviteCard } from '../referral/InviteCard';
 
 initMusic();
 
@@ -192,6 +193,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
               {signedIn ? (
                 <>
                   <div className="prow"><span>{p.email}</span><b className="mute" style={{ fontWeight: 600 }}>{app.session?.user.email}</b></div>
+                  <InviteCard />
                   <WalletPanel onDiamonds={onDiamonds} />
                   <ChangePassword />
                   {app.isAdmin && <button className="btn acc" style={{ width: '100%', marginTop: 14 }} onClick={onAdmin}>📊 {p.adminPanel}</button>}
