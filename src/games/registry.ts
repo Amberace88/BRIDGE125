@@ -4,6 +4,7 @@ import { durak } from './durak';
 import { thousand } from './thousand';
 import { solitaire } from './solitaire';
 import { sudoku } from './sudoku';
+import { mahjong } from './mahjong';
 
 // One line per game. Keep Bridge out of here: Bridge is the main game and keeps its own home screen.
 const MODULES: GameModule[] = [
@@ -12,6 +13,7 @@ const MODULES: GameModule[] = [
   thousand,
   solitaire,
   sudoku,
+  mahjong,
 ];
 
 export const GAMES: readonly GameModule[] = MODULES;
