@@ -621,3 +621,6 @@ input { font: inherit; }
 .evn.n-admin_action { background: rgba(255,90,110,.15); color: #ffc2cb; }
 .evw { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .evp { color: var(--mute); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* table menu: leaving a local game keeps it */
+.sheet .menu-note { margin: 2px 4px 12px; font-size: 13px; line-height: 1.4; color: var(--mute, rgba(255,255,255,.62)); text-align: center; }

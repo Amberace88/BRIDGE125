@@ -20,7 +20,10 @@ import { finishStakeGame, recordGamePlus, useStakeGame } from '../economy/useEco
 import type { DailyRun } from '../daily/session';
 import { DAILY, dailyGame } from '../daily/config';
 
-import { clearSavedGame, saveGame } from './savedGame';
+import { clearJourneyRun, clearSavedGame, loadJourneyRun, saveGame, saveJourneyRun } from './savedGame';
+import type { Tally } from '../campaign/quests';
+import { useStrings } from '../i18n/pick';
+import { SAVING } from '../i18n/saving';
 
 export { loadSavedGame, clearSavedGame } from './savedGame';
 
@@ -55,7 +58,9 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
   // resumed ("continue") game of a stake the server no longer has open → finish it as a casual game
   useEffect(() => { if (st.stale && !campaign) setG(cur => stripStake(cur)); }, [st.stale]); // eslint-disable-line react-hooks/exhaustive-deps
   useGameAchievements(g, 0, { mode: isStake ? 'stake' : 'bots' });
-  const { tally, reset: resetTally } = useGameTally(g, 0);
+  const savedTally = useRef(campaign && resume ? (loadJourneyRun(campaign.match.id)?.tally as Tally | undefined) ?? null : null);
+  const { tally, reset: resetTally } = useGameTally(g, 0, savedTally.current);
+  const sv = useStrings(SAVING);
   const god = useGodFlags();
   const recorded = useRef(false);
   const level = daily ? DAILY.level : campaign?.match.level ?? (isStake ? STAKE_TABLE.level : app.level);
@@ -65,7 +70,12 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
   const botsKey = g.players.map(p => (p.bot ? 1 : 0)).join('');
   const looks = useMemo(() => g.players.map((p, i) => (p.bot ? botLook(level, i) : null)), [botsKey, level]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (!campaign && !daily) saveGame(g); }, [g, campaign, daily]);
+  // everything local is saved on every move, so leaving is always safe ("continue" / Journey resume)
+  useEffect(() => {
+    if (daily) return;
+    if (campaign) { if (g.phase === 'gameOver') clearJourneyRun(campaign.match.id); else saveJourneyRun(campaign.match.id, g, tally.current); }
+    else saveGame(g);
+  }, [g, campaign, daily]); // eslint-disable-line react-hooks/exhaustive-deps
   // Daily challenge: my turns (a turn starts whenever play comes to me) — part of the score
   const myTurns = useRef(daily?.turns ?? 0);
   const wasMine = useRef(!!resume && resume.current === 0 && (resume.phase === 'play' || resume.phase === 'chooseSuit'));
@@ -155,7 +165,8 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
         track('game_start', { mode: 'bots', players: g.players.length, rematch: true });
         setG(newGame(g.players.map(p => ({ name: p.name, bot: p.bot })), { bluff: !!g.rules?.bluff }));
       }}
-      onExit={() => { if (!campaign && !daily) clearSavedGame(); onExit(); }} />
+      exitLabel={sv.saveExit} exitNote={sv.savedNote}
+      onExit={() => { if (!campaign && !daily && g.phase === 'gameOver') clearSavedGame(); onExit(); }} />
     {campaign?.overlay}
     {daily?.overlay}
     {isStake && <StakeHud pot={st.active?.pot} shield={st.armed} shielded={st.shielded} />}

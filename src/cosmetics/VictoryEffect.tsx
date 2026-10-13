@@ -22,7 +22,7 @@ export const VictoryEffect = memo(function VictoryEffect({ id, contained = false
   return <div key={run} className={`vfx vfx-${kind} ${contained ? 'contained' : ''}`} aria-hidden data-victory={id}>{parts}</div>;
 });
 
-const DURATION: Record<string, number> = { classic: 2200, confetti: 4200, fireworks: 3600, waterfall: 4000, crowns: 4200 };
+const DURATION: Record<string, number> = { classic: 2200, confetti: 4200, fireworks: 3600, waterfall: 4000, crowns: 4200, s1_vx_champagne: 4400 };
 const v = (o: Record<string, string | number>) => Object.fromEntries(Object.entries(o).map(([k, x]) => [`--${k}`, typeof x === 'number' ? `${x}` : x])) as CSSProperties;
 const GOLDS = ['#fff2c4', '#f3de9c', '#e2bd62', '#c9a54c', '#fffaf0', '#b38a33'];
 
@@ -75,6 +75,24 @@ const BUILD: Record<string, (small: boolean, seed: number) => ReactNode> = {
     }
     return out;
   },
+};
+
+/** Season 1 "Champagne Shower" (Season Pass): a cork-pop flash, foam jets, rising bubbles and gold foil (styles/season-cosmetics.css). */
+BUILD.s1_vx_champagne = (small, seed) => {
+  const r = rng(seed), out: ReactNode[] = [<b key="p" className="pop" />];
+  const jets = small ? 5 : 9;
+  for (let i = 0; i < jets; i++) {
+    out.push(<i key={'j' + i} className="jet" style={v({ a: `${(i - (jets - 1) / 2) * (small ? 13 : 9) + (r() - 0.5) * 6}deg`, w: `${(small ? 3 : 4) + r() * 4}px`, dl: `${0.05 + r() * 0.25}s` })} />);
+  }
+  const n = small ? 22 : 54;
+  for (let i = 0; i < n; i++) {
+    out.push(<i key={'b' + i} className="bb" style={v({ x: `${r() * 100}%`, s: `${(small ? 7 : 8) + r() * (small ? 10 : 16)}px`, d: `${(small ? 1.8 : 2.8) + r() * 1.4}s`, dl: `${small ? 0.05 + r() * 1.1 : 0.3 + r() * 1.6}s`, sway: `${(r() - 0.5) * 70}px` })} />);
+  }
+  const f = small ? 12 : 30;
+  for (let i = 0; i < f; i++) {
+    out.push(<i key={'f' + i} className="fl" style={v({ x: `${r() * 100}%`, s: `${(small ? 5 : 7) + r() * 6}px`, d: `${(small ? 2 : 3) + r() * 1.2}s`, dl: `${0.6 + r() * 1.4}s`, sway: `${(r() - 0.5) * 100}px`, rz: `${r() * 360}deg` })} />);
+  }
+  return out;
 };
 
 const CrownSvg = () => (

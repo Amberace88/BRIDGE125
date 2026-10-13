@@ -9,13 +9,17 @@ import { fmtBm } from '../../shop/catalog';
 import { buzz, sfx } from '../../sound';
 import { TwistIcon } from './Chapter';
 
-interface Props { s: JourneyStrings; m: MatchDef; lang: Lang; best: number; onAccept: () => void; onClose: () => void }
+interface Props {
+  s: JourneyStrings; m: MatchDef; lang: Lang; best: number; onAccept: () => void; onClose: () => void;
+  /** an unfinished game of this match is saved on the device: resume it (primary) or start over */
+  saved?: { label: string; restart: string }; onResume?: () => void;
+}
 
 /**
  * Pre-match card. For a boss it is a short cinematic: the title sweeps in, the cameo flips onto the table with a slam,
  * the name and quote write themselves, then the house rule slides up with a card illustration. Tap to skip ahead.
  */
-export function MatchIntro({ s, m, lang, best, onAccept, onClose }: Props) {
+export function MatchIntro({ s, m, lang, best, onAccept, onClose, saved, onResume }: Props) {
   const boss = m.boss;
   const [fast, setFast] = useState(!boss);
   const c = character(m.foe);
@@ -96,7 +100,12 @@ export function MatchIntro({ s, m, lang, best, onAccept, onClose }: Props) {
 
         <AnimatePresence>
           <motion.div className="jintro-cta" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: T(2.6) }}>
-            <button className="btn acc big" onClick={() => { sfx.tap(); onAccept(); }}><span className="suitspin" aria-hidden>♠</span>{boss ? s.intro.accept : s.play}<span className="arr" aria-hidden>→</span></button>
+            {saved && onResume
+              ? <>
+                <button className="btn acc big" onClick={() => { sfx.tap(); onResume(); }}><span className="suitspin" aria-hidden>▶</span>{saved.label}<span className="arr" aria-hidden>→</span></button>
+                <button className="btn ghost" onClick={() => { sfx.tap(); onAccept(); }}>{saved.restart}</button>
+              </>
+              : <button className="btn acc big" onClick={() => { sfx.tap(); onAccept(); }}><span className="suitspin" aria-hidden>♠</span>{boss ? s.intro.accept : s.play}<span className="arr" aria-hidden>→</span></button>}
             <button className="btn ghost" onClick={onClose}>{s.intro.back}</button>
           </motion.div>
         </AnimatePresence>

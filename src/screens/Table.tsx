@@ -32,6 +32,8 @@ export interface TableProps {
   onNextRound: () => void;
   onRematch?: () => void;
   onExit: () => void;
+  /** Menu wording when leaving keeps the game (local games save every move). */
+  exitLabel?: string; exitNote?: string;
   deadline?: number | null;          // epoch ms for current turn (online)
   turnMs?: number;
   topCenter?: ReactNode;              // shown above the round label
@@ -154,7 +156,7 @@ function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emo
 
 /* =================================================================================== */
 
-export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false, overlay, onSeatTap, myRowExtra, looks }: TableProps) {
+export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false, overlay, onSeatTap, myRowExtra, looks, exitLabel, exitNote }: TableProps) {
   const app = useApp();
   const cos = useCosmetics();
   const EMOTES = cos.emotes;
@@ -822,7 +824,8 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
             <motion.div className="scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMenu(false)} />
             <motion.div className="sheet" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 320, damping: 32 }}>
               <div className="grab" />
-              <button className="btn danger" style={{ width: '100%' }} onClick={onExit}>{t.menuQuit}</button>
+              {exitNote && <p className="menu-note">{exitNote}</p>}
+              <button className={`btn ${exitLabel ? 'acc' : 'danger'}`} style={{ width: '100%' }} onClick={onExit}>{exitLabel ?? t.menuQuit}</button>
               <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={() => setMenu(false)}>{t.back}</button>
             </motion.div>
           </>

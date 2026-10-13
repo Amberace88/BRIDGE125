@@ -33,6 +33,8 @@ const SocialRoot = lazyNamed(() => import('./social/SocialRoot'), 'SocialRoot');
 const QuestToasts = lazyNamed(() => import('./campaign/QuestToasts'), 'QuestToasts');
 const Daily = lazyNamed(() => import('./daily/Daily'), 'Daily');
 const ReferralRoot = lazyNamed(() => import('./referral/ReferralRoot'), 'ReferralRoot');
+const SeasonScreen = lazyNamed(() => import('./screens/Season'), 'SeasonScreen');
+const SeasonToast = lazyNamed(() => import('./season/parts'), 'SeasonToast');
 import { findQuickMatch, newRoomCode } from './online/ids';
 import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
@@ -46,7 +48,7 @@ type Route =
   | { name: 'journey' }
   /** the Daily challenge: same seeded deal for everyone (it runs LocalGame in daily mode itself) */
   | { name: 'daily' };
-type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | LegalKind | null;
+type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | LegalKind | null;
 
 function parse(): { route: Route; overlay: Overlay } {
   const p = location.pathname;
@@ -54,7 +56,7 @@ function parse(): { route: Route; overlay: Overlay } {
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
   if (/^\/journey\/?$/.test(p)) return { route: { name: 'journey' }, overlay: null };
   if (/^\/daily\/?$/.test(p)) return { route: { name: 'daily' }, overlay: null };
-  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault)\/?$/);
+  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault|season)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
 
@@ -130,6 +132,7 @@ function Shell() {
               onQuests={() => openOverlay('quests')}
               onAchievements={() => openOverlay('achievements')}
               onVault={() => openOverlay('vault')}
+              onSeason={() => openOverlay('season')}
               onStakes={() => setSheet('stakes')}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
@@ -166,7 +169,8 @@ function Shell() {
       <AnimatePresence>
         {overlay === 'rules' && <Guide key="g" onClose={closeOverlay} onPractice={() => go({ name: 'local', resume: null, key: Date.now() })} />}
         {overlay === 'admin' && <AdminPanel key="adm" onClose={closeOverlay} />}
-        {overlay === 'shop' && <ShopScreen key="shop" initialTab={shopTab} onClose={closeOverlay} onAuth={() => { closeOverlay(); setSheet('auth'); }} />}
+        {overlay === 'shop' && <ShopScreen key="shop" initialTab={shopTab} onClose={closeOverlay} onAuth={() => { closeOverlay(); setSheet('auth'); }} onSeason={() => openOverlay('season')} />}
+        {overlay === 'season' && <SeasonScreen key="season" onClose={closeOverlay} onAuth={auth} onDiamonds={() => openShop('diamonds')} />}
         {overlay === 'quests' && <QuestsScreen key="quests" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'achievements' && <AchievementsHall key="ach" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'vault' && <VaultScreen key="vault" onClose={closeOverlay} onAuth={auth} />}
@@ -178,7 +182,7 @@ function Shell() {
       </AnimatePresence>
       <AnimatePresence>
         {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} onAdmin={() => { setSheet(null); openOverlay('admin'); }} onShop={() => { setSheet(null); openShop(); }} onGod={() => { setSheet(null); openOverlay('god'); }}
-          onDiamonds={() => { setSheet(null); openShop('diamonds'); }} onAchievements={() => { setSheet(null); openOverlay('achievements'); }} onVault={() => { setSheet(null); openOverlay('vault'); }} />}
+          onDiamonds={() => { setSheet(null); openShop('diamonds'); }} onAchievements={() => { setSheet(null); openOverlay('achievements'); }} onVault={() => { setSheet(null); openOverlay('vault'); }} onSeason={() => { setSheet(null); openOverlay('season'); }} />}
         {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} onLegal={k => { setSheet(null); openOverlay(k); }} />}
         {sheet === 'leaders' && <Leaderboard key="lb" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
         {sheet === 'install' && <InstallSheet key="in" onClose={() => setSheet(null)} />}
@@ -197,6 +201,7 @@ function Shell() {
         <SocialRoot />
         <QuestToasts />
         <ReferralRoot onAuth={auth} />
+        <SeasonToast muted={overlay === 'season'} onOpen={() => { setSheet(null); openOverlay('season'); }} />
         <RewardsLayer autoDaily={route.name === 'home' && !overlay && !sheet} onAuth={() => setSheet('auth')} />
       </Deferred>
     </div>

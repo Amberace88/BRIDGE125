@@ -4,9 +4,10 @@ import { gameEvents, newTally, stepTally, type GameMode, type Tally } from './qu
 import { submitGameEvents } from './questStore';
 
 /** Accumulates quest-relevant events of the running game, state by state, for seat `me`. Resets on a new game. */
-export function useGameTally(g: GameState | null | undefined, me: number) {
-  const tally = useRef<Tally>(newTally());
-  const prev = useRef<GameState | null>(null);
+export function useGameTally(g: GameState | null | undefined, me: number, init?: Tally | null) {
+  // a resumed game continues its saved tally (the resumed state itself is already counted in it)
+  const tally = useRef<Tally>(init ? { ...newTally(), ...init } : newTally());
+  const prev = useRef<GameState | null>(init && g ? g : null);
   const seq = g?.seq;
   useEffect(() => {
     if (!g) return;

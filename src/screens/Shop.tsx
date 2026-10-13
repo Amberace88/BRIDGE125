@@ -10,7 +10,7 @@ import { sfx, buzz } from '../sound';
 import { buyItemRpc } from '../progress/api';
 import { openDailyReward, syncAppProfile, useProgress } from '../progress/useProgress';
 import {
-  BUNDLES, COLLECTIBLES, COSMETICS, PACKS, PASS, RARITIES, accentOf, cosmetic, featuredToday, fmtBm, fmtEur, forSlot, isNew, packPrice, packSavePct, packWorth, themeName,
+  BUNDLES, COLLECTIBLES, COSMETICS, PACKS, RARITIES, accentOf, cosmetic, featuredToday, fmtBm, fmtEur, forSlot, isNew, packPrice, packSavePct, packWorth, themeName,
   type Bundle, type Cosmetic, type Rarity, type Slot,
 } from '../shop/catalog';
 import { COS_KINDS, bannerCss, type CosKind } from '../cosmetics/data';
@@ -24,6 +24,8 @@ import { DiamondPacks } from '../social/DiamondPacks';
 import { GiftItemSheet } from '../social/GiftItemSheet';
 import { DiamondIcon } from '../social/GiftArt';
 import { SOCIAL_STRINGS } from '../i18n/social';
+import { SEASON_STRINGS } from '../i18n/season';
+import { SEASON_S1 } from '../season/data';
 import '../styles/shop.css';
 
 type Tab = 'featured' | 'diamonds' | 'sets' | 'tables' | 'backs' | 'faces' | 'frames' | 'victory' | 'emotes' | 'titles' | 'colours' | 'bundles';
@@ -325,8 +327,9 @@ function BundleCard({ b, i, S, lang, notify, onToggle }: { b: Bundle; i: number;
   );
 }
 
-function PassCard({ S, lang, notify, onToggle }: { S: S; lang: string; notify: string[]; onToggle: (id: string) => void }) {
+function PassCard({ S, onSeason }: { S: S; lang: string; notify: string[]; onToggle: (id: string) => void; onSeason?: () => void }) {
   const tilt = useTilt(4);
+  const ss = useStrings(SEASON_STRINGS);
   return (
     <motion.article className="spass" style={tilt.style} onPointerMove={tilt.onPointerMove} onPointerLeave={tilt.onPointerLeave}
       initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
@@ -340,9 +343,8 @@ function PassCard({ S, lang, notify, onToggle }: { S: S; lang: string; notify: s
       </div>
       <div className="passside">
         <div className="passticket" aria-hidden><span className="serif">B</span><i /></div>
-        <span className="seur">{fmtEur(PASS.priceEur, lang)}</span>
-        <em className="soonchip">{S.comingSoon}</em>
-        <NotifyRow id={PASS.id} on={notify.includes(PASS.id)} onToggle={onToggle} S={S} />
+        <span className="seur" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><DiamondIcon size={20} />{fmtBm(SEASON_S1.premiumPrice)}</span>
+        {onSeason && <button className="btn acc sm" onClick={onSeason}>{ss.toast.open} ›</button>}
       </div>
     </motion.article>
   );
@@ -468,7 +470,7 @@ function FlyItem({ from, to, bg, onDone }: { from: DOMRect; to: DOMRect; bg: str
 
 /* ================================================================== screen */
 
-export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialItem }: { onClose: () => void; onAuth: () => void; initialTab?: Tab; initialItem?: string }) {
+export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialItem, onSeason }: { onClose: () => void; onAuth: () => void; initialTab?: Tab; initialItem?: string; onSeason?: () => void }) {
   const app = useApp();
   const Sall = useStrings(SHOP_STRINGS);
   const S = Sall.shop;
@@ -653,7 +655,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
                   </>}
 
                   <div className="ssec"><b className="serif">{S.passTitle}</b></div>
-                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={toggleN} />
+                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={toggleN} onSeason={onSeason} />
 
                   <div className="ssec"><b className="serif">{S.bundlesTitle}</b><button className="alink" onClick={() => setTab('bundles')}>{S.seeAll} →</button></div>
                   <div className="sgrid">
@@ -696,7 +698,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
                     {BUNDLES.map((b, i) => <BundleCard key={b.id} b={b} i={i} S={S} lang={app.lang} notify={notify} onToggle={toggleN} />)}
                   </div>
                   <div className="ssec"><b className="serif">{S.passTitle}</b></div>
-                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={toggleN} />
+                  <PassCard S={S} lang={app.lang} notify={notify} onToggle={toggleN} onSeason={onSeason} />
                 </>
               )}
             </motion.div>

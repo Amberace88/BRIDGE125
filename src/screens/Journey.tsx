@@ -16,11 +16,14 @@ import { LocalGame } from './LocalGame';
 import { ChapterFeature, ChapterList, JourneyMap } from './journey/JourneyMap';
 import { ChapterView } from './journey/Chapter';
 import { MatchIntro } from './journey/MatchIntro';
+import { clearJourneyRun, loadJourneyRun } from './savedGame';
+import { SAVING } from '../i18n/saving';
+import type { GameState } from '../engine/engine';
 import { MatchResult } from './journey/MatchResult';
 import { HouseRuleTab } from './journey/HouseRuleTab';
 import '../styles/journey.css';
 
-type View = { v: 'map' } | { v: 'city'; ch: ChapterId } | { v: 'match'; id: string; key: number };
+type View = { v: 'map' } | { v: 'city'; ch: ChapterId } | { v: 'match'; id: string; key: number; resume?: GameState | null };
 
 function useWide(min = 900) {
   const [w, setW] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= min : false));
@@ -54,7 +57,16 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
 
   const select = (c: ChapterId) => { picked.current = true; setSel(c); };
   const enter = (c: ChapterId) => { picked.current = true; setSel(c); sfx.whoosh(0.8); setView({ v: 'city', ch: c }); };
-  const start = (m: MatchDef) => { setIntro(null); setShown(null); setRes(null); setView({ v: 'match', id: m.id, key: Date.now() }); };
+  // an unfinished match on this device (saved on every move) — offered as "continue" on the map and in the intro
+  const [run, setRun] = useState(() => loadJourneyRun());
+  const sv = useStrings(SAVING);
+  const start = (m: MatchDef, resume?: GameState | null) => {
+    if (!resume) clearJourneyRun(m.id);
+    setIntro(null); setShown(null); setRes(null); setView({ v: 'match', id: m.id, key: Date.now(), resume: resume ?? null });
+  };
+  useEffect(() => { if (view.v !== 'match') setRun(loadJourneyRun()); }, [view.v]);
+  const runMatch = run ? matchById(run.match) ?? null : null;
+  const runInfo = (g: GameState) => ({ round: g.round, score: g.players[0]?.score ?? 0 });
 
   const onEnd = (o: MatchOutcome) => {
     const prev = stars[o.matchId] ?? 0;
@@ -102,6 +114,13 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
               <main className={`jmain ${wide ? 'wide' : ''}`}>
                 <section className="jmapcol">
                   <JourneyMap s={s} stars={stars} selected={sel} onSelect={select} onEnter={enter} mx={mx} my={my} wide={wide} />
+                  {run && runMatch && (
+                    <motion.button className="jresume" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 24 }}
+                      onClick={() => { sfx.tap(); start(runMatch, run.g); }}>
+                      <span className="pulse" aria-hidden>▶</span>
+                      <span className="tx"><small>{sv.continueRun} · {s.cities[runMatch.chapter].name} · {s.matchN(runMatch.k)}</small><b>{sv.resume(runInfo(run.g).round, runInfo(run.g).score)}</b></span>
+                    </motion.button>
+                  )}
                   <div className="jprog">
                     <span className="lbl">{s.progress(total, TOTAL_STARS)}</span>
                     <span className="bar" aria-hidden><motion.i initial={{ width: 0 }} animate={{ width: `${(total / TOTAL_STARS) * 100}%` }} transition={{ duration: 1.4, delay: 0.6 }} /></span>
@@ -122,13 +141,15 @@ export function Journey({ onExit, onAuth }: { onExit: () => void; onAuth?: () =>
         )}
         {view.v === 'match' && match && campaign && (
           <motion.div key={'m' + view.key} className="jmatchwrap" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-            <LocalGame resume={null} campaign={campaign} onExit={() => { setShown(null); setView({ v: 'city', ch: match.chapter }); }} />
+            <LocalGame resume={view.resume ?? null} campaign={campaign} onExit={() => { setShown(null); setView({ v: 'city', ch: match.chapter }); }} />
           </motion.div>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {intro && <MatchIntro key={intro.id} s={s} m={intro} lang={app.lang} best={stars[intro.id] ?? 0} onAccept={() => start(intro)} onClose={() => setIntro(null)} />}
+        {intro && <MatchIntro key={intro.id} s={s} m={intro} lang={app.lang} best={stars[intro.id] ?? 0} onAccept={() => start(intro)} onClose={() => setIntro(null)}
+          saved={run && run.match === intro.id ? { label: sv.resume(runInfo(run.g).round, runInfo(run.g).score), restart: sv.restart } : undefined}
+          onResume={() => run && start(intro, run.g)} />}
       </AnimatePresence>
       <AnimatePresence>
         {shown && match && (

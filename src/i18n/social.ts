@@ -25,7 +25,7 @@ export interface SocialStrings {
   };
   wallet: {
     title: string; history: string; none: string; refunded: string; sent: string; received: string; ledger: string;
-    reasons: Record<'purchase' | 'refund' | 'gift' | 'gift_item' | 'admin_grant' | 'correction', string>; tip: (n: string) => string;
+    reasons: Record<'purchase' | 'refund' | 'gift' | 'gift_item' | 'admin_grant' | 'correction' | 'season', string>; tip: (n: string) => string;
   };
   inbox: { item: (name: string, item: string) => string; tip: (name: string, n: string) => string; thanks: string };
   giftItem: {
@@ -70,7 +70,7 @@ const en: SocialStrings = {
   },
   wallet: {
     title: 'Wallet', history: 'Purchase history', none: 'No purchases yet', refunded: 'Refunded', sent: 'Gifts sent', received: 'Gifts received', ledger: 'Diamond activity',
-    reasons: { purchase: 'Purchase', refund: 'Refund', gift: 'Table gift', gift_item: 'Gifted style', admin_grant: 'Test grant', correction: 'Correction' },
+    reasons: { purchase: 'Purchase', refund: 'Refund', gift: 'Table gift', gift_item: 'Gifted style', admin_grant: 'Test grant', correction: 'Correction', season: 'Season Pass' },
     tip: n => `${n} BM tip`,
   },
   inbox: { item: (n, i) => `${n} sent you ${i} 🎁`, tip: (n, b) => `${n} tipped you ${b} BM`, thanks: 'Lovely!' },
@@ -116,7 +116,7 @@ const lv: SocialStrings = {
   },
   wallet: {
     title: 'Maciņš', history: 'Pirkumu vēsture', none: 'Pirkumu vēl nav', refunded: 'Atmaksāts', sent: 'Nosūtītās dāvanas', received: 'Saņemtās dāvanas', ledger: 'Dimantu kustība',
-    reasons: { purchase: 'Pirkums', refund: 'Atmaksa', gift: 'Galda dāvana', gift_item: 'Uzdāvināts stils', admin_grant: 'Testa piešķīrums', correction: 'Korekcija' },
+    reasons: { purchase: 'Pirkums', refund: 'Atmaksa', gift: 'Galda dāvana', gift_item: 'Uzdāvināts stils', admin_grant: 'Testa piešķīrums', correction: 'Korekcija', season: 'Sezonas caurlaide' },
     tip: n => `${n} BM dzeramnauda`,
   },
   inbox: { item: (n, i) => `${n} tev uzdāvināja: ${i} 🎁`, tip: (n, b) => `${n} tev iedeva ${b} BM`, thanks: 'Jauki!' },
@@ -162,7 +162,7 @@ const ru: SocialStrings = {
   },
   wallet: {
     title: 'Кошелёк', history: 'История покупок', none: 'Покупок пока нет', refunded: 'Возврат', sent: 'Отправленные подарки', received: 'Полученные подарки', ledger: 'Движение алмазов',
-    reasons: { purchase: 'Покупка', refund: 'Возврат', gift: 'Подарок за столом', gift_item: 'Стиль в подарок', admin_grant: 'Тестовое начисление', correction: 'Корректировка' },
+    reasons: { purchase: 'Покупка', refund: 'Возврат', gift: 'Подарок за столом', gift_item: 'Стиль в подарок', admin_grant: 'Тестовое начисление', correction: 'Корректировка', season: 'Сезонный пропуск' },
     tip: n => `чаевые ${n} BM`,
   },
   inbox: { item: (n, i) => `${n} подарил(а) вам: ${i} 🎁`, tip: (n, b) => `${n}: чаевые вам ${b} BM`, thanks: 'Приятно!' },
@@ -208,7 +208,7 @@ const uk: SocialStrings = {
   },
   wallet: {
     title: 'Гаманець', history: 'Історія покупок', none: 'Покупок ще немає', refunded: 'Повернено', sent: 'Надіслані подарунки', received: 'Отримані подарунки', ledger: 'Рух діамантів',
-    reasons: { purchase: 'Покупка', refund: 'Повернення', gift: 'Подарунок за столом', gift_item: 'Стиль у подарунок', admin_grant: 'Тестове нарахування', correction: 'Коригування' },
+    reasons: { purchase: 'Покупка', refund: 'Повернення', gift: 'Подарунок за столом', gift_item: 'Стиль у подарунок', admin_grant: 'Тестове нарахування', correction: 'Коригування', season: 'Сезонна перепустка' },
     tip: n => `чайові ${n} BM`,
   },
   inbox: { item: (n, i) => `${n} подарував(ла) вам: ${i} 🎁`, tip: (n, b) => `${n}: чайові вам ${b} BM`, thanks: 'Приємно!' },

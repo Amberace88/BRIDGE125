@@ -14,6 +14,7 @@ import { COS_STRINGS } from '../../cosmetics/i18n';
 import { LB } from '../leaderboard';
 import { DAILY_STRINGS } from '../daily';
 import { INVITE_STRINGS } from '../invite';
+import { SEASON_STRINGS } from '../season';
 import { missingKeys, pick, registeredStrings, withFallback, type Strings } from '../pick';
 import { FEATURE_LANGS } from './index';
 import type { FeaturePack } from './types';
@@ -23,13 +24,14 @@ const MODULES: Record<keyof FeaturePack, Strings<unknown>> = {
   social: SOCIAL_STRINGS, journey: JOURNEY_STRINGS, quests: QUEST_STRINGS, achievements: ACH_STRINGS, economy: ECO_STRINGS,
   cosmetics: COS_STRINGS,
   daily: DAILY_STRINGS, invite: INVITE_STRINGS,
+  season: SEASON_STRINGS,
 };
 /** Modules a pack may leave out entirely (the language then simply shows English for them). */
-const OPTIONAL = new Set<string>(['cosmetics', 'daily', 'invite']);
+const OPTIONAL = new Set<string>(['cosmetics', 'daily', 'invite', 'season']);
 /** New modules not yet translated into the lazily loaded languages (English fallback until then). */
-const PENDING = new Set<string>(['daily', 'invite']);
+const PENDING = new Set<string>(['daily', 'invite', 'season']);
 /** Keys added after the last translation pass (cosmetics from the invite reward / season pass). */
-const PENDING_KEYS = /^names\.(ach_fr_envoy|s1_)/;
+const PENDING_KEYS = /^(names\.(ach_fr_envoy|s1_)|wallet\.reasons\.season)/;
 /** Languages whose packs must be complete — no key may fall back to English. */
 const COMPLETE = ['lt', 'et', 'pl', 'de', 'ro', 'es', 'be', 'kk', 'uz', 'az', 'ka', 'hy', 'bg'];
 

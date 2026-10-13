@@ -15,6 +15,7 @@ import { DailyCard } from '../daily/DailyCard';
 import { useJourney } from '../campaign/journeyStore';
 import { TOTAL_STARS, totalStars } from '../campaign/data';
 import { sfx } from '../sound';
+import { SeasonDockBtn } from '../season/parts';
 import '../styles/home.css';
 
 interface Props {
@@ -37,6 +38,8 @@ interface Props {
   onStakes?: () => void;
   /** The Daily challenge (/daily). */
   onDaily?: () => void;
+  /** Season Pass (/season). */
+  onSeason?: () => void;
 }
 
 // typed locally so it compiles before the engine adds hard/expert to BotLevel
@@ -50,7 +53,7 @@ function useViewport() {
 }
 
 export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin, onShop, onMerch,
-  onJourney, onQuests, onAchievements, onVault, onStakes, onDaily }: Props) {
+  onJourney, onQuests, onAchievements, onVault, onStakes, onDaily, onSeason }: Props) {
   const ins = useInstall();
   const [bannerOff, setBannerOff] = useState(() => { try { return localStorage.getItem('b125.installBanner') === 'off'; } catch { return false; } });
   const hideBanner = () => { setBannerOff(true); try { localStorage.setItem('b125.installBanner', 'off'); } catch { /* */ } };
@@ -231,6 +234,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
 
             <nav className="h5-dock" aria-label="Bridge 125">
               {onJourney && <DockBtn icon={<JourneyIcon />} label={h.dock.journey} badge={jStars > 0 ? `${jStars}/${TOTAL_STARS}` : undefined} hot onClick={onJourney} />}
+              {onSeason && <SeasonDockBtn onClick={onSeason} />}
               {onStakes && <DockBtn icon={<ChipsIcon />} label={h.dock.stakes} onClick={onStakes} />}
               {onAchievements && <DockBtn icon={<TrophyIcon />} label={h.dock.trophies} onClick={onAchievements} />}
               {onVault && <DockBtn icon={<VaultIcon />} label={h.dock.vault} onClick={onVault} />}

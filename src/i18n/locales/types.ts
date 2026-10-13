@@ -11,6 +11,7 @@ import type { EcoStrings } from '../economy';
 import type { CosStrings } from '../../cosmetics/i18n';
 import type { DailyStrings } from '../daily';
 import type { InviteStrings } from '../invite';
+import type { SeasonStrings } from '../season';
 
 /**
  * Feature strings for one lazily loaded language — one chunk per language, fetched together with the core
@@ -33,4 +34,6 @@ export interface FeaturePack {
   /** Daily challenge + invite friends: optional — a pack without them shows English until translated. */
   daily?: DeepPartial<DailyStrings>;
   invite?: DeepPartial<InviteStrings>;
+  /** Season Pass (optional until the packs translate it — English shows meanwhile) */
+  season?: DeepPartial<SeasonStrings>;
 }

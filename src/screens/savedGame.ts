@@ -25,3 +25,26 @@ export const savedStakeIdOf = (g: GameState | null | undefined): number | null =
 export function clearSavedStakeGame(stakeId: number) {
   if (savedStakeIdOf(loadSavedGame()) === stakeId) clearSavedGame();
 }
+
+/* ---------------------------------------------------------------- Journey: the unfinished match (one per device) */
+const JOURNEY_KEY = 'b125.journey.run.v1';
+const RUN_TTL = 30 * 24 * 3600 * 1000;
+export interface JourneyRun { match: string; g: GameState; tally?: unknown; at: number }
+
+/** The unfinished Journey match (optionally only if it is `matchId`), or null. */
+export function loadJourneyRun(matchId?: string): JourneyRun | null {
+  try {
+    const raw = localStorage.getItem(JOURNEY_KEY);
+    if (!raw) return null;
+    const r = JSON.parse(raw) as JourneyRun;
+    if (!r?.g || r.g.phase === 'gameOver' || Date.now() - (r.at ?? 0) > RUN_TTL) return null;
+    if (matchId && r.match !== matchId) return null;
+    return r;
+  } catch { return null; }
+}
+export function saveJourneyRun(match: string, g: GameState, tally?: unknown) {
+  try { localStorage.setItem(JOURNEY_KEY, JSON.stringify({ match, g, tally, at: Date.now() })); } catch { /* */ }
+}
+export function clearJourneyRun(match?: string) {
+  try { if (!match || loadJourneyRun(match)) localStorage.removeItem(JOURNEY_KEY); } catch { /* */ }
+}

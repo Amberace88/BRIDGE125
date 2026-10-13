@@ -73,6 +73,30 @@ const Crown = () => {
   );
 };
 
+/** Season 1 "Jazz Age Halo": an art-deco sunburst behind the ring and a cut brass gem on top. */
+const DecoRays = () => {
+  const g = useSvgId();
+  return (
+    <svg className="s1-rays" viewBox="0 0 172 172" aria-hidden>
+      <defs><linearGradient id={g} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff6d8" /><stop offset=".5" stopColor="#e2bd62" /><stop offset="1" stopColor="#8c6e28" stopOpacity=".2" /></linearGradient></defs>
+      {Array.from({ length: 24 }, (_, i) => (
+        <path key={i} transform={`rotate(${i * 15} 86 86)`} d={i % 2 ? 'M86 14 L89 40 L83 40Z' : 'M86 2 L90.5 40 L81.5 40Z'} fill={`url(#${g})`} opacity={i % 2 ? 0.7 : 1} />
+      ))}
+    </svg>
+  );
+};
+const DecoGem = () => {
+  const g = useSvgId();
+  return (
+    <svg className="s1-gem" viewBox="0 0 40 40" aria-hidden>
+      <defs><linearGradient id={g} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff6d8" /><stop offset=".45" stopColor="#e2bd62" /><stop offset="1" stopColor="#7d5d1c" /></linearGradient></defs>
+      <path d="M20 2 L34 20 L20 38 L6 20Z" fill={`url(#${g})`} stroke="#4a3608" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M20 9 L28 20 L20 31 L12 20Z" fill="#0b2a33" stroke="#fff2c4" strokeWidth="1" strokeLinejoin="round" />
+      <path d="M20 13 L24 20 L20 27 L16 20Z" fill="#5fd0c2" opacity=".8" />
+    </svg>
+  );
+};
+
 const glint = (top: string, left: string, delay = '0s') => <span className="afr-glint" style={{ top, left, animationDelay: delay }} aria-hidden />;
 
 const DECOR: Record<string, { back?: ReactNode; front?: ReactNode }> = {
@@ -108,7 +132,9 @@ const DECOR: Record<string, { back?: ReactNode; front?: ReactNode }> = {
   ach_fr_obsidian: { back: <span className="afr-glow" aria-hidden /> },
   // invite-only (migration 014): two gems — you and your friend — circling the ring
   ach_fr_envoy: { back: <span className="afr-glow" aria-hidden />, front: <span className="afr-orbit" aria-hidden><i /><i /></span> },
+  // Season Pass frames (migration 016): ring CSS in styles/season-cosmetics.css
+  s1_fr_gilded: { back: <><span className="afr-glow" aria-hidden /><DecoRays /></>, front: <><DecoGem />{glint('62%', '84%', '.8s')}</> },
 };
 
-/** Frame ids with decor: 'fr_<k>' for the shop frames, the earned 'ach_fr_*' ids as they are. */
-export const FRAME_IDS = Object.keys(DECOR).map(k => (k.startsWith('ach_') ? k : `fr_${k}`));
+/** Frame ids with decor: 'fr_<k>' for the shop frames, the earned 'ach_fr_*' / season 's1_fr_*' ids as they are. */
+export const FRAME_IDS = Object.keys(DECOR).map(k => (/^(ach|s\d+)_/.test(k) ? k : `fr_${k}`));
