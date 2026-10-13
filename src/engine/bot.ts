@@ -7,8 +7,9 @@ export type BotLevel = 'easy' | 'normal' | 'hard' | 'expert';
 export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard', 'expert'];
 
 /** The bots' source of randomness: Math.random, or a seeded rng for the duration of one seeded decision. */
-let rndSrc: Rng = Math.random;
-const rnd = () => rndSrc();
+// null = the live Math.random (looked up on every call, so it can be swapped or mocked at any time)
+let rndSrc: Rng | null = null;
+const rnd = () => (rndSrc ?? Math.random)();
 const play = (cards: Card[]): Action => ({ type: 'play', cardIds: cards.map(c => c.id) });
 const pts = (cs: Card[]) => cs.reduce((a, c) => a + cardPoints(c), 0);
 const hidden = (id: string): Card => ({ id, r: '6', s: 'S' });
@@ -35,7 +36,7 @@ export function botAction(st: GameState, p: number, level: BotLevel = 'normal', 
   const r = rng ?? (st.seed !== undefined ? mulberry32(mixSeed(st.seed, st.round, st.seq, p, 3)) : undefined);
   if (!r) return ensureValid(st, p, decide(botView(st, p), p, level));
   const prev = rndSrc;
-  rndSrc = r;
+  rndSrc = r ?? null;
   try { return ensureValid(st, p, decide(botView(st, p), p, level)); } finally { rndSrc = prev; }
 }
 
