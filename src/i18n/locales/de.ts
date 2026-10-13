@@ -1,6 +1,13 @@
 import type { FeaturePack } from './types';
 
 // German: Pik-Dame, Bube, Ass, König; "Farbe" for suit, "ziehen" for drawing, "aussetzen" for a skipped turn.
+/** Thousands with a thin space, as in the English modules: 1 250. */
+const fmt = (n: number) => Math.round(Number(n) || 0).toLocaleString('fr-FR');
+/** Boost minutes → hours with a decimal comma: 90 → "1,5". */
+const hrs = (min: number) => String(min % 60 === 0 ? min / 60 : Math.round(min / 6) / 10).replace('.', ',');
+/** A formatted amount ("1 250") back to a number, for plural agreement. */
+const num = (s: string | number) => Number(String(s).replace(/\D/g, '')) || 0;
+
 const de: FeaturePack = {
   home: {
     intro: { skip: 'Überspringen', burn: 'Genau 125 → 0', low: 'Wenigste Punkte gewinnen' },
@@ -240,7 +247,7 @@ const de: FeaturePack = {
     },
     wallet: {
       title: 'Geldbörse', history: 'Kaufhistorie', none: 'Noch keine Käufe', refunded: 'Erstattet', sent: 'Gesendete Geschenke', received: 'Erhaltene Geschenke', ledger: 'Diamanten-Verlauf',
-      reasons: { purchase: 'Kauf', refund: 'Erstattung', gift: 'Tischgeschenk', gift_item: 'Geschenkter Stil', admin_grant: 'Testgutschrift', correction: 'Korrektur' },
+      reasons: { purchase: 'Kauf', refund: 'Erstattung', gift: 'Tischgeschenk', gift_item: 'Geschenkter Stil', admin_grant: 'Testgutschrift', correction: 'Korrektur', season: 'Saisonpass' },
       tip: n => `${n} BM Trinkgeld`,
     },
     inbox: { item: (n, i) => `${n} hat dir ${i} geschenkt 🎁`, tip: (n, b) => `${n} hat dir ${b} BM Trinkgeld gegeben`, thanks: 'Wie schön!' },
@@ -542,9 +549,120 @@ const de: FeaturePack = {
       nc_default: 'Standard', nc_gold: 'Gold', nc_ruby: 'Rubin', nc_ice: 'Eis', nc_emerald: 'Smaragd', nc_neon: 'Neon', nc_fire: 'Feuer', nc_holo: 'Holografisch',
       bn_felt: 'Filz', bn_bokeh: 'Casino-Lichter', bn_sunburst: 'Goldene Sonne', bn_aurora: 'Polarhimmel', bn_riga: 'Dächer von Riga', bn_suits: 'Königliche Farben',
       ach_t_phoenix: 'Phönix', ach_t_detective: 'Lügendetektor', ach_t_immortal: 'Unsterblich', ach_t_founder: 'Gründer', ach_t_curator: 'Kurator', t_grand_tour: 'Weltenbummler',
-      ach_fr_veteran: 'Veteranenkranz', ach_fr_prestige: 'Prestige-Aura', ach_fr_obsidian: 'Obsidianring', ach_nc_ember: 'Glut', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Der Tresor',
+      ach_fr_veteran: 'Veteranenkranz', ach_fr_prestige: 'Prestige-Aura', ach_fr_obsidian: 'Obsidianring', ach_nc_ember: 'Glut', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Der Tresor', ach_fr_envoy: 'Ring des Gesandten',
+      s1_table: 'Jazzclub', s1_bk_gilded: 'Goldenes Déco', s1_bk_ticket: 'Jazz-Ticket', s1_fr_gilded: 'Aura der Jazz-Ära', s1_t_debut: 'Debütant', s1_t_maestro: 'Maestro',
+      s1_nc_champagne: 'Champagner', s1_bn_skyline: 'Jazz-Skyline', s1_em_jazz: 'Jazzband', s1_vx_champagne: 'Champagnerdusche',
       pk_starter: 'Starter-Set', pk_sakura: 'Sakura-Set', pk_racing: 'Boxengassen-Set', pk_neon: 'Neon-Nacht-Set', pk_aurora: 'Nordlicht-Set', pk_montecarlo: 'Monte-Carlo-Set', pk_riga: 'Alt-Riga-Set', pk_royal: 'Hofstaat-Set',
     },
+  },
+  daily: {
+    kicker: 'Tageschallenge', same: 'Gleiches Blatt für alle',
+    intro: 'Heute spielen alle dasselbe Blatt gegen dieselben drei Bots. Nur dein erster Versuch zählt.',
+    format: '3 Runden · 3 schwere Bots · 1 Versuch',
+    no: n => `Nr. ${n}`,
+    play: 'Heutiges Blatt spielen', resume: 'Versuch fortsetzen', practice: 'Üben', back: 'Zurück', signIn: 'Anmelden', close: 'Schließen',
+    nextIn: t => `Nächstes Blatt in ${t}`,
+    played: 'Heute gespielt', yourScore: 'Dein Ergebnis', yourRank: 'Dein Platz',
+    rankOf: (r, n) => `#${fmt(r)} von ${fmt(n)}`,
+    practiceTag: 'Übung',
+    guest: { title: 'Melde dich an für die Bestenliste', sub: 'Dein Ergebnis ist auf diesem Gerät gespeichert – melde dich heute noch an, dann kommt es in die Liste.' },
+    board: {
+      title: 'Bestenliste', today: 'Heute', yesterday: 'Gestern', empty: 'Noch keine Ergebnisse – sei heute der Erste!', emptyYesterday: 'Gestern hat niemand gespielt.',
+      error: 'Die Bestenliste konnte nicht geladen werden.', retry: 'Nochmal versuchen', you: 'du',
+      players: n => `${fmt(n)} Spieler`, turns: n => `${fmt(n)} ${n === 1 ? 'Zug' : 'Züge'}`,
+    },
+    winners: 'Die Sieger von gestern',
+    stats: { won: 'Gewonnen', lost: 'Verloren', points: 'Punkte', turns: 'Züge', queens: 'D♠ kassiert', rounds: 'Runden gewonnen' },
+    how: {
+      title: 'So wird gewertet', base: 'Start', win: 'Spiel gewonnen (niedrigste Summe)', round: 'Je Runde, in der du zuerst rausgehst', point: 'Je Punkt auf der Hand',
+      turn: 'Je eigener Zug', queen: 'Je kassierte D♠', floor: 'Nie unter 0',
+    },
+    rewards: { title: 'Belohnungen', play: 'Teilnahme', top1: '1. Platz', top10: 'Top 10', top10pct: 'Top 10 %', note: 'Platzierungsbelohnungen gibt es, sobald der Tag vorbei ist.' },
+    result: {
+      title: 'Heutiges Ergebnis', practiceTitle: 'Übungsergebnis', practiceNote: 'Übung – zählt nicht für die Bestenliste', won: 'Gewonnen!', lost: 'Starker Versuch',
+      sending: 'Wird gesendet…', onBoard: 'In der Bestenliste', offline: 'Gespeichert – wir senden es, sobald du online bist', rejected: 'Der Server hat dieses Ergebnis nicht angenommen.',
+      done: 'Fertig', again: 'Nochmal üben', breakdown: 'Aufschlüsselung',
+    },
+    share: {
+      button: 'Teilen', preparing: 'Wird vorbereitet…', copied: 'Link kopiert', saved: 'Bild gespeichert',
+      text: (s, n) => `Ich habe in der Bridge-125-Tageschallenge #${n} ${fmt(s)} Punkte geholt. Schaffst du mehr?`, cta: 'Schaffst du mehr?',
+    },
+    card: { daily: 'Tageschallenge', score: 'Ergebnis', rank: 'Platz', won: 'Gewonnen', lost: 'Verloren', points: 'Punkte', turns: 'Züge', queens: 'D♠ kassiert', cta: 'Schaffst du mehr?' },
+    home: { title: 'Tageschallenge', sub: 'Gleiches Blatt für alle', done: s => `Ergebnis ${fmt(s)}`, rank: (r, n) => `#${fmt(r)} von ${fmt(n)}`, nextIn: t => `Neu in ${t}`, play: 'Spielen', resume: 'Weiter' },
+    hud: { title: 'Tageschallenge', round: (n, m) => `Runde ${n} von ${m}` },
+    claimed: r => `Platz ${r} in der gestrigen Challenge – Belohnung gutgeschrieben`,
+    time: { d: 'T', h: 'h', m: 'min' },
+  },
+  invite: {
+    title: 'Freunde einladen',
+    sub: (bm, g) => `Tritt ein Freund über deinen Link bei und spielt ${g} ${g === 1 ? 'Partie' : 'Partien'}, bekommt ihr beide ${fmt(bm)} BM und den exklusiven Rahmen „Ring des Gesandten“.`,
+    link: 'Dein Einladungslink', copy: 'Kopieren', copied: 'Kopiert!', share: 'Teilen',
+    shareTitle: 'Bridge 125',
+    shareText: 'Spiel Bridge 125 mit mir – das Kartenspiel mit Pik-Dame, Sechsen und dem Abbrennen bei 125. Tritt über meinen Link bei, dann bekommen wir beide einen Bonus:',
+    stats: { joined: 'Beigetreten', rewarded: 'Bonus erhalten', earned: 'BM verdient' },
+    friends: 'Deine Freunde',
+    progress: (n, m) => `${n}/${m} Partien`,
+    rewardedTag: 'Bonus ausgezahlt',
+    frame: 'Ring des Gesandten', frameNote: 'Rahmen nur per Einladung',
+    signIn: 'Melde dich an für deinen Einladungslink', signInSub: 'Für jeden Freund, der beitritt und spielt, bekommt ihr beide einen Bonus.',
+    error: 'Dein Einladungslink konnte nicht geladen werden.', retry: 'Nochmal versuchen',
+    invitedBy: name => `Eingeladen von ${name}`,
+    welcome: {
+      kicker: 'Einladung',
+      title: name => `${name} hat dich eingeladen`,
+      body: (bm, g) => `Spiel ${g} ${g === 1 ? 'Partie' : 'Partien'}, und ihr bekommt beide ${fmt(bm)} BM + einen exklusiven Rahmen.`,
+      signIn: 'Anmelden und annehmen', ok: 'Los geht’s', later: 'Später',
+      progress: (n, m) => `${n} von ${m} Partien gespielt`,
+    },
+    reward: {
+      title: 'Einladungsbonus freigeschaltet!',
+      body: bm => `+${fmt(bm)} BM und der Rahmen „Ring des Gesandten“ gehören dir.`,
+      friend: (name, bm) => `${name} hat alle Partien gespielt – +${fmt(bm)} BM für dich`,
+    },
+  },
+  season: {
+    title: 'Saisonpass',
+    kicker: (n, name) => `Saison ${n} · ${name}`,
+    seasonNames: { s1: 'Jazz-Ära' },
+    back: 'Zurück',
+    tierN: n => `Stufe ${n}`,
+    tierShort: 'Stufe',
+    stars: 'Sterne',
+    next: n => `Nächste: Stufe ${n}`,
+    maxed: 'Pass abgeschlossen!',
+    endsIn: t => `Endet in ${t}`,
+    startsIn: t => `Startet in ${t}`,
+    claimUntil: t => `Saison vorbei · abholen noch ${t}`,
+    over: 'Saison vorbei',
+    week: (w, of) => `Woche ${w} von ${of}`,
+    units: { d: 'T.', h: 'Std.', m: 'Min.' },
+    free: 'Gratis', premium: 'Premium',
+    claim: 'Abholen', claimAll: n => `Alle abholen (${n})`, claimed: 'Abgeholt',
+    reach: n => `Ab Stufe ${n}`,
+    unlock: 'Premium freischalten', unlockSub: 'Exklusive Saison-Stile und eine größere Belohnung auf jeder Stufe',
+    premiumActive: 'Premium aktiv', premiumFree: 'Premium inklusive für Inhaber & Tester',
+    skip: 'Stufe überspringen', skipTitle: 'Stufen überspringen', skipSub: 'Spring sofort nach vorn – jede übersprungene Belohnung kannst du direkt abholen.',
+    skipBtn: (n, p) => `${n} überspringen · ${p} 💎`, skipN: n => `${n} ${n === 1 ? 'Stufe' : 'Stufen'}`, skipTo: n => `Bis Stufe ${n}`,
+    sheet: {
+      title: 'Premium-Pass', exclusive: 'Exklusive Stile – nie im Shop erhältlich', plus: 'Dazu auf der Premium-Leiste',
+      retro: 'Die Premium-Belohnungen aller bereits erreichten Stufen werden sofort freigeschaltet.',
+      buy: p => `Freischalten · ${p} 💎`, balance: b => `Du hast ${b} 💎`, need: n => `Dir fehlen ${n} 💎`,
+      getDiamonds: 'Diamanten holen', later: 'Nicht jetzt', done: 'Premium freigeschaltet!', doneSub: 'Deine Premium-Belohnungen warten.',
+      legal: 'Digitale Inhalte, sofort geliefert. Nur mit Diamanten bezahlbar.',
+    },
+    reward: {
+      bm: n => `${n} BM`, dm: n => `${n} ${num(n) === 1 ? 'Diamant' : 'Diamanten'}`, shards: n => `${n} Splitter`,
+      spin: n => (n === 1 ? 'Glücksrad-Drehung' : `${n} Drehungen`), boost: m => `XP ×2 · ${hrs(m)} Std.`,
+    },
+    reveal: { title: 'Belohnung erhalten', premiumTitle: 'Premium-Belohnung', tierTrack: (n, t) => `Stufe ${n} · ${t}`, collect: 'Weiter', all: n => `${n} ${n === 1 ? 'Belohnung' : 'Belohnungen'} erhalten`, wheel: 'Glücksrad' },
+    how: { title: 'So sammelst du Sterne', win: 'Partie gewinnen', loss: 'Partie beenden', daily: 'Tagesaufgabe', weekly: 'Wochenaufgabe', chest: 'Wochentruhe', challenge: 'Tageschallenge', medals: 'Erfolg', note: 'Partien zählen bis zum Tageslimit für Belohnungen. Sterne gibt es nur, solange die Saison läuft.' },
+    guest: 'Melde dich an, um Sterne zu sammeln', guestSub: 'Das ist eine Vorschau – Saisonfortschritt und Belohnungen liegen in deinem Konto.', signIn: 'Anmelden',
+    offline: 'Die Saison konnte nicht geladen werden – du siehst eine Vorschau.',
+    dock: 'Pass',
+    toast: { tier: n => `Stufe ${n} erreicht!`, claim: n => (n ? `${n} ${n === 1 ? 'Belohnung wartet' : 'Belohnungen warten'}` : 'Sammle weiter Sterne'), open: 'Öffnen' },
+    profile: { sub: t => `Stufe ${t}`, ready: n => `${n} bereit` },
+    errors: { funds: 'Nicht genug Diamanten', network: 'Verbindungsproblem – versuch es nochmal', locked: 'Erreiche zuerst diese Stufe', premium: 'Erfordert den Premium-Pass', none: 'Gerade läuft keine Saison', generic: 'Etwas ist schiefgelaufen', max: 'Schon auf der letzten Stufe', banned: 'Konto gesperrt' },
+    god: { title: 'GOD-Werkzeuge', reset: 'Saison zurücksetzen' },
   },
 };
 

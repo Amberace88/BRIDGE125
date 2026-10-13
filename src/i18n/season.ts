@@ -1,8 +1,8 @@
 import type { Strings } from './pick';
 
 /**
- * Season Pass (/season). English is mandatory; lv / ru / uk are complete. The 13 lazily loaded languages show English
- * until their pack in src/i18n/locales/<lang>.ts adds a `season` section (the FeaturePack key is optional for now).
+ * Season Pass (/season). English is mandatory; lv / ru / uk live here, the 13 lazily loaded languages translate it in
+ * their pack (src/i18n/locales/<lang>.ts → `season`).
  */
 export interface SeasonStrings {
   title: string;
@@ -234,7 +234,7 @@ const uk: SeasonStrings = {
   god: { title: 'Інструменти GOD', reset: 'Скинути сезон' },
 };
 
-/** Registered below: the 13 lazily loaded languages show English until their pack (src/i18n/locales) translates it. */
+/** Registered below: the 13 lazily loaded languages add theirs from their pack (src/i18n/locales). */
 export const SEASON_STRINGS: Strings<SeasonStrings> = { en, lv, ru, uk };
 
 import { registerStrings } from './pick';

@@ -5,6 +5,15 @@ const de20 = (n: number) => n !== 0 && (n % 100 === 0 || n % 100 >= 20);   // "2
 /** "1 partidă" · "3 partide" · "20 de partide". */
 const roN = (n: number, one: string, many: string) => (n === 1 ? `${n} ${one}` : `${n} ${de20(n) ? 'de ' : ''}${many}`);
 
+/** Thousands with a thin space, as in the English modules: 1 250. */
+const fmt = (n: number) => Math.round(Number(n) || 0).toLocaleString('fr-FR');
+/** Boost minutes → hours with a decimal comma: 90 → "1,5". */
+const hrs = (min: number) => String(min % 60 === 0 ? min / 60 : Math.round(min / 6) / 10).replace('.', ',');
+/** A formatted amount ("1 250") back to a number, for plural agreement. */
+const num = (s: string | number) => Number(String(s).replace(/\D/g, '')) || 0;
+/** Like roN, with the number formatted: "1 jucător" · "3 jucători" · "1 250 de jucători". */
+const roF = (n: number, one: string, many: string) => (n === 1 ? `1 ${one}` : `${fmt(n)} ${de20(n) ? 'de ' : ''}${many}`);
+
 const ro: FeaturePack = {
   home: {
     intro: { skip: 'Sari peste', burn: 'Fix 125 → 0', low: 'Câștigă scorul cel mai mic' },
@@ -244,7 +253,7 @@ const ro: FeaturePack = {
     },
     wallet: {
       title: 'Portofel', history: 'Istoric cumpărături', none: 'Nicio cumpărătură încă', refunded: 'Rambursat', sent: 'Cadouri trimise', received: 'Cadouri primite', ledger: 'Mișcarea diamantelor',
-      reasons: { purchase: 'Cumpărare', refund: 'Rambursare', gift: 'Cadou la masă', gift_item: 'Stil dăruit', admin_grant: 'Credit de test', correction: 'Corecție' },
+      reasons: { purchase: 'Cumpărare', refund: 'Rambursare', gift: 'Cadou la masă', gift_item: 'Stil dăruit', admin_grant: 'Credit de test', correction: 'Corecție', season: 'Permis de sezon' },
       tip: n => `Bacșiș ${n} BM`,
     },
     inbox: { item: (n, i) => `${n} ți-a dăruit: ${i} 🎁`, tip: (n, b) => `${n} ți-a dat ${b} BM bacșiș`, thanks: 'Ce drăguț!' },
@@ -546,9 +555,120 @@ const ro: FeaturePack = {
       nc_default: 'Implicit', nc_gold: 'Aur', nc_ruby: 'Rubin', nc_ice: 'Gheață', nc_emerald: 'Smarald', nc_neon: 'Neon', nc_fire: 'Foc', nc_holo: 'Holografic',
       bn_felt: 'Postav', bn_bokeh: 'Luminile cazinoului', bn_sunburst: 'Soare de aur', bn_aurora: 'Cer boreal', bn_riga: 'Acoperișurile Rigăi', bn_suits: 'Culori regale',
       ach_t_phoenix: 'Phoenix', ach_t_detective: 'Detector de minciuni', ach_t_immortal: 'Nemuritorul', ach_t_founder: 'Fondator', ach_t_curator: 'Curator', t_grand_tour: 'Marele călător',
-      ach_fr_veteran: 'Cununa veteranului', ach_fr_prestige: 'Aura prestigiului', ach_fr_obsidian: 'Inel de obsidian', ach_nc_ember: 'Jar', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seiful',
+      ach_fr_veteran: 'Cununa veteranului', ach_fr_prestige: 'Aura prestigiului', ach_fr_obsidian: 'Inel de obsidian', ach_nc_ember: 'Jar', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seiful', ach_fr_envoy: 'Inelul emisarului',
+      s1_table: 'Club de jazz', s1_bk_gilded: 'Deco aurit', s1_bk_ticket: 'Bilet de jazz', s1_fr_gilded: 'Aura epocii jazzului', s1_t_debut: 'Debutant', s1_t_maestro: 'Maestro',
+      s1_nc_champagne: 'Șampanie', s1_bn_skyline: 'Orașul jazzului', s1_em_jazz: 'Formația de jazz', s1_vx_champagne: 'Ploaie de șampanie',
       pk_starter: 'Set de start', pk_sakura: 'Setul Sakura', pk_racing: 'Setul Pit Lane', pk_neon: 'Setul Noapte neon', pk_aurora: 'Setul Aurora boreală', pk_montecarlo: 'Setul Monte Carlo', pk_riga: 'Setul Riga Veche', pk_royal: 'Setul Curtea regală',
     },
+  },
+  daily: {
+    kicker: 'Provocarea zilei', same: 'Aceeași mână pentru toți',
+    intro: 'Azi toată lumea joacă aceeași mână împotriva acelorași trei boți. Contează doar prima ta încercare.',
+    format: '3 runde · 3 boți dificili · 1 încercare',
+    no: n => `Nr. ${n}`,
+    play: 'Joacă mâna zilei', resume: 'Continuă încercarea', practice: 'Antrenament', back: 'Înapoi', signIn: 'Conectează-te', close: 'Închide',
+    nextIn: t => `Următoarea mână în ${t}`,
+    played: 'Jucat azi', yourScore: 'Scorul tău', yourRank: 'Locul tău',
+    rankOf: (r, n) => `#${fmt(r)} din ${fmt(n)}`,
+    practiceTag: 'Antrenament',
+    guest: { title: 'Conectează-te ca să intri în clasament', sub: 'Scorul e salvat pe acest dispozitiv — conectează-te azi și ajunge în clasament.' },
+    board: {
+      title: 'Clasament', today: 'Azi', yesterday: 'Ieri', empty: 'Încă niciun scor — fii primul azi!', emptyYesterday: 'Ieri n-a jucat nimeni.',
+      error: 'Clasamentul nu s-a putut încărca.', retry: 'Încearcă din nou', you: 'tu',
+      players: n => roF(n, 'jucător', 'jucători'), turns: n => roF(n, 'tură', 'ture'),
+    },
+    winners: 'Câștigătorii de ieri',
+    stats: { won: 'Victorie', lost: 'Înfrângere', points: 'Puncte', turns: 'Ture', queens: 'Q♠ primite', rounds: 'Runde câștigate' },
+    how: {
+      title: 'Cum se calculează scorul', base: 'Start', win: 'Câștigi jocul (cel mai mic total)', round: 'Fiecare rundă în care ieși primul', point: 'Fiecare punct din mână',
+      turn: 'Fiecare tură a ta', queen: 'Fiecare Q♠ primită', floor: 'Niciodată sub 0',
+    },
+    rewards: { title: 'Recompense', play: 'Participare', top1: 'Locul 1', top10: 'Top 10', top10pct: 'Top 10%', note: 'Recompensele pentru loc se plătesc după încheierea zilei.' },
+    result: {
+      title: 'Rezultatul zilei', practiceTitle: 'Rezultat la antrenament', practiceNote: 'Antrenament — nu intră în clasament', won: 'Ai câștigat!', lost: 'Bună încercare',
+      sending: 'Se trimite…', onBoard: 'În clasament', offline: 'Salvat — îl trimitem când revii online', rejected: 'Serverul n-a acceptat acest rezultat.',
+      done: 'Gata', again: 'Încă un antrenament', breakdown: 'Calcul',
+    },
+    share: {
+      button: 'Distribuie', preparing: 'Se pregătește…', copied: 'Link copiat', saved: 'Imagine salvată',
+      text: (s, n) => `Am făcut ${fmt(s)} puncte în provocarea zilei #${n} din Bridge 125. Mă poți întrece?`, cta: 'Mă poți întrece?',
+    },
+    card: { daily: 'Provocarea zilei', score: 'Scor', rank: 'Loc', won: 'Victorie', lost: 'Înfrângere', points: 'Puncte', turns: 'Ture', queens: 'Q♠ primite', cta: 'Mă poți întrece?' },
+    home: { title: 'Provocarea zilei', sub: 'Aceeași mână pentru toți', done: s => `Scor ${fmt(s)}`, rank: (r, n) => `#${fmt(r)} din ${fmt(n)}`, nextIn: t => `Nouă în ${t}`, play: 'Joacă', resume: 'Continuă' },
+    hud: { title: 'Provocarea zilei', round: (n, m) => `Runda ${n} din ${m}` },
+    claimed: r => `Ai terminat pe locul ${r} în provocarea de ieri — recompensa a fost plătită`,
+    time: { d: 'z', h: 'h', m: 'min' },
+  },
+  invite: {
+    title: 'Invită prieteni',
+    sub: (bm, g) => `Când un prieten intră cu linkul tău și joacă ${roN(g, 'partidă', 'partide')}, primiți amândoi ${fmt(bm)} BM și rama „Inelul emisarului”, disponibilă doar prin invitație.`,
+    link: 'Linkul tău de invitație', copy: 'Copiază', copied: 'Copiat!', share: 'Distribuie',
+    shareTitle: 'Bridge 125',
+    shareText: 'Joacă Bridge 125 cu mine — jocul de cărți cu dama de pică, șesari și „arderea” la 125. Intră cu linkul meu și primim amândoi un bonus:',
+    stats: { joined: 'S-au alăturat', rewarded: 'Bonus primit', earned: 'BM câștigați' },
+    friends: 'Prietenii tăi',
+    progress: (n, m) => `${n}/${m} partide`,
+    rewardedTag: 'Bonus plătit',
+    frame: 'Inelul emisarului', frameNote: 'Ramă doar prin invitație',
+    signIn: 'Conectează-te ca să primești linkul de invitație', signInSub: 'Pentru fiecare prieten care intră și joacă, primiți amândoi un bonus.',
+    error: 'Linkul de invitație nu s-a putut încărca.', retry: 'Încearcă din nou',
+    invitedBy: name => `Invitat de ${name}`,
+    welcome: {
+      kicker: 'Invitație',
+      title: name => `${name} te-a invitat`,
+      body: (bm, g) => `Joacă ${roN(g, 'partidă', 'partide')} și primiți amândoi ${fmt(bm)} BM + o ramă exclusivă.`,
+      signIn: 'Conectează-te și acceptă', ok: 'Hai să jucăm!', later: 'Mai târziu',
+      progress: (n, m) => `${n} din ${m} partide jucate`,
+    },
+    reward: {
+      title: 'Bonusul de invitație e deblocat!',
+      body: bm => `+${fmt(bm)} BM și rama „Inelul emisarului” sunt ale tale.`,
+      friend: (name, bm) => `${name} și-a jucat partidele — +${fmt(bm)} BM pentru tine`,
+    },
+  },
+  season: {
+    title: 'Permis de sezon',
+    kicker: (n, name) => `Sezonul ${n} · ${name}`,
+    seasonNames: { s1: 'Epoca jazzului' },
+    back: 'Înapoi',
+    tierN: n => `Treapta ${n}`,
+    tierShort: 'Treaptă',
+    stars: 'Stele',
+    next: n => `Urmează: treapta ${n}`,
+    maxed: 'Permis complet!',
+    endsIn: t => `Se încheie în ${t}`,
+    startsIn: t => `Începe în ${t}`,
+    claimUntil: t => `Sezon încheiat · revendică încă ${t}`,
+    over: 'Sezon încheiat',
+    week: (w, of) => `Săptămâna ${w} din ${of}`,
+    units: { d: 'z', h: 'h', m: 'min' },
+    free: 'Gratuit', premium: 'Premium',
+    claim: 'Revendică', claimAll: n => `Revendică tot (${n})`, claimed: 'Revendicat',
+    reach: n => `Atinge treapta ${n}`,
+    unlock: 'Deblochează Premium', unlockSub: 'Stiluri exclusive de sezon și o recompensă mai mare pe fiecare treaptă',
+    premiumActive: 'Premium activ', premiumFree: 'Premium inclus pentru proprietar și testeri',
+    skip: 'Sari o treaptă', skipTitle: 'Sari trepte', skipSub: 'Sari înainte acum — fiecare recompensă depășită devine imediat disponibilă.',
+    skipBtn: (n, p) => `Sari ${n} · ${p} 💎`, skipN: n => roN(n, 'treaptă', 'trepte'), skipTo: n => `Până la treapta ${n}`,
+    sheet: {
+      title: 'Permis Premium', exclusive: 'Stiluri exclusive — nu se vând niciodată în magazin', plus: 'În plus, pe traseul premium',
+      retro: 'Recompensele premium ale tuturor treptelor deja atinse se deblochează imediat.',
+      buy: p => `Deblochează · ${p} 💎`, balance: b => `Ai ${b} 💎`, need: n => `Îți mai trebuie ${n} 💎`,
+      getDiamonds: 'Ia diamante', later: 'Nu acum', done: 'Premium deblocat!', doneSub: 'Recompensele tale premium te așteaptă.',
+      legal: 'Conținut digital, livrat imediat. Se plătește doar cu diamante.',
+    },
+    reward: {
+      bm: n => `${n} BM`, dm: n => `${n} ${num(n) === 1 ? 'diamant' : `${de20(num(n)) ? 'de ' : ''}diamante`}`, shards: n => roN(n, 'fragment', 'fragmente'),
+      spin: n => (n === 1 ? 'O rotire a roții' : roN(n, 'rotire', 'rotiri')), boost: m => `XP ×2 · ${hrs(m)} h`,
+    },
+    reveal: { title: 'Recompensă primită', premiumTitle: 'Recompensă premium', tierTrack: (n, t) => `Treapta ${n} · ${t}`, collect: 'Super', all: n => roN(n, 'recompensă primită', 'recompense primite'), wheel: 'Roata norocului' },
+    how: { title: 'Cum câștigi stele', win: 'Câștigi o partidă', loss: 'Termini o partidă', daily: 'Misiune zilnică', weekly: 'Misiune săptămânală', chest: 'Cufărul săptămânii', challenge: 'Provocarea zilei', medals: 'Realizare', note: 'Partidele contează până la limita zilnică de recompense. Stelele se adună doar cât sezonul e activ.' },
+    guest: 'Conectează-te ca să aduni stele', guestSub: 'Aceasta e o previzualizare — progresul și recompensele sezonului stau în contul tău.', signIn: 'Conectează-te',
+    offline: 'Sezonul nu s-a putut încărca — afișăm o previzualizare.',
+    dock: 'Permis',
+    toast: { tier: n => `Treapta ${n} atinsă!`, claim: n => (n ? `Te așteaptă ${roN(n, 'recompensă', 'recompense')}` : 'Adună în continuare stele'), open: 'Deschide' },
+    profile: { sub: t => `Treapta ${t}`, ready: n => `${n} de revendicat` },
+    errors: { funds: 'Nu ai destule diamante', network: 'Problemă de conexiune — încearcă din nou', locked: 'Atinge mai întâi această treaptă', premium: 'Necesită Permisul Premium', none: 'Sezonul nu e activ acum', generic: 'Ceva n-a mers', max: 'Ești deja pe ultima treaptă', banned: 'Cont suspendat' },
+    god: { title: 'Unelte GOD', reset: 'Resetează sezonul' },
   },
 };
 

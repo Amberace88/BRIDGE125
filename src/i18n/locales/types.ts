@@ -31,9 +31,10 @@ export interface FeaturePack {
   economy: DeepPartial<EcoStrings>;
   /** Wardrobe, shop categories and cosmetic item names (src/cosmetics/i18n.ts). Optional: a pack without it shows English. */
   cosmetics?: DeepPartial<CosStrings>;
-  /** Daily challenge + invite friends: optional — a pack without them shows English until translated. */
-  daily?: DeepPartial<DailyStrings>;
-  invite?: DeepPartial<InviteStrings>;
-  /** Season Pass (optional until the packs translate it — English shows meanwhile) */
-  season?: DeepPartial<SeasonStrings>;
+  /** Daily challenge (src/i18n/daily.ts). */
+  daily: DeepPartial<DailyStrings>;
+  /** Invite friends (src/i18n/invite.ts). */
+  invite: DeepPartial<InviteStrings>;
+  /** Season Pass (src/i18n/season.ts). */
+  season: DeepPartial<SeasonStrings>;
 }

@@ -1,6 +1,13 @@
 import type { FeaturePack } from './types';
 
 // Estonian: poti emand, poiss, äss, kuningas; "mast" for suit, "võtma" for drawing, "jääb vahele" for a skip.
+/** Thousands with a thin space, as in the English modules: 1 250. */
+const fmt = (n: number) => Math.round(Number(n) || 0).toLocaleString('fr-FR');
+/** Boost minutes → hours with a decimal comma: 90 → "1,5". */
+const hrs = (min: number) => String(min % 60 === 0 ? min / 60 : Math.round(min / 6) / 10).replace('.', ',');
+/** A formatted amount ("1 250") back to a number, for plural agreement. */
+const num = (s: string | number) => Number(String(s).replace(/\D/g, '')) || 0;
+
 const et: FeaturePack = {
   home: {
     intro: { skip: 'Jäta vahele', burn: 'Täpselt 125 → 0', low: 'Võidab väikseim tulemus' },
@@ -240,7 +247,7 @@ const et: FeaturePack = {
     },
     wallet: {
       title: 'Rahakott', history: 'Ostuajalugu', none: 'Oste veel pole', refunded: 'Tagastatud', sent: 'Saadetud kingitused', received: 'Saadud kingitused', ledger: 'Teemantide liikumine',
-      reasons: { purchase: 'Ost', refund: 'Tagastus', gift: 'Lauakingitus', gift_item: 'Kingitud stiil', admin_grant: 'Testkrediit', correction: 'Parandus' },
+      reasons: { purchase: 'Ost', refund: 'Tagastus', gift: 'Lauakingitus', gift_item: 'Kingitud stiil', admin_grant: 'Testkrediit', correction: 'Parandus', season: 'Hooajapass' },
       tip: n => `${n} BM jootraha`,
     },
     inbox: { item: (n, i) => `${n} kinkis sulle: ${i} 🎁`, tip: (n, b) => `${n} andis sulle ${b} BM jootraha`, thanks: 'Kui armas!' },
@@ -542,9 +549,120 @@ const et: FeaturePack = {
       nc_default: 'Vaikimisi', nc_gold: 'Kuld', nc_ruby: 'Rubiin', nc_ice: 'Jää', nc_emerald: 'Smaragd', nc_neon: 'Neoon', nc_fire: 'Tuli', nc_holo: 'Hologramm',
       bn_felt: 'Kalev', bn_bokeh: 'Kasiinotuled', bn_sunburst: 'Kuldne päike', bn_aurora: 'Virmaliste taevas', bn_riga: 'Riia katused', bn_suits: 'Kuninglikud mastid',
       ach_t_phoenix: 'Fööniks', ach_t_detective: 'Valedetektor', ach_t_immortal: 'Surematu', ach_t_founder: 'Asutaja', ach_t_curator: 'Kuraator', t_grand_tour: 'Suur rändur',
-      ach_fr_veteran: 'Veterani pärg', ach_fr_prestige: 'Prestiižihalo', ach_fr_obsidian: 'Obsidiaansõrmus', ach_nc_ember: 'Hõõgus', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seif',
+      ach_fr_veteran: 'Veterani pärg', ach_fr_prestige: 'Prestiižihalo', ach_fr_obsidian: 'Obsidiaansõrmus', ach_nc_ember: 'Hõõgus', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seif', ach_fr_envoy: 'Saadiku sõrmus',
+      s1_table: 'Džässiklubi', s1_bk_gilded: 'Kullatud deko', s1_bk_ticket: 'Džässipilet', s1_fr_gilded: 'Džässiajastu halo', s1_t_debut: 'Debütant', s1_t_maestro: 'Maestro',
+      s1_nc_champagne: 'Šampanja', s1_bn_skyline: 'Džässilinn', s1_em_jazz: 'Džässbänd', s1_vx_champagne: 'Šampanjavihm',
       pk_starter: 'Algkomplekt', pk_sakura: 'Sakura komplekt', pk_racing: 'Boksiraja komplekt', pk_neon: 'Neoonöö komplekt', pk_aurora: 'Virmaliste komplekt', pk_montecarlo: 'Monte Carlo komplekt', pk_riga: 'Vana-Riia komplekt', pk_royal: 'Õukonna komplekt',
     },
+  },
+  daily: {
+    kicker: 'Päeva väljakutse', same: 'Sama jagamine kõigile',
+    intro: 'Täna mängivad kõik sama jagamist samade kolme boti vastu. Arvesse läheb ainult sinu esimene katse.',
+    format: '3 vooru · 3 tugevat botti · 1 katse',
+    no: n => `Nr ${n}`,
+    play: 'Mängi tänast jagamist', resume: 'Jätka katset', practice: 'Harjuta', back: 'Tagasi', signIn: 'Logi sisse', close: 'Sulge',
+    nextIn: t => `Järgmine jagamine ${t} pärast`,
+    played: 'Täna mängitud', yourScore: 'Sinu tulemus', yourRank: 'Sinu koht',
+    rankOf: (r, n) => `#${fmt(r)} / ${fmt(n)}`,
+    practiceTag: 'Harjutus',
+    guest: { title: 'Logi sisse, et pääseda edetabelisse', sub: 'Tulemus on selles seadmes salvestatud — logi täna sisse ja see läheb edetabelisse.' },
+    board: {
+      title: 'Edetabel', today: 'Täna', yesterday: 'Eile', empty: 'Tulemusi veel pole — ole täna esimene!', emptyYesterday: 'Eile ei mänginud keegi.',
+      error: 'Edetabelit ei õnnestunud laadida.', retry: 'Proovi uuesti', you: 'sina',
+      players: n => `${fmt(n)} ${n === 1 ? 'mängija' : 'mängijat'}`, turns: n => `${fmt(n)} ${n === 1 ? 'käik' : 'käiku'}`,
+    },
+    winners: 'Eilsed võitjad',
+    stats: { won: 'Võit', lost: 'Kaotus', points: 'Punktid', turns: 'Käigud', queens: 'Saadud E♠', rounds: 'Võidetud voorud' },
+    how: {
+      title: 'Kuidas punkte arvestatakse', base: 'Algus', win: 'Mängu võit (väikseim summa)', round: 'Iga voor, kus lähed esimesena välja', point: 'Iga punkt käes',
+      turn: 'Iga sinu käik', queen: 'Iga saadud E♠', floor: 'Mitte kunagi alla 0',
+    },
+    rewards: { title: 'Auhinnad', play: 'Osalemine', top1: '1. koht', top10: 'Top 10', top10pct: 'Top 10%', note: 'Kohaauhinnad makstakse välja, kui päev on läbi.' },
+    result: {
+      title: 'Tänane tulemus', practiceTitle: 'Harjutuse tulemus', practiceNote: 'Harjutus — edetabelisse ei lähe', won: 'Võitsid!', lost: 'Hea katse',
+      sending: 'Saadan…', onBoard: 'Edetabelis', offline: 'Salvestatud — saadame, kui oled taas võrgus', rejected: 'Server ei võtnud seda tulemust vastu.',
+      done: 'Valmis', again: 'Harjuta uuesti', breakdown: 'Arvestus',
+    },
+    share: {
+      button: 'Jaga', preparing: 'Valmistan…', copied: 'Link kopeeritud', saved: 'Pilt salvestatud',
+      text: (s, n) => `Sain Bridge 125 päeva väljakutses #${n} tulemuseks ${fmt(s)}. Kas suudad paremini?`, cta: 'Kas suudad paremini?',
+    },
+    card: { daily: 'Päeva väljakutse', score: 'Tulemus', rank: 'Koht', won: 'Võit', lost: 'Kaotus', points: 'Punktid', turns: 'Käigud', queens: 'Saadud E♠', cta: 'Kas suudad paremini?' },
+    home: { title: 'Päeva väljakutse', sub: 'Sama jagamine kõigile', done: s => `Tulemus ${fmt(s)}`, rank: (r, n) => `#${fmt(r)} / ${fmt(n)}`, nextIn: t => `Uus ${t} pärast`, play: 'Mängi', resume: 'Jätka' },
+    hud: { title: 'Päeva väljakutse', round: (n, m) => `Voor ${n}/${m}` },
+    claimed: r => `Eilses väljakutses said ${r}. koha — auhind makstud`,
+    time: { d: 'p', h: 'h', m: 'min' },
+  },
+  invite: {
+    title: 'Kutsu sõpru',
+    sub: (bm, g) => `Kui sõber liitub sinu lingiga ja mängib ${g} mängu, saate mõlemad ${fmt(bm)} BM ja ainult kutsetega saadava raami „Saadiku sõrmus“.`,
+    link: 'Sinu kutselink', copy: 'Kopeeri', copied: 'Kopeeritud!', share: 'Jaga',
+    shareTitle: 'Bridge 125',
+    shareText: 'Mängi minuga Bridge 125 — kaardimängu poti emanda, kuutede ja 125 punkti juures põlemisega. Liitu minu lingiga ja saame mõlemad boonuse:',
+    stats: { joined: 'Liitunud', rewarded: 'Boonus saadud', earned: 'Teenitud BM' },
+    friends: 'Sinu sõbrad',
+    progress: (n, m) => `${n}/${m} mängu`,
+    rewardedTag: 'Boonus makstud',
+    frame: 'Saadiku sõrmus', frameNote: 'Raam ainult kutsete eest',
+    signIn: 'Logi sisse, et saada kutselink', signInSub: 'Iga liitunud ja mänginud sõbra eest saate mõlemad boonuse.',
+    error: 'Kutselinki ei õnnestunud laadida.', retry: 'Proovi uuesti',
+    invitedBy: name => `Kutsus ${name}`,
+    welcome: {
+      kicker: 'Kutse',
+      title: name => `${name} kutsus sind`,
+      body: (bm, g) => `Mängi ${g} ${g === 1 ? 'mäng' : 'mängu'} ja saate mõlemad ${fmt(bm)} BM + eksklusiivse raami.`,
+      signIn: 'Logi sisse ja võta vastu', ok: 'Mängime!', later: 'Hiljem',
+      progress: (n, m) => `Mängitud ${n}/${m}`,
+    },
+    reward: {
+      title: 'Kutseboonus avatud!',
+      body: bm => `+${fmt(bm)} BM ja raam „Saadiku sõrmus“ on sinu.`,
+      friend: (name, bm) => `${name} mängis oma mängud ära — sulle +${fmt(bm)} BM`,
+    },
+  },
+  season: {
+    title: 'Hooajapass',
+    kicker: (n, name) => `${n}. hooaeg · ${name}`,
+    seasonNames: { s1: 'Džässiajastu' },
+    back: 'Tagasi',
+    tierN: n => `${n}. aste`,
+    tierShort: 'Aste',
+    stars: 'Tähed',
+    next: n => `Järgmine: ${n}. aste`,
+    maxed: 'Pass läbitud!',
+    endsIn: t => `Lõpeb ${t} pärast`,
+    startsIn: t => `Algab ${t} pärast`,
+    claimUntil: t => `Hooaeg läbi · auhinnad veel ${t}`,
+    over: 'Hooaeg läbi',
+    week: (w, of) => `Nädal ${w}/${of}`,
+    units: { d: 'p', h: 'h', m: 'min' },
+    free: 'Tasuta', premium: 'Premium',
+    claim: 'Võta', claimAll: n => `Võta kõik (${n})`, claimed: 'Võetud',
+    reach: n => `Jõua ${n}. astmele`,
+    unlock: 'Ava Premium', unlockSub: 'Eksklusiivsed hooajastiilid ja suurem auhind igal astmel',
+    premiumActive: 'Premium aktiivne', premiumFree: 'Premium on omanikule ja testijatele kaasas',
+    skip: 'Jäta aste vahele', skipTitle: 'Jäta astmeid vahele', skipSub: 'Hüppa kohe edasi — iga vahele jäänud auhinna saad kohe kätte.',
+    skipBtn: (n, p) => `Hüppa ${n} · ${p} 💎`, skipN: n => `${n} ${n === 1 ? 'aste' : 'astet'}`, skipTo: n => `Kuni ${n}. astmeni`,
+    sheet: {
+      title: 'Premium-pass', exclusive: 'Eksklusiivsed stiilid — poes neid ei müüda', plus: 'Lisaks premium-rajal',
+      retro: 'Kõigi juba saavutatud astmete premium-auhinnad avanevad kohe.',
+      buy: p => `Ava · ${p} 💎`, balance: b => `Sul on ${b} 💎`, need: n => `Puudu ${n} 💎`,
+      getDiamonds: 'Hangi teemante', later: 'Mitte praegu', done: 'Premium avatud!', doneSub: 'Sinu premium-auhinnad ootavad.',
+      legal: 'Digitaalne sisu, kohe kätte. Tasutakse ainult teemantidega.',
+    },
+    reward: {
+      bm: n => `${n} BM`, dm: n => `${n} ${num(n) === 1 ? 'teemant' : 'teemanti'}`, shards: n => `${n} ${n === 1 ? 'kild' : 'killu'}`,
+      spin: n => (n === 1 ? 'Õnneratta keerutus' : `${n} keerutust`), boost: m => `XP ×2 · ${hrs(m)} h`,
+    },
+    reveal: { title: 'Auhind käes', premiumTitle: 'Premium-auhind', tierTrack: (n, t) => `${n}. aste · ${t}`, collect: 'Suurepärane', all: n => `${n} ${n === 1 ? 'auhind' : 'auhinda'} käes`, wheel: 'Õnneratas' },
+    how: { title: 'Kuidas tähti teenida', win: 'Mängu võit', loss: 'Lõpetatud mäng', daily: 'Päevane ülesanne', weekly: 'Nädalaülesanne', chest: 'Nädala kirst', challenge: 'Päeva väljakutse', medals: 'Saavutus', note: 'Mängud lähevad arvesse päevase auhinnalimiidini. Tähti koguneb ainult hooaja ajal.' },
+    guest: 'Logi sisse, et tähti koguda', guestSub: 'See on eelvaade — hooaja edenemist ja auhindu hoitakse sinu kontol.', signIn: 'Logi sisse',
+    offline: 'Hooaega ei õnnestunud laadida — näitame eelvaadet.',
+    dock: 'Pass',
+    toast: { tier: n => `${n}. aste käes!`, claim: n => (n ? `${n} ${n === 1 ? 'auhind ootab' : 'auhinda ootab'}` : 'Kogu tähti edasi'), open: 'Ava' },
+    profile: { sub: t => `${t}. aste`, ready: n => `${n} ootab` },
+    errors: { funds: 'Teemante pole piisavalt', network: 'Ühenduse viga — proovi uuesti', locked: 'Jõua kõigepealt sellele astmele', premium: 'Vajab Premium-passi', none: 'Hooaeg praegu ei käi', generic: 'Midagi läks valesti', max: 'Juba viimane aste', banned: 'Konto blokeeritud' },
+    god: { title: 'GOD-tööriistad', reset: 'Lähtesta hooaeg' },
   },
 };
 

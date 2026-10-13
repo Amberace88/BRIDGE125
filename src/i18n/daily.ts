@@ -1,8 +1,8 @@
 import type { Strings } from './pick';
 
 /**
- * Daily challenge ("Dienas izaicinājums"). English is mandatory; lv / ru / uk are complete; every other language
- * falls back to English (lazily loaded packs may add a `daily` key — see locales/types.ts).
+ * Daily challenge ("Dienas izaicinājums"). English is mandatory; lv / ru / uk live here, the 13 lazily loaded languages
+ * translate it in their pack (src/i18n/locales/<lang>.ts → `daily`).
  */
 export interface DailyStrings {
   kicker: string; same: string; intro: string; format: string;

@@ -1,8 +1,8 @@
 import type { Strings } from './pick';
 
 /**
- * Invite friends (referrals). English is mandatory; lv / ru / uk are complete; every other language falls back to
- * English (lazily loaded packs may add an `invite` key — see locales/types.ts).
+ * Invite friends (referrals). English is mandatory; lv / ru / uk live here, the 13 lazily loaded languages translate it
+ * in their pack (src/i18n/locales/<lang>.ts → `invite`).
  */
 export interface InviteStrings {
   title: string;

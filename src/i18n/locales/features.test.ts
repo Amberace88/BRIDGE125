@@ -27,11 +27,9 @@ const MODULES: Record<keyof FeaturePack, Strings<unknown>> = {
   season: SEASON_STRINGS,
 };
 /** Modules a pack may leave out entirely (the language then simply shows English for them). */
-const OPTIONAL = new Set<string>(['cosmetics', 'daily', 'invite', 'season']);
+const OPTIONAL = new Set<string>(['cosmetics']);
 /** New modules not yet translated into the lazily loaded languages (English fallback until then). */
-const PENDING = new Set<string>(['daily', 'invite', 'season']);
-/** Keys added after the last translation pass (cosmetics from the invite reward / season pass). */
-const PENDING_KEYS = /^(names\.(ach_fr_envoy|s1_)|wallet\.reasons\.season)/;
+const PENDING = new Set<string>([]);
 /** Languages whose packs must be complete — no key may fall back to English. */
 const COMPLETE = ['lt', 'et', 'pl', 'de', 'ro', 'es', 'be', 'kk', 'uz', 'az', 'ka', 'hy', 'bg'];
 
@@ -84,7 +82,7 @@ describe('feature string modules', () => {
       const pack = (await files[`./${id}.ts`]()).default;
       for (const [name, mod] of Object.entries(MODULES)) {
         if (PENDING.has(name)) continue;
-        expect(missingKeys(mod.en, pack[name as keyof FeaturePack]).filter(k => !PENDING_KEYS.test(k)), `${id}.${name}`).toEqual([]);
+        expect(missingKeys(mod.en, pack[name as keyof FeaturePack]), `${id}.${name}`).toEqual([]);
       }
       expect(missingKeys(LB.en, LB[id]), `${id} leaderboard`).toEqual([]);
       check(LB[id], 'leaderboard', id);

@@ -5,6 +5,13 @@ const few = (n: number) => n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 10
 /** 1 partię · 2–4 partie (22, 34…) · 5+ partii (12–14 too). */
 const pl3 = (n: number, one: string, fewForm: string, many: string) => (n === 1 ? one : few(n) ? fewForm : many);
 
+/** Thousands with a thin space, as in the English modules: 1 250. */
+const fmt = (n: number) => Math.round(Number(n) || 0).toLocaleString('fr-FR');
+/** Boost minutes → hours with a decimal comma: 90 → "1,5". */
+const hrs = (min: number) => String(min % 60 === 0 ? min / 60 : Math.round(min / 6) / 10).replace('.', ',');
+/** A formatted amount ("1 250") back to a number, for plural agreement. */
+const num = (s: string | number) => Number(String(s).replace(/\D/g, '')) || 0;
+
 const pl: FeaturePack = {
   home: {
     intro: { skip: 'Pomiń', burn: 'Równo 125 → 0', low: 'Wygrywa najniższy wynik' },
@@ -244,7 +251,7 @@ const pl: FeaturePack = {
     },
     wallet: {
       title: 'Portfel', history: 'Historia zakupów', none: 'Brak zakupów', refunded: 'Zwrócono', sent: 'Wysłane prezenty', received: 'Otrzymane prezenty', ledger: 'Ruch diamentów',
-      reasons: { purchase: 'Zakup', refund: 'Zwrot', gift: 'Prezent przy stole', gift_item: 'Styl w prezencie', admin_grant: 'Testowe zasilenie', correction: 'Korekta' },
+      reasons: { purchase: 'Zakup', refund: 'Zwrot', gift: 'Prezent przy stole', gift_item: 'Styl w prezencie', admin_grant: 'Testowe zasilenie', correction: 'Korekta', season: 'Przepustka sezonowa' },
       tip: n => `Napiwek ${n} BM`,
     },
     inbox: { item: (n, i) => `${n} podarował(a) ci: ${i} 🎁`, tip: (n, b) => `${n} dał(a) ci ${b} BM napiwku`, thanks: 'Miło!' },
@@ -546,9 +553,120 @@ const pl: FeaturePack = {
       nc_default: 'Domyślny', nc_gold: 'Złoto', nc_ruby: 'Rubin', nc_ice: 'Lód', nc_emerald: 'Szmaragd', nc_neon: 'Neon', nc_fire: 'Ogień', nc_holo: 'Hologram',
       bn_felt: 'Sukno', bn_bokeh: 'Światła kasyna', bn_sunburst: 'Złote słońce', bn_aurora: 'Niebo zorzy', bn_riga: 'Dachy Rygi', bn_suits: 'Królewskie kolory',
       ach_t_phoenix: 'Feniks', ach_t_detective: 'Wykrywacz kłamstw', ach_t_immortal: 'Nieśmiertelny', ach_t_founder: 'Założyciel', ach_t_curator: 'Kurator', t_grand_tour: 'Wielki podróżnik',
-      ach_fr_veteran: 'Wieniec weterana', ach_fr_prestige: 'Aureola prestiżu', ach_fr_obsidian: 'Obsydianowy pierścień', ach_nc_ember: 'Żar', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Skarbiec',
+      ach_fr_veteran: 'Wieniec weterana', ach_fr_prestige: 'Aureola prestiżu', ach_fr_obsidian: 'Obsydianowy pierścień', ach_nc_ember: 'Żar', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Skarbiec', ach_fr_envoy: 'Pierścień posła',
+      s1_table: 'Klub jazzowy', s1_bk_gilded: 'Złocone art déco', s1_bk_ticket: 'Bilet jazzowy', s1_fr_gilded: 'Aureola ery jazzu', s1_t_debut: 'Debiutant', s1_t_maestro: 'Maestro',
+      s1_nc_champagne: 'Szampan', s1_bn_skyline: 'Jazzowe miasto', s1_em_jazz: 'Big band', s1_vx_champagne: 'Deszcz szampana',
       pk_starter: 'Zestaw startowy', pk_sakura: 'Zestaw Sakura', pk_racing: 'Zestaw Pit Lane', pk_neon: 'Zestaw Neon', pk_aurora: 'Zestaw Zorza polarna', pk_montecarlo: 'Zestaw Monte Carlo', pk_riga: 'Zestaw Stara Ryga', pk_royal: 'Zestaw Królewski dwór',
     },
+  },
+  daily: {
+    kicker: 'Wyzwanie dnia', same: 'Jedno rozdanie dla wszystkich',
+    intro: 'Dziś wszyscy grają to samo rozdanie przeciw tym samym trzem botom. Liczy się tylko twoja pierwsza próba.',
+    format: '3 rundy · 3 trudne boty · 1 próba',
+    no: n => `Nr ${n}`,
+    play: 'Zagraj rozdanie dnia', resume: 'Kontynuuj próbę', practice: 'Trening', back: 'Wstecz', signIn: 'Zaloguj się', close: 'Zamknij',
+    nextIn: t => `Następne rozdanie za ${t}`,
+    played: 'Zagrane dziś', yourScore: 'Twój wynik', yourRank: 'Twoje miejsce',
+    rankOf: (r, n) => `#${fmt(r)} z ${fmt(n)}`,
+    practiceTag: 'Trening',
+    guest: { title: 'Zaloguj się, by trafić do rankingu', sub: 'Wynik jest zapisany na tym urządzeniu — zaloguj się jeszcze dziś, a trafi do rankingu.' },
+    board: {
+      title: 'Ranking', today: 'Dziś', yesterday: 'Wczoraj', empty: 'Brak wyników — bądź dziś pierwszy!', emptyYesterday: 'Wczoraj nikt nie grał.',
+      error: 'Nie udało się wczytać rankingu.', retry: 'Spróbuj ponownie', you: 'ty',
+      players: n => `${fmt(n)} ${pl3(n, 'gracz', 'graczy', 'graczy')}`, turns: n => `${fmt(n)} ${pl3(n, 'ruch', 'ruchy', 'ruchów')}`,
+    },
+    winners: 'Wczorajsi zwycięzcy',
+    stats: { won: 'Wygrana', lost: 'Przegrana', points: 'Punkty', turns: 'Ruchy', queens: 'Wzięte D♠', rounds: 'Wygrane rundy' },
+    how: {
+      title: 'Jak liczymy wynik', base: 'Start', win: 'Wygrana gra (najniższa suma)', round: 'Każda runda, w której wychodzisz pierwszy', point: 'Każdy punkt na ręce',
+      turn: 'Każdy twój ruch', queen: 'Każda wzięta D♠', floor: 'Nigdy poniżej 0',
+    },
+    rewards: { title: 'Nagrody', play: 'Za udział', top1: '1. miejsce', top10: 'Top 10', top10pct: 'Top 10%', note: 'Nagrody za miejsce wypłacamy po zakończeniu dnia.' },
+    result: {
+      title: 'Wynik dnia', practiceTitle: 'Wynik treningu', practiceNote: 'Trening — nie trafia do rankingu', won: 'Wygrana!', lost: 'Dobra próba',
+      sending: 'Wysyłanie…', onBoard: 'W rankingu', offline: 'Zapisano — wyślemy, gdy wrócisz do sieci', rejected: 'Serwer nie przyjął tego wyniku.',
+      done: 'Gotowe', again: 'Trenuj dalej', breakdown: 'Rozliczenie',
+    },
+    share: {
+      button: 'Udostępnij', preparing: 'Przygotowuję…', copied: 'Link skopiowany', saved: 'Obraz zapisany',
+      text: (s, n) => `Mam ${fmt(s)} pkt w wyzwaniu dnia #${n} w Bridge 125. Pobijesz mnie?`, cta: 'Pobijesz mnie?',
+    },
+    card: { daily: 'Wyzwanie dnia', score: 'Wynik', rank: 'Miejsce', won: 'Wygrana', lost: 'Przegrana', points: 'Punkty', turns: 'Ruchy', queens: 'Wzięte D♠', cta: 'Pobijesz mnie?' },
+    home: { title: 'Wyzwanie dnia', sub: 'Jedno rozdanie dla wszystkich', done: s => `Wynik ${fmt(s)}`, rank: (r, n) => `#${fmt(r)} z ${fmt(n)}`, nextIn: t => `Nowe za ${t}`, play: 'Graj', resume: 'Dalej' },
+    hud: { title: 'Wyzwanie dnia', round: (n, m) => `Runda ${n} z ${m}` },
+    claimed: r => `Wczorajsze wyzwanie: ${r}. miejsce — nagroda przyznana`,
+    time: { d: 'd', h: 'h', m: 'min' },
+  },
+  invite: {
+    title: 'Zaproś znajomych',
+    sub: (bm, g) => `Gdy znajomy dołączy przez twój link i rozegra ${g} ${pl3(g, 'partię', 'partie', 'partii')}, oboje dostaniecie ${fmt(bm)} BM i ramkę „Pierścień posła” — tylko z zaproszenia.`,
+    link: 'Twój link z zaproszeniem', copy: 'Kopiuj', copied: 'Skopiowano!', share: 'Udostępnij',
+    shareTitle: 'Bridge 125',
+    shareText: 'Zagraj ze mną w Bridge 125 — grę karcianą z damą pik, szóstkami i „spaleniem” na 125. Dołącz przez mój link, a oboje dostaniemy bonus:',
+    stats: { joined: 'Dołączyli', rewarded: 'Bonus zdobyty', earned: 'Zarobione BM' },
+    friends: 'Twoi znajomi',
+    progress: (n, m) => `${n}/${m} partii`,
+    rewardedTag: 'Bonus wypłacony',
+    frame: 'Pierścień posła', frameNote: 'Ramka tylko za zaproszenia',
+    signIn: 'Zaloguj się, by dostać link z zaproszeniem', signInSub: 'Za każdego znajomego, który dołączy i zagra, oboje dostajecie bonus.',
+    error: 'Nie udało się wczytać linku z zaproszeniem.', retry: 'Spróbuj ponownie',
+    invitedBy: name => `Zaproszenie od: ${name}`,
+    welcome: {
+      kicker: 'Zaproszenie',
+      title: name => `${name} zaprasza cię do gry`,
+      body: (bm, g) => `Rozegraj ${g} ${pl3(g, 'partię', 'partie', 'partii')}, a oboje dostaniecie ${fmt(bm)} BM + ekskluzywną ramkę.`,
+      signIn: 'Zaloguj się i przyjmij', ok: 'Gramy!', later: 'Później',
+      progress: (n, m) => `Rozegrano ${n} z ${m}`,
+    },
+    reward: {
+      title: 'Bonus za zaproszenie odblokowany!',
+      body: bm => `+${fmt(bm)} BM i ramka „Pierścień posła” są twoje.`,
+      friend: (name, bm) => `${name}: partie rozegrane — +${fmt(bm)} BM dla ciebie`,
+    },
+  },
+  season: {
+    title: 'Przepustka sezonowa',
+    kicker: (n, name) => `Sezon ${n} · ${name}`,
+    seasonNames: { s1: 'Era jazzu' },
+    back: 'Wstecz',
+    tierN: n => `Stopień ${n}`,
+    tierShort: 'Stopień',
+    stars: 'Gwiazdki',
+    next: n => `Dalej: stopień ${n}`,
+    maxed: 'Przepustka ukończona!',
+    endsIn: t => `Koniec za ${t}`,
+    startsIn: t => `Start za ${t}`,
+    claimUntil: t => `Sezon zakończony · nagrody jeszcze ${t}`,
+    over: 'Sezon zakończony',
+    week: (w, of) => `Tydzień ${w} z ${of}`,
+    units: { d: 'd', h: 'godz.', m: 'min' },
+    free: 'Darmowa', premium: 'Premium',
+    claim: 'Odbierz', claimAll: n => `Odbierz wszystko (${n})`, claimed: 'Odebrano',
+    reach: n => `Osiągnij stopień ${n}`,
+    unlock: 'Odblokuj Premium', unlockSub: 'Ekskluzywne style sezonu i większa nagroda na każdym stopniu',
+    premiumActive: 'Premium aktywne', premiumFree: 'Premium w zestawie dla właściciela i testerów',
+    skip: 'Pomiń stopień', skipTitle: 'Pomiń stopnie', skipSub: 'Skocz od razu do przodu — każdą pominiętą nagrodę odbierzesz natychmiast.',
+    skipBtn: (n, p) => `Pomiń ${n} · ${p} 💎`, skipN: n => `${n} ${pl3(n, 'stopień', 'stopnie', 'stopni')}`, skipTo: n => `Do stopnia ${n}`,
+    sheet: {
+      title: 'Przepustka Premium', exclusive: 'Ekskluzywne style — nigdy w sklepie', plus: 'A na ścieżce premium dodatkowo',
+      retro: 'Nagrody premium ze wszystkich osiągniętych już stopni odblokują się od razu.',
+      buy: p => `Odblokuj · ${p} 💎`, balance: b => `Masz ${b} 💎`, need: n => `Brakuje ${n} 💎`,
+      getDiamonds: 'Zdobądź diamenty', later: 'Nie teraz', done: 'Premium odblokowane!', doneSub: 'Twoje nagrody premium już czekają.',
+      legal: 'Treści cyfrowe dostarczane natychmiast. Płatność wyłącznie diamentami.',
+    },
+    reward: {
+      bm: n => `${n} BM`, dm: n => `${n} ${pl3(num(n), 'diament', 'diamenty', 'diamentów')}`, shards: n => `${n} ${pl3(n, 'odłamek', 'odłamki', 'odłamków')}`,
+      spin: n => (n === 1 ? 'Obrót kołem' : `${n} ${pl3(n, 'obrót', 'obroty', 'obrotów')}`), boost: m => `XP ×2 · ${hrs(m)} godz.`,
+    },
+    reveal: { title: 'Nagroda odebrana', premiumTitle: 'Nagroda premium', tierTrack: (n, t) => `Stopień ${n} · ${t}`, collect: 'Super', all: n => `Odebrano ${n} ${pl3(n, 'nagrodę', 'nagrody', 'nagród')}`, wheel: 'Koło fortuny' },
+    how: { title: 'Jak zdobywać gwiazdki', win: 'Wygrana partia', loss: 'Rozegrana partia', daily: 'Zadanie dzienne', weekly: 'Zadanie tygodniowe', chest: 'Skrzynia tygodnia', challenge: 'Wyzwanie dnia', medals: 'Osiągnięcie', note: 'Partie liczą się do dziennego limitu nagród. Gwiazdki przybywają tylko w trakcie sezonu.' },
+    guest: 'Zaloguj się, by zbierać gwiazdki', guestSub: 'To podgląd — postęp sezonu i nagrody są zapisane na twoim koncie.', signIn: 'Zaloguj się',
+    offline: 'Nie udało się wczytać sezonu — pokazujemy podgląd.',
+    dock: 'Przepustka',
+    toast: { tier: n => `Stopień ${n} osiągnięty!`, claim: n => (n ? `${pl3(n, 'Czeka', 'Czekają', 'Czeka')} ${n} ${pl3(n, 'nagroda', 'nagrody', 'nagród')}` : 'Zbieraj dalej gwiazdki'), open: 'Otwórz' },
+    profile: { sub: t => `Stopień ${t}`, ready: n => `Do odebrania: ${n}` },
+    errors: { funds: 'Za mało diamentów', network: 'Problem z połączeniem — spróbuj ponownie', locked: 'Najpierw osiągnij ten stopień', premium: 'Wymaga Przepustki Premium', none: 'Sezon teraz nie trwa', generic: 'Coś poszło nie tak', max: 'To już ostatni stopień', banned: 'Konto zablokowane' },
+    god: { title: 'Narzędzia GOD', reset: 'Zresetuj sezon' },
   },
 };
 

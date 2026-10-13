@@ -4,6 +4,13 @@ import type { FeaturePack } from './types';
 /** 1, 21, 31… partiją · 2–9, 22–29… partijas · 0, 10–20, 30… partijų. */
 const lt3 = (n: number, one: string, few: string, many: string) =>
   n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && (n % 100 < 10 || n % 100 >= 20) ? few : many;
+/** Thousands with a thin space, as in the English modules: 1 250. */
+const fmt = (n: number) => Math.round(Number(n) || 0).toLocaleString('fr-FR');
+/** Boost minutes → hours with a decimal comma: 90 → "1,5". */
+const hrs = (min: number) => String(min % 60 === 0 ? min / 60 : Math.round(min / 6) / 10).replace('.', ',');
+/** A formatted amount ("1 250") back to a number, for plural agreement. */
+const num = (s: string | number) => Number(String(s).replace(/\D/g, '')) || 0;
+
 const lt: FeaturePack = {
   home: {
     intro: { skip: 'Praleisti', burn: 'Lygiai 125 → 0', low: 'Laimi mažiausias rezultatas' },
@@ -243,7 +250,7 @@ const lt: FeaturePack = {
     },
     wallet: {
       title: 'Piniginė', history: 'Pirkimų istorija', none: 'Pirkimų dar nėra', refunded: 'Grąžinta', sent: 'Išsiųstos dovanos', received: 'Gautos dovanos', ledger: 'Deimantų judėjimas',
-      reasons: { purchase: 'Pirkimas', refund: 'Grąžinimas', gift: 'Dovana prie stalo', gift_item: 'Padovanotas stilius', admin_grant: 'Bandomasis papildymas', correction: 'Korekcija' },
+      reasons: { purchase: 'Pirkimas', refund: 'Grąžinimas', gift: 'Dovana prie stalo', gift_item: 'Padovanotas stilius', admin_grant: 'Bandomasis papildymas', correction: 'Korekcija', season: 'Sezono leidimas' },
       tip: n => `${n} BM arbatpinigių`,
     },
     inbox: { item: (n, i) => `${n} tau padovanojo: ${i} 🎁`, tip: (n, b) => `${n} tau davė ${b} BM arbatpinigių`, thanks: 'Kaip miela!' },
@@ -545,9 +552,120 @@ const lt: FeaturePack = {
       nc_default: 'Įprasta', nc_gold: 'Auksas', nc_ruby: 'Rubinas', nc_ice: 'Ledas', nc_emerald: 'Smaragdas', nc_neon: 'Neonas', nc_fire: 'Ugnis', nc_holo: 'Holograma',
       bn_felt: 'Audinys', bn_bokeh: 'Kazino šviesos', bn_sunburst: 'Auksinė saulė', bn_aurora: 'Pašvaistės dangus', bn_riga: 'Rygos stogai', bn_suits: 'Karališkos rūšys',
       ach_t_phoenix: 'Feniksas', ach_t_detective: 'Melo detektorius', ach_t_immortal: 'Nemirtingasis', ach_t_founder: 'Įkūrėjas', ach_t_curator: 'Kuratorius', t_grand_tour: 'Didysis keliautojas',
-      ach_fr_veteran: 'Veterano vainikas', ach_fr_prestige: 'Prestižo aureolė', ach_fr_obsidian: 'Obsidiano žiedas', ach_nc_ember: 'Žarija', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seifas',
+      ach_fr_veteran: 'Veterano vainikas', ach_fr_prestige: 'Prestižo aureolė', ach_fr_obsidian: 'Obsidiano žiedas', ach_nc_ember: 'Žarija', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seifas', ach_fr_envoy: 'Pasiuntinio žiedas',
+      s1_table: 'Džiazo klubas', s1_bk_gilded: 'Auksinis art deco', s1_bk_ticket: 'Džiazo bilietas', s1_fr_gilded: 'Džiazo amžiaus aureolė', s1_t_debut: 'Debiutantas', s1_t_maestro: 'Maestro',
+      s1_nc_champagne: 'Šampanas', s1_bn_skyline: 'Džiazo miestas', s1_em_jazz: 'Džiazo orkestras', s1_vx_champagne: 'Šampano lietus',
       pk_starter: 'Pradžios rinkinys', pk_sakura: 'Sakuros rinkinys', pk_racing: 'Pit Lane rinkinys', pk_neon: 'Neono rinkinys', pk_aurora: 'Pašvaistės rinkinys', pk_montecarlo: 'Monte Karlo rinkinys', pk_riga: 'Senosios Rygos rinkinys', pk_royal: 'Karališkas rinkinys',
     },
+  },
+  daily: {
+    kicker: 'Dienos iššūkis', same: 'Tas pats dalijimas visiems',
+    intro: 'Šiandien visi žaidžia tą patį dalijimą prieš tuos pačius tris botus. Įskaitomas tik pirmas tavo bandymas.',
+    format: '3 raundai · 3 stiprūs botai · 1 bandymas',
+    no: n => `Nr. ${n}`,
+    play: 'Žaisti šiandienos dalijimą', resume: 'Tęsti bandymą', practice: 'Treniruotis', back: 'Atgal', signIn: 'Prisijungti', close: 'Uždaryti',
+    nextIn: t => `Kitas dalijimas po ${t}`,
+    played: 'Šiandien sužaista', yourScore: 'Tavo rezultatas', yourRank: 'Tavo vieta',
+    rankOf: (r, n) => `#${fmt(r)} iš ${fmt(n)}`,
+    practiceTag: 'Treniruotė',
+    guest: { title: 'Prisijunk ir pateksi į lentelę', sub: 'Rezultatas išsaugotas šiame įrenginyje — prisijunk dar šiandien ir jis pateks į lentelę.' },
+    board: {
+      title: 'Lyderių lentelė', today: 'Šiandien', yesterday: 'Vakar', empty: 'Rezultatų dar nėra — būk pirmas šiandien!', emptyYesterday: 'Vakar niekas nežaidė.',
+      error: 'Nepavyko įkelti lentelės.', retry: 'Bandyti dar kartą', you: 'tu',
+      players: n => `${fmt(n)} ${lt3(n, 'žaidėjas', 'žaidėjai', 'žaidėjų')}`, turns: n => `${fmt(n)} ${lt3(n, 'ėjimas', 'ėjimai', 'ėjimų')}`,
+    },
+    winners: 'Vakarykščiai nugalėtojai',
+    stats: { won: 'Pergalė', lost: 'Pralaimėjimas', points: 'Taškai', turns: 'Ėjimai', queens: 'Gauta D♠', rounds: 'Laimėti raundai' },
+    how: {
+      title: 'Kaip skaičiuojami taškai', base: 'Pradžia', win: 'Laimėta partija (mažiausia suma)', round: 'Už raundą, kai išeini pirmas', point: 'Už kiekvieną tašką rankoje',
+      turn: 'Už kiekvieną savo ėjimą', queen: 'Už kiekvieną gautą D♠', floor: 'Niekada mažiau nei 0',
+    },
+    rewards: { title: 'Prizai', play: 'Už dalyvavimą', top1: '1 vieta', top10: 'Top 10', top10pct: 'Top 10 %', note: 'Prizai už vietą išmokami dienai pasibaigus.' },
+    result: {
+      title: 'Šiandienos rezultatas', practiceTitle: 'Treniruotės rezultatas', practiceNote: 'Treniruotė — į lentelę neįskaitoma', won: 'Pergalė!', lost: 'Geras bandymas',
+      sending: 'Siunčiama…', onBoard: 'Įrašyta į lentelę', offline: 'Išsaugota — išsiųsime, kai atsiras ryšys', rejected: 'Serveris šio rezultato nepriėmė.',
+      done: 'Gerai', again: 'Treniruotis dar kartą', breakdown: 'Skaičiavimas',
+    },
+    share: {
+      button: 'Dalintis', preparing: 'Ruošiama…', copied: 'Nuoroda nukopijuota', saved: 'Paveikslėlis išsaugotas',
+      text: (s, n) => `Bridge 125 dienos iššūkyje #${n} surinkau ${fmt(s)}. Ar pranoksi mane?`, cta: 'Ar pranoksi mane?',
+    },
+    card: { daily: 'Dienos iššūkis', score: 'Rezultatas', rank: 'Vieta', won: 'Pergalė', lost: 'Pralaimėjimas', points: 'Taškai', turns: 'Ėjimai', queens: 'Gauta D♠', cta: 'Ar pranoksi mane?' },
+    home: { title: 'Dienos iššūkis', sub: 'Tas pats dalijimas visiems', done: s => `Rezultatas ${fmt(s)}`, rank: (r, n) => `#${fmt(r)} iš ${fmt(n)}`, nextIn: t => `Naujas po ${t}`, play: 'Žaisti', resume: 'Tęsti' },
+    hud: { title: 'Dienos iššūkis', round: (n, m) => `${n} raundas iš ${m}` },
+    claimed: r => `Vakarykščiame iššūkyje užėmei ${r} vietą — prizas įskaitytas`,
+    time: { d: 'd', h: 'h', m: 'min' },
+  },
+  invite: {
+    title: 'Pakviesk draugų',
+    sub: (bm, g) => `Kai draugas prisijungs per tavo nuorodą ir sužais ${g} ${lt3(g, 'partiją', 'partijas', 'partijų')}, abu gausite po ${fmt(bm)} BM ir tik kvietimams skirtą rėmelį „Pasiuntinio žiedas“.`,
+    link: 'Tavo kvietimo nuoroda', copy: 'Kopijuoti', copied: 'Nukopijuota!', share: 'Dalintis',
+    shareTitle: 'Bridge 125',
+    shareText: 'Žaisk su manimi Bridge 125 — kortų žaidimą su vynų dama, šešiukais ir 125 taškų „sudegimu“. Prisijunk per mano nuorodą ir abu gausime premiją:',
+    stats: { joined: 'Prisijungė', rewarded: 'Premija gauta', earned: 'Uždirbta BM' },
+    friends: 'Tavo draugai',
+    progress: (n, m) => `${n}/${m} partijų`,
+    rewardedTag: 'Premija išmokėta',
+    frame: 'Pasiuntinio žiedas', frameNote: 'Rėmelis tik už kvietimus',
+    signIn: 'Prisijunk ir gauk kvietimo nuorodą', signInSub: 'Už kiekvieną prisijungusį ir sužaidusį draugą premiją gaunate abu.',
+    error: 'Nepavyko įkelti kvietimo nuorodos.', retry: 'Bandyti dar kartą',
+    invitedBy: name => `Pakvietė ${name}`,
+    welcome: {
+      kicker: 'Kvietimas',
+      title: name => `${name} tave kviečia`,
+      body: (bm, g) => `Sužaisk ${g} ${lt3(g, 'partiją', 'partijas', 'partijų')} ir abu gausite po ${fmt(bm)} BM + išskirtinį rėmelį.`,
+      signIn: 'Prisijungti ir priimti', ok: 'Žaidžiam!', later: 'Vėliau',
+      progress: (n, m) => `Sužaista ${n} iš ${m}`,
+    },
+    reward: {
+      title: 'Kvietimo premija atrakinta!',
+      body: bm => `+${fmt(bm)} BM ir rėmelis „Pasiuntinio žiedas“ — tavo.`,
+      friend: (name, bm) => `${name} sužaidė savo partijas — tau +${fmt(bm)} BM`,
+    },
+  },
+  season: {
+    title: 'Sezono leidimas',
+    kicker: (n, name) => `${n} sezonas · ${name}`,
+    seasonNames: { s1: 'Džiazo amžius' },
+    back: 'Atgal',
+    tierN: n => `${n} pakopa`,
+    tierShort: 'Pakopa',
+    stars: 'Žvaigždės',
+    next: n => `Toliau: ${n} pakopa`,
+    maxed: 'Leidimas užbaigtas!',
+    endsIn: t => `Baigsis po ${t}`,
+    startsIn: t => `Prasidės po ${t}`,
+    claimUntil: t => `Sezonas baigėsi · atsiimk dar ${t}`,
+    over: 'Sezonas baigėsi',
+    week: (w, of) => `${w} savaitė iš ${of}`,
+    units: { d: 'd.', h: 'val.', m: 'min.' },
+    free: 'Nemokamas', premium: 'Premium',
+    claim: 'Atsiimti', claimAll: n => `Atsiimti viską (${n})`, claimed: 'Atsiimta',
+    reach: n => `Pasiek ${n} pakopą`,
+    unlock: 'Atrakinti Premium', unlockSub: 'Išskirtiniai sezono stiliai ir didesnis prizas kiekvienoje pakopoje',
+    premiumActive: 'Premium aktyvus', premiumFree: 'Premium įtrauktas savininkui ir testuotojams',
+    skip: 'Praleisti pakopą', skipTitle: 'Praleisti pakopas', skipSub: 'Peršok į priekį iškart — visus praleistus prizus galėsi atsiimti tuoj pat.',
+    skipBtn: (n, p) => `Praleisti ${n} · ${p} 💎`, skipN: n => `${n} ${lt3(n, 'pakopa', 'pakopos', 'pakopų')}`, skipTo: n => `Iki ${n} pakopos`,
+    sheet: {
+      title: 'Premium leidimas', exclusive: 'Išskirtiniai stiliai — parduotuvėje jų nebus', plus: 'Be to, premium juostoje',
+      retro: 'Premium prizai visose jau pasiektose pakopose atsirakins iškart.',
+      buy: p => `Atrakinti · ${p} 💎`, balance: b => `Turi ${b} 💎`, need: n => `Trūksta ${n} 💎`,
+      getDiamonds: 'Gauti deimantų', later: 'Ne dabar', done: 'Premium atrakintas!', doneSub: 'Tavo premium prizai jau laukia.',
+      legal: 'Skaitmeninis turinys, pristatomas iškart. Mokama tik deimantais.',
+    },
+    reward: {
+      bm: n => `${n} BM`, dm: n => `${n} ${lt3(num(n), 'deimantas', 'deimantai', 'deimantų')}`, shards: n => `${n} ${lt3(n, 'šukė', 'šukės', 'šukių')}`,
+      spin: n => (n === 1 ? 'Rato sukimas' : `${n} ${lt3(n, 'sukimas', 'sukimai', 'sukimų')}`), boost: m => `XP ×2 · ${hrs(m)} val.`,
+    },
+    reveal: { title: 'Prizas gautas', premiumTitle: 'Premium prizas', tierTrack: (n, t) => `${n} pakopa · ${t}`, collect: 'Puiku', all: n => `Gauta ${n} ${lt3(n, 'prizas', 'prizai', 'prizų')}`, wheel: 'Laimės ratas' },
+    how: { title: 'Kaip rinkti žvaigždes', win: 'Laimėta partija', loss: 'Sužaista partija', daily: 'Dienos užduotis', weekly: 'Savaitės užduotis', chest: 'Savaitės skrynia', challenge: 'Dienos iššūkis', medals: 'Pasiekimas', note: 'Partijos skaičiuojamos iki dienos prizų limito. Žvaigždės renkamos tik vykstant sezonui.' },
+    guest: 'Prisijunk ir rink žvaigždes', guestSub: 'Tai peržiūra — sezono pažanga ir prizai saugomi tavo paskyroje.', signIn: 'Prisijungti',
+    offline: 'Nepavyko įkelti sezono — rodoma peržiūra.',
+    dock: 'Leidimas',
+    toast: { tier: n => `Pasiekta ${n} pakopa!`, claim: n => (n ? `Laukia ${n} ${lt3(n, 'prizas', 'prizai', 'prizų')}` : 'Rink žvaigždes toliau'), open: 'Atidaryti' },
+    profile: { sub: t => `${t} pakopa`, ready: n => `Laukia: ${n}` },
+    errors: { funds: 'Nepakanka deimantų', network: 'Ryšio klaida — bandyk dar kartą', locked: 'Pirmiausia pasiek šią pakopą', premium: 'Reikia Premium leidimo', none: 'Sezonas šiuo metu nevyksta', generic: 'Kažkas nepavyko', max: 'Jau paskutinė pakopa', banned: 'Paskyra užblokuota' },
+    god: { title: 'GOD įrankiai', reset: 'Atstatyti sezoną' },
   },
 };
 
