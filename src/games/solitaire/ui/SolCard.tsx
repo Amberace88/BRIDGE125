@@ -1,3 +1,4 @@
+import { useFlipSides } from '../../../components/flipSides';
 import { animate, motion, useMotionValue, useTransform, type AnimationPlaybackControls, type MotionValue } from 'motion/react';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { CardFace, type FaceCard } from '../../../components/CardFace';
@@ -46,6 +47,7 @@ export const SolCard = memo(function SolCard({ card, pose, cw, ch, lang, reg, en
   const y = useMotionValue(enter ? enter.y : pose.y);
   const z = useMotionValue(pose.z);
   const flip = useMotionValue(enter || !pose.up ? 180 : 0);
+  const sides = useFlipSides(flip);
   const lift = useMotionValue(0);
   const tilt = useMotionValue(0);
   const sx = useMotionValue(0);
@@ -151,8 +153,8 @@ export const SolCard = memo(function SolCard({ card, pose, cw, ch, lang, reg, en
       <motion.div className="sc-sh" style={{ opacity: shO, y: shY, scale: shS }} />
       <motion.div className="sc-body" style={{ x: sx, scale, rotate: tilt }}>
         <motion.div className="sc-flip" style={{ rotateY: flip, transformPerspective: 900 }}>
-          <CardFace card={face} lang={lang} />
-          <div className="bk" />
+          <motion.div className="side" style={{ visibility: sides.face }}><CardFace card={face} lang={lang} /></motion.div>
+          <motion.div className="bk" style={{ visibility: sides.back }} />
         </motion.div>
         <div className="sc-glow" />
       </motion.div>

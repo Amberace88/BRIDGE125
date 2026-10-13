@@ -238,3 +238,4 @@
 @media (prefers-reduced-motion: reduce) {
   .sol-confetti, .sol-ghost, .sc.hint .sc-glow, .sol-autocta::after { animation: none; }
 }
+.sc-flip > .side { position: absolute; inset: 0; transform-style: preserve-3d; }

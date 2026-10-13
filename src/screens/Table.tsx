@@ -255,6 +255,17 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
     return () => ro.disconnect();
   }, []);
 
+  // bottom of the top bar (round title + rules) in stage pixels — includes the iPhone notch (safe-area) offset
+  const tbarRef = useRef<HTMLDivElement>(null);
+  const [tbarBottom, setTbarBottom] = useState(0);
+  useLayoutEffect(() => {
+    const bar = tbarRef.current, st = stageRef.current; if (!bar || !st) return;
+    const measure = () => { const centre = bar.querySelector('.tcenter') ?? bar; setTbarBottom(Math.round(centre.getBoundingClientRect().bottom - st.getBoundingClientRect().top)); };
+    const ro = new ResizeObserver(measure);
+    ro.observe(bar); measure();
+    return () => ro.disconnect();
+  }, []);
+
   /* ---------- displayed state: holds new states while the deal is playing, then replays them ---------- */
   const animDeal = dealAnimation && !reduce;
   /** animation time multiplier: 1 normally, shorter in fast mode, shortest while skipping to my turn */
@@ -479,7 +490,10 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
   const TILT = 16;
   const handY = H - 14 - (ch * hs) / 2 - (desk ? 22 : 8);
   const myRowY = handY - (ch * hs) / 2 - (desk ? 40 : 34);
-  const seatTop = desk ? 66 : 62;
+  // a seat in the middle (2 or 4 players) sits under the round title + rules lines, not on top of them
+  const centreSeat = n === 2 || n === 4;
+  // seats' y is the top of the avatar: keep it clear of the top bar (title + rules), wherever the safe area puts it
+  const seatTop = Math.max(desk ? 66 : 62, tbarBottom + (centreSeat || !desk ? 12 : 4));
   const seats = useMemo(() => {
     const top = seatTop;
     if (n === 2) return [{ x: cx, y: top }];
@@ -720,7 +734,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       <div className="feltclick" onClick={() => setSel([])} aria-hidden />
 
       {/* top bar */}
-      <div className={`tbar ${pace ? 'has-pace' : ''}`}>
+      <div ref={tbarRef} className={`tbar ${pace ? 'has-pace' : ''}`}>
         <button className="glyph" aria-label={s.menu} title={s.menu} onClick={() => setMenu(true)}><IconMenu /></button>
         <div className="tcenter">
           {topCenter ?? null}

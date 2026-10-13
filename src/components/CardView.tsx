@@ -1,3 +1,4 @@
+import { useFlipSides } from './flipSides';
 import { animate, motion, useMotionValue, useReducedMotion, useTransform, type AnimationPlaybackControls } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { type Card, SUIT_GLYPH } from '../engine/engine';
@@ -76,6 +77,9 @@ export function CardView({ card, lang, pose, w, flight, legal, dim, sel, onTap, 
   /** how much the hop grows the card and throws its shadow (a flight is showy; the dealer's slide is subtle) */
   const lk = useRef(SHOWY);
 
+  // iOS Safari ignores backface-visibility once a 3D parent gets flattened (opacity / filter on the flight),
+  // so the face showed through the back while a card flew face-down. Decide the visible side from the angle.
+  const { face: faceVis, back: backVis } = useFlipSides(flip);
   const hopY = useTransform(hop, v => -v * arc.current);
   const hopS = useTransform([hop, squash], ([a, b]: number[]) => (1 + a * lk.current.s) * b);
   const shX = useTransform(hop, v => v * lk.current.sx);
@@ -309,8 +313,8 @@ export function CardView({ card, lang, pose, w, flight, legal, dim, sel, onTap, 
       <motion.div className="hop" style={{ y: hopY, scale: hopS, rotateX: rx, transformPerspective: 820 }}>
         <div className="lift">
           <motion.div className="flip" style={{ rotateY: flip, transition: 'none' }}>
-            <CardFace card={card} lang={lang} />
-            <div className="bk" />
+            <motion.div className="side" style={{ visibility: faceVis }}><CardFace card={card} lang={lang} /></motion.div>
+            <motion.div className="bk" style={{ visibility: backVis }} />
           </motion.div>
           <div className="glow" />
         </div>
