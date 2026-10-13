@@ -6,12 +6,17 @@ import { TABLE_STRINGS } from '../table';
 import { SHOP_STRINGS } from '../shop';
 import { MEDIA } from '../media';
 import { MERCH_STRINGS } from '../merch';
+import { SOCIAL_STRINGS } from '../social';
+import { JOURNEY_STRINGS, QUEST_STRINGS } from '../journey';
+import { ACH_STRINGS } from '../achievements';
+import { ECO_STRINGS } from '../economy';
 import { missingKeys, pick, registeredStrings, withFallback, type Strings } from '../pick';
 import { FEATURE_LANGS } from './index';
 import type { FeaturePack } from './types';
 
 const MODULES: Record<keyof FeaturePack, Strings<unknown>> = {
   home: HOME, table: TABLE_STRINGS, shop: SHOP_STRINGS, media: MEDIA, merch: MERCH_STRINGS,
+  social: SOCIAL_STRINGS, journey: JOURNEY_STRINGS, quests: QUEST_STRINGS, achievements: ACH_STRINGS, economy: ECO_STRINGS,
 };
 
 /** Functions whose arguments are strings (names, prices, times); everything else takes numbers. */

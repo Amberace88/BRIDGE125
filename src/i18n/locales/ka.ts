@@ -15,6 +15,7 @@ const ka: FeaturePack = {
     orJoin: 'გაქვთ კოდი?',
     shop: { title: 'მაღაზია', sub: 'სტილები, BM' },
     merch: { title: 'მერჩი', sub: 'დასტები' },
+    dock: { journey: 'მოგზაურობა', quests: 'დავალებები', stakes: 'ფსონები', trophies: 'ტროფეები', vault: 'სეიფი' },
     rulesCue: 'წესები',
     rules: {
       kicker: 'ერთი გვერდი, ერთი წუთი', title: 'წესები', sub: 'პირველმა მოიშორეთ კარტები. დანარჩენები ითვლიან, რაც ხელში დარჩათ — ქულა დაბლა შეინარჩუნეთ.',
@@ -203,6 +204,12 @@ const ka: FeaturePack = {
         details: ['6 ვინილის სტიკერი', 'მქრქალი, წყალგამძლე', 'A5 ფურცელი'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default ka;

@@ -191,5 +191,8 @@ const uk: EcoStrings = {
   err: { funds: n => `Бракує ${n} BM`, limit: 'Денний ліміт вичерпано', used: 'Уже використано сьогодні', level: n => `Відкриється на ${n}-му рівні`, network: 'Проблема зі зв’язком — спробуйте ще раз', max: 'Уже максимум', owned: 'Уже є', generic: 'Щось пішло не так' },
 };
 
-/** Not registered with registerStrings() yet (see achievements.ts) — lazily loaded languages show English. */
+/** Registered below: the 13 lazily loaded languages show English until their pack (src/i18n/locales) translates it. */
 export const ECO_STRINGS: Strings<EcoStrings> = { en, lv, ru, uk };
+
+import { registerStrings } from './pick';
+registerStrings('economy', ECO_STRINGS);

@@ -14,6 +14,8 @@ import { FaceAvatar } from '../media/UserAvatar';
 import { VideoDock, LobbyMedia, SeatLive } from '../components/VideoDock';
 import { initMusic } from '../media/music';
 import { SocialGlyph, SocialOverlay, SocialSheets, useTableSocial } from '../social/TableSocial';
+import { useQuestTracker } from '../campaign/useGameQuests';
+import { recordGamePlus } from '../economy/useEconomy';
 
 initMusic();
 
@@ -34,7 +36,8 @@ export function OnlineRoom({ code, onExit, onQuickAgain, onAuth }: { code: strin
   const leave = () => { r.leave(); onExit(); };
   const quick = isQuickCode(code);
   const hs = useStrings(HOME);
-  useGameAchievements(r.game, r.you);
+  useGameAchievements(r.game, r.you, { mode: quick ? 'quick' : 'room', host: r.isHost });
+  useQuestTracker(r.game, r.you, quick ? 'quick' : 'room');
 
   // a quick table that filled up or started before we arrived → quietly find another one
   const rematched = useRef(false);
@@ -48,7 +51,7 @@ export function OnlineRoom({ code, onExit, onQuickAgain, onAuth }: { code: strin
   const phase = r.game?.phase;
   useEffect(() => {
     if (phase === 'gameOver' && r.game && r.you >= 0 && !recorded.current) {
-      recorded.current = true; app.recordGame(r.game.winners.includes(r.you), quick ? 'quick' : 'room');
+      recorded.current = true; void recordGamePlus(app, r.game.winners.includes(r.you), quick ? 'quick' : 'room');
       track('game_end', { mode: quick ? 'quick' : 'room', won: r.game.winners.includes(r.you), rounds: r.game.round, players: r.game.players.length });
     }
     if (phase === 'play' && r.game?.round === 1 && !started.current) { started.current = true; track('game_start', { mode: quick ? 'quick' : 'room', players: r.game.players.length }); }

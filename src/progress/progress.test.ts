@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import sql from '../../supabase/migration_003_progress.sql?raw';
 import sql8 from '../../supabase/migration_008_cosmetics.sql?raw';
 import sql12 from '../../supabase/migration_012_economy.sql?raw';
+import sql13 from '../../supabase/migration_013_integration.sql?raw';
 import { SHOP_ROWS, COSMETICS, ALL_SLOTS, slotOptions } from '../shop/catalog';
 import { ACHIEVEMENTS, ACH_CATEGORIES, ACH_ITEMS, CLIENT_CODES, COLUMN_STATS, COUNTER_STATS, achProgress, detectAchievements } from './achievements';
 import { GAME_STAT_CAPS, GameTracker } from './tracker';
 import { levelForXp, levelProgress, levelReward, xpForLevel } from './levels';
 import { ACH_STRINGS } from '../i18n/achievements';
 import { ACH_COSMETIC_IDS } from '../economy/cosmetics';
+import { EARNED_IDS } from '../cosmetics/data';
 import { newGame, type Card, type GameEvent, type GameState } from '../engine/engine';
 
 describe('level curve (mirrors SQL)', () => {
@@ -98,10 +100,21 @@ describe('catalogue is in sync with the SQL seed', () => {
   });
 
   it('every premium item is sold, in the right slot, and nothing free is', () => {
-    for (const slot of ALL_SLOTS) for (const o of slotOptions(slot).filter(x => x.premium)) {
+    for (const slot of ALL_SLOTS) for (const o of slotOptions(slot).filter(x => x.premium && !EARNED_IDS.has(x.id))) {
       expect(COSMETICS.some(c => c.id === o.id && c.slots.includes(slot)), `${slot}:${o.id}`).toBe(true);
     }
     for (const c of COSMETICS) for (const s of c.slots) expect(slotOptions(s).find(x => x.id === c.id)?.premium, `${s}:${c.id}`).toBe(true);
+  });
+
+  it('earned-only cosmetics are premium, never sold, and guarded by shop_items (price_bm null)', () => {
+    for (const id of EARNED_IDS) {
+      const slot = ALL_SLOTS.find(sl => slotOptions(sl).some(o => o.id === id));
+      expect(slot, id).toBeTruthy();
+      expect(slotOptions(slot!).find(o => o.id === id)?.premium, id).toBe(true);
+      expect(COSMETICS.some(c => c.id === id), id).toBe(false);
+      expect(sql12 + sql13, id).toMatch(new RegExp(`\\('${id}',\\s*'\\w+',\\s*null`));
+    }
+    for (const id of ACH_COSMETIC_IDS) expect(EARNED_IDS.has(id), id).toBe(true);
   });
 });
 

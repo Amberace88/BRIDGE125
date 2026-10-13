@@ -15,6 +15,7 @@ const az: FeaturePack = {
     orJoin: 'Kodunuz var?',
     shop: { title: 'Mağaza', sub: 'Üslublar, BM' },
     merch: { title: 'Merç', sub: 'Kart dəstləri' },
+    dock: { journey: 'Səyahət', quests: 'Tapşırıqlar', stakes: 'Mərclər', trophies: 'Kuboklar', vault: 'Seyf' },
     rulesCue: 'Qaydalar',
     rules: {
       kicker: 'Bir səhifə, bir dəqiqə', title: 'Qaydalar', sub: 'Kartlardan birinci qurtulun. Qalanlar əllərində qalanı sayır — xalınızı aşağı saxlayın.',
@@ -203,6 +204,12 @@ const az: FeaturePack = {
         details: ['6 vinil stiker', 'Tutqun, suya davamlı', 'A5 vərəq'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default az;

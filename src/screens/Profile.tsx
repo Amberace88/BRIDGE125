@@ -19,6 +19,8 @@ import { PlayerName, TitleBadge } from '../cosmetics/Badges';
 import { useCosmetics } from '../cosmetics/useCosmetics';
 import { bannerCss } from '../cosmetics/data';
 import { AudioSettings } from '../voice/AudioControls';
+import { WalletPanel } from '../social/WalletPanel';
+import { HOME } from '../i18n/home';
 
 initMusic();
 
@@ -64,10 +66,16 @@ function MusicRows() {
   );
 }
 
-export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop, onGod }: {
+export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop, onGod, onDiamonds, onAchievements, onVault }: {
   onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void; onInstall: () => void; onAdmin: () => void; onShop?: (itemId?: string) => void;
   /** Opens the GOD MODE panel (admin + god only). */
   onGod?: () => void;
+  /** Shop → Diamonds tab (from the wallet). */
+  onDiamonds?: () => void;
+  /** The achievements hall (/achievements). */
+  onAchievements?: () => void;
+  /** The vault (/vault): wheel, boosts, collections, prestige. */
+  onVault?: () => void;
 }) {
   const app = useApp();
   const { t } = app;
@@ -83,6 +91,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
   const photo = useAvatarUrl();
 
   const cos = useCosmetics();
+  const hs = useStrings(HOME);
   const flash = (m: string) => { setToast(m); if (toastTm.current) clearTimeout(toastTm.current); toastTm.current = setTimeout(() => setToast(null), 2600); };
 
   const winRate = prof && prof.games_played ? Math.round((prof.wins / prof.games_played) * 100) : 0;
@@ -163,7 +172,12 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
               <LangPicker variant="field" />
 
               <AudioSettings music={<MusicRows />} />
-              {signedIn && <><div className="label">🏅</div><AchievementsList /></>}
+              {signedIn && <><div className="label">🏅</div><AchievementsList onOpenHall={onAchievements} /></>}
+              {signedIn && onVault && (
+                <button className="prow pvault" onClick={() => { sfx.tap(); onVault(); }}>
+                  <span><span aria-hidden>◎</span> {hs.dock.vault}</span><span aria-hidden>›</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -178,6 +192,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
               {signedIn ? (
                 <>
                   <div className="prow"><span>{p.email}</span><b className="mute" style={{ fontWeight: 600 }}>{app.session?.user.email}</b></div>
+                  <WalletPanel onDiamonds={onDiamonds} />
                   <ChangePassword />
                   {app.isAdmin && <button className="btn acc" style={{ width: '100%', marginTop: 14 }} onClick={onAdmin}>📊 {p.adminPanel}</button>}
                   {ins.available && <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onInstall}>⬇ {t.install.button}</button>}

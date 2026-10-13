@@ -15,6 +15,7 @@ const et: FeaturePack = {
     orJoin: 'On kood?',
     shop: { title: 'Pood', sub: 'Stiilid, BM' },
     merch: { title: 'Merch', sub: 'Kaardipakid' },
+    dock: { journey: 'Teekond', quests: 'Ülesanded', stakes: 'Panused', trophies: 'Trofeed', vault: 'Seif' },
     rulesCue: 'Reeglid',
     rules: {
       kicker: 'Üks lehekülg, üks minut', title: 'Reeglid', sub: 'Saa esimesena kaartidest lahti. Teised loevad kokku, mis neil kätte jäi — hoia oma punktid madalal.',
@@ -203,6 +204,12 @@ const et: FeaturePack = {
         details: ['6 väljalõigatud vinüülkleebist', 'Matid, veekindlad', 'A5-leht'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default et;

@@ -15,6 +15,7 @@ const de: FeaturePack = {
     orJoin: 'Hast du einen Code?',
     shop: { title: 'Shop', sub: 'Stile & BM' },
     merch: { title: 'Merch', sub: 'Kartendecks' },
+    dock: { journey: 'Reise', quests: 'Aufgaben', stakes: 'Einsätze', trophies: 'Trophäen', vault: 'Tresor' },
     rulesCue: 'Regeln',
     rules: {
       kicker: 'Eine Seite, eine Minute', title: 'Die Regeln', sub: 'Werde als Erster deine Karten los. Alle anderen zählen, was sie noch auf der Hand haben – halte deine Punkte niedrig.',
@@ -203,6 +204,12 @@ const de: FeaturePack = {
         details: ['6 Vinyl-Sticker, konturgeschnitten', 'Matt, wasserfest', 'A5-Bogen'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default de;

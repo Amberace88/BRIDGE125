@@ -15,6 +15,7 @@ const uz: FeaturePack = {
     orJoin: 'Kodingiz bormi?',
     shop: { title: 'Doʻkon', sub: 'Uslublar, BM' },
     merch: { title: 'Merch', sub: 'Kolodalar' },
+    dock: { journey: 'Sayohat', quests: 'Topshiriqlar', stakes: 'Tikishlar', trophies: 'Kuboklar', vault: 'Seyf' },
     rulesCue: 'Qoidalar',
     rules: {
       kicker: 'Bir sahifa, bir daqiqa', title: 'Qoidalar', sub: 'Kartalardan birinchi boʻlib qutuling. Qolganlar qoʻlida qolganini sanaydi — ochkoingizni past tuting.',
@@ -203,6 +204,12 @@ const uz: FeaturePack = {
         details: ['6 ta vinil stiker', 'Xira, suvga chidamli', 'A5 varaq'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default uz;

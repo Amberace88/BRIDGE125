@@ -15,6 +15,7 @@ const kk: FeaturePack = {
     orJoin: 'Кодыңыз бар ма?',
     shop: { title: 'Дүкен', sub: 'Стильдер, BM' },
     merch: { title: 'Мерч', sub: 'Колодалар' },
+    dock: { journey: 'Саяхат', quests: 'Тапсырмалар', stakes: 'Бәстер', trophies: 'Жүлделер', vault: 'Сейф' },
     rulesCue: 'Ереже',
     rules: {
       kicker: 'Бір бет, бір минут', title: 'Ойын ережесі', sub: 'Карталардан бірінші құтылыңыз. Қалғандары қолында қалғанын санайды — ұпайыңызды төмен ұстаңыз.',
@@ -203,6 +204,12 @@ const kk: FeaturePack = {
         details: ['6 винил стикер', 'Күңгірт, суға төзімді', 'A5 парақ'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default kk;

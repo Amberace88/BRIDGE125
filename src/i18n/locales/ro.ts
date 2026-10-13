@@ -17,6 +17,7 @@ const ro: FeaturePack = {
     orJoin: 'Ai un cod?',
     shop: { title: 'Magazin', sub: 'Stiluri, BM' },
     merch: { title: 'Merch', sub: 'Cărți reale' },
+    dock: { journey: 'Călătoria', quests: 'Misiuni', stakes: 'Mize', trophies: 'Trofee', vault: 'Seif' },
     rulesCue: 'Reguli',
     rules: {
       kicker: 'O pagină, un minut', title: 'Regulile', sub: 'Scapă primul de cărți. Ceilalți adună ce le-a rămas în mână — ține-ți scorul jos.',
@@ -205,6 +206,12 @@ const ro: FeaturePack = {
         details: ['6 stickere din vinil decupate', 'Mate, rezistente la apă', 'Coală A5'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default ro;

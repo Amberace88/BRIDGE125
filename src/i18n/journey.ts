@@ -540,3 +540,7 @@ const quk: QuestStrings = {
 
 export const JOURNEY_STRINGS: Strings<JourneyStrings> = { en, lv, ru, uk };
 export const QUEST_STRINGS: Strings<QuestStrings> = { en: qen, lv: qlv, ru: qru, uk: quk };
+
+import { registerStrings } from './pick';
+registerStrings('journey', JOURNEY_STRINGS);
+registerStrings('quests', QUEST_STRINGS);

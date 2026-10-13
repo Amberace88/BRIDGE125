@@ -16,6 +16,7 @@ const hy: FeaturePack = {
     orJoin: 'Կո՞դ ունեք',
     shop: { title: 'Խանութ', sub: 'Ոճեր, BM' },
     merch: { title: 'Մերչ', sub: 'Կապուկներ' },
+    dock: { journey: 'Ուղևորություն', quests: 'Առաջադրանքներ', stakes: 'Խաղադրույքներ', trophies: 'Գավաթներ', vault: 'Պահոց' },
     rulesCue: 'Կանոններ',
     rules: {
       kicker: 'Մեկ էջ, մեկ րոպե', title: 'Կանոնները', sub: 'Առաջինը ազատվեք քարտերից։ Մյուսները հաշվում են ձեռքում մնացածը — պահեք ձեր միավորները ցածր։',
@@ -204,6 +205,12 @@ const hy: FeaturePack = {
         details: ['6 վինիլային պիտակ', 'Փայլատ, ջրակայուն', 'A5 թերթ'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default hy;

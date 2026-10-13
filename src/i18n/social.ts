@@ -219,3 +219,6 @@ const uk: SocialStrings = {
 };
 
 export const SOCIAL_STRINGS: Strings<SocialStrings> = { en, lv, ru, uk };
+
+import { registerStrings } from './pick';
+registerStrings('social', SOCIAL_STRINGS);

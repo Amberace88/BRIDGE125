@@ -444,8 +444,8 @@ const uk: AchStrings = {
   },
 };
 
-/**
- * Not registered with registerStrings() yet (features.test.ts pins the registered module list): the 13 lazily loaded
- * languages show English until a pack adds an `achievements` section and the module is registered.
- */
+/** Registered below: the 13 lazily loaded languages show English until their pack (src/i18n/locales) translates it. */
 export const ACH_STRINGS: Strings<AchStrings> = { en, lv, ru, uk };
+
+import { registerStrings } from './pick';
+registerStrings('achievements', ACH_STRINGS);

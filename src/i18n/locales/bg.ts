@@ -15,6 +15,7 @@ const bg: FeaturePack = {
     orJoin: 'Имаш код?',
     shop: { title: 'Магазин', sub: 'Стилове, BM' },
     merch: { title: 'Мърч', sub: 'Тестета' },
+    dock: { journey: 'Пътешествие', quests: 'Задачи', stakes: 'Залози', trophies: 'Трофеи', vault: 'Сейф' },
     rulesCue: 'Правила',
     rules: {
       kicker: 'Една страница, една минута', title: 'Правилата', sub: 'Освободи се първи от картите. Останалите броят какво им е останало в ръката — дръж резултата си нисък.',
@@ -203,6 +204,12 @@ const bg: FeaturePack = {
         details: ['6 изрязани винилови стикера', 'Матови, водоустойчиви', 'Лист A5'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default bg;

@@ -17,6 +17,7 @@ const pl: FeaturePack = {
     orJoin: 'Masz kod?',
     shop: { title: 'Sklep', sub: 'Style i BM' },
     merch: { title: 'Merch', sub: 'Talie kart' },
+    dock: { journey: 'Podróż', quests: 'Zadania', stakes: 'Stawki', trophies: 'Trofea', vault: 'Skarbiec' },
     rulesCue: 'Zasady',
     rules: {
       kicker: 'Jedna strona, jedna minuta', title: 'Zasady', sub: 'Pozbądź się kart jako pierwszy. Reszta liczy to, co zostało im na ręce — trzymaj wynik nisko.',
@@ -205,6 +206,12 @@ const pl: FeaturePack = {
         details: ['6 wycinanych naklejek winylowych', 'Matowe, wodoodporne', 'Arkusz A5'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default pl;

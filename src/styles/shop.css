@@ -476,3 +476,10 @@ button.sprev { display: block; width: 100%; padding: 0; border: 0; cursor: zoom-
 .sdprice .sprice, .sdprice s { font-variant-numeric: lining-nums tabular-nums; }
 .sdsave { font: 800 11px/1 var(--sans); font-style: normal; padding: 4px 7px; border-radius: 999px; color: #fff; background: linear-gradient(180deg, #ff6a7f, #c9213e); align-self: center; }
 @media (prefers-reduced-motion: reduce) { .sdetail.r-legendary { animation: none; } }
+
+/* Diamonds tab + "gift to a friend" (social module) inside the shop */
+.stabs .stabdm { display: inline-block; vertical-align: -2px; margin-right: 5px; }
+.stabs button > span:has(> .stabdm) { white-space: nowrap; }
+.sdgift { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 12px; padding: 8px; font-size: 14px; font-weight: 650; }
+.shop .psheet-scrim { z-index: 112; }
+.shop .psheet.gisheet { z-index: 113; }

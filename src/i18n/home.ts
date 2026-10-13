@@ -14,6 +14,8 @@ export interface HomeStrings {
   orJoin: string;
   shop: { title: string; sub: string };
   merch: { title: string; sub: string };
+  /** Home quick links (frameless icon row) */
+  dock: { journey: string; quests: string; stakes: string; trophies: string; vault: string };
   rulesCue: string;
   rules: {
     kicker: string; title: string; sub: string;
@@ -47,6 +49,7 @@ const en: HomeStrings = {
   orJoin: 'Have a code?',
   shop: { title: 'Shop', sub: 'Tables, card backs & bonuses' },
   merch: { title: 'Merch', sub: 'Real decks & gifts' },
+  dock: { journey: 'Journey', quests: 'Quests', stakes: 'Stakes', trophies: 'Trophies', vault: 'Vault' },
   rulesCue: 'Rules',
   rules: {
     kicker: 'One page, one minute', title: 'The rules', sub: 'Empty your hand first. Everyone else scores what is left in theirs — keep your total low.',
@@ -95,6 +98,7 @@ const lv: HomeStrings = {
   orJoin: 'Ir kods?',
   shop: { title: 'Veikals', sub: 'Galdi, kāršu muguras un bonusi' },
   merch: { title: 'Merch', sub: 'Īstas kārtis un dāvanas' },
+  dock: { journey: 'Ceļojums', quests: 'Uzdevumi', stakes: 'Likmes', trophies: 'Trofejas', vault: 'Seifs' },
   rulesCue: 'Noteikumi',
   rules: {
     kicker: 'Viena lapa, viena minūte', title: 'Noteikumi', sub: 'Pirmais iztukšo roku. Pārējie saskaita, kas palicis rokā — turi savus punktus zemu.',
@@ -143,6 +147,7 @@ const ru: HomeStrings = {
   orJoin: 'Есть код?',
   shop: { title: 'Магазин', sub: 'Столы, рубашки и бонусы' },
   merch: { title: 'Мерч', sub: 'Настоящие колоды и подарки' },
+  dock: { journey: 'Путешествие', quests: 'Задания', stakes: 'Ставки', trophies: 'Трофеи', vault: 'Сейф' },
   rulesCue: 'Правила',
   rules: {
     kicker: 'Одна страница, одна минута', title: 'Правила', sub: 'Первым избавьтесь от карт. Остальные считают то, что осталось на руках, — держите счёт низким.',
@@ -191,6 +196,7 @@ const uk: HomeStrings = {
   orJoin: 'Маєте код?',
   shop: { title: 'Крамниця', sub: 'Столи, сорочки й бонуси' },
   merch: { title: 'Мерч', sub: 'Справжні колоди й подарунки' },
+  dock: { journey: 'Подорож', quests: 'Завдання', stakes: 'Ставки', trophies: 'Трофеї', vault: 'Сейф' },
   rulesCue: 'Правила',
   rules: {
     kicker: 'Одна сторінка, одна хвилина', title: 'Правила', sub: 'Першим позбудьтеся карт. Інші рахують те, що лишилося в руці, — тримайте рахунок низьким.',

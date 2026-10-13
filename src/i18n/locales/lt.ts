@@ -15,6 +15,7 @@ const lt: FeaturePack = {
     orJoin: 'Turi kodą?',
     shop: { title: 'Parduotuvė', sub: 'Stiliai, BM' },
     merch: { title: 'Atributika', sub: 'Kortų kaladė' },
+    dock: { journey: 'Kelionė', quests: 'Užduotys', stakes: 'Statymai', trophies: 'Trofėjai', vault: 'Seifas' },
     rulesCue: 'Taisyklės',
     rules: {
       kicker: 'Vienas puslapis, viena minutė', title: 'Taisyklės', sub: 'Pirmas atsikratyk kortų. Kiti skaičiuoja, kas liko rankoje — laikyk savo taškus žemai.',
@@ -203,6 +204,12 @@ const lt: FeaturePack = {
         details: ['6 iškirpti vinilo lipdukai', 'Matiniai, atsparūs vandeniui', 'A5 lapas'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default lt;

@@ -44,6 +44,9 @@ const en: CosStrings = {
     t_none: 'No title', t_lucky: 'Lucky Charm', t_shark: 'Shark', t_bluff: 'Bluff King', t_queenslayer: 'Queen Slayer', t_highroller: 'High Roller', t_master: '125 Master', t_legend: 'Legend',
     nc_default: 'Default', nc_gold: 'Gold', nc_ruby: 'Ruby', nc_ice: 'Ice', nc_emerald: 'Emerald', nc_neon: 'Neon', nc_fire: 'Fire', nc_holo: 'Holographic',
     bn_felt: 'Felt', bn_bokeh: 'Casino Lights', bn_sunburst: 'Gold Sunburst', bn_aurora: 'Aurora Sky', bn_riga: 'Riga Rooftops', bn_suits: 'Royal Suits',
+    // earned, never sold: achievements / collections / prestige (migration 012) and the Journey finale (011)
+    ach_t_phoenix: 'Phoenix', ach_t_detective: 'Lie Detector', ach_t_immortal: 'Immortal', ach_t_founder: 'Founder', ach_t_curator: 'Curator', t_grand_tour: 'Grand Tourist',
+    ach_fr_veteran: "Veteran's Wreath", ach_fr_prestige: 'Prestige Halo', ach_fr_obsidian: 'Obsidian Ring', ach_nc_ember: 'Ember', ach_nc_aurum: 'Aurum', ach_bn_vault: 'The Vault',
     pk_starter: 'Starter Kit', pk_sakura: 'Sakura Set', pk_racing: 'Pit Lane Set', pk_neon: 'Neon Night Set', pk_aurora: 'Northern Lights Set', pk_montecarlo: 'Monte Carlo Set', pk_riga: 'Old Riga Set', pk_royal: 'Royal Court Set',
   },
 };
@@ -80,6 +83,9 @@ const lv: CosStrings = {
     t_none: 'Bez titula', t_lucky: 'Laimes talismans', t_shark: 'Haizivs', t_bluff: 'Blefa karalis', t_queenslayer: 'Dāmu slepkava', t_highroller: 'Lielais spēlētājs', t_master: '125 meistars', t_legend: 'Leģenda',
     nc_default: 'Parastā', nc_gold: 'Zelts', nc_ruby: 'Rubīns', nc_ice: 'Ledus', nc_emerald: 'Smaragds', nc_neon: 'Neons', nc_fire: 'Uguns', nc_holo: 'Hologramma',
     bn_felt: 'Audums', bn_bokeh: 'Kazino gaismas', bn_sunburst: 'Zelta saule', bn_aurora: 'Ziemeļblāzmas debesis', bn_riga: 'Rīgas jumti', bn_suits: 'Karaliskie masti',
+    // earned, never sold: achievements / collections / prestige (migration 012) and the Journey finale (011)
+    ach_t_phoenix: 'Fēnikss', ach_t_detective: 'Melu detektors', ach_t_immortal: 'Nemirstīgais', ach_t_founder: 'Dibinātājs', ach_t_curator: 'Kurators', t_grand_tour: 'Lielais ceļotājs',
+    ach_fr_veteran: 'Veterāna vainags', ach_fr_prestige: 'Prestiža oreols', ach_fr_obsidian: 'Obsidiāna gredzens', ach_nc_ember: 'Ogle', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seifs',
     pk_starter: 'Sākuma komplekts', pk_sakura: 'Sakura komplekts', pk_racing: 'Boksu komplekts', pk_neon: 'Neona nakts komplekts', pk_aurora: 'Ziemeļblāzmas komplekts', pk_montecarlo: 'Montekarlo komplekts', pk_riga: 'Vecrīgas komplekts', pk_royal: 'Karaliskā galma komplekts',
   },
 };
@@ -116,6 +122,9 @@ const ru: CosStrings = {
     t_none: 'Без титула', t_lucky: 'Талисман', t_shark: 'Акула', t_bluff: 'Король блефа', t_queenslayer: 'Гроза дам', t_highroller: 'Хайроллер', t_master: 'Мастер 125', t_legend: 'Легенда',
     nc_default: 'Обычный', nc_gold: 'Золото', nc_ruby: 'Рубин', nc_ice: 'Лёд', nc_emerald: 'Изумруд', nc_neon: 'Неон', nc_fire: 'Огонь', nc_holo: 'Голограмма',
     bn_felt: 'Сукно', bn_bokeh: 'Огни казино', bn_sunburst: 'Золотое солнце', bn_aurora: 'Небо сияния', bn_riga: 'Крыши Риги', bn_suits: 'Королевские масти',
+    // earned, never sold: achievements / collections / prestige (migration 012) and the Journey finale (011)
+    ach_t_phoenix: 'Феникс', ach_t_detective: 'Детектор лжи', ach_t_immortal: 'Бессмертный', ach_t_founder: 'Основатель', ach_t_curator: 'Куратор', t_grand_tour: 'Великий путешественник',
+    ach_fr_veteran: 'Венок ветерана', ach_fr_prestige: 'Ореол престижа', ach_fr_obsidian: 'Обсидиановое кольцо', ach_nc_ember: 'Угли', ach_nc_aurum: 'Аурум', ach_bn_vault: 'Хранилище',
     pk_starter: 'Стартовый набор', pk_sakura: 'Набор «Сакура»', pk_racing: 'Набор «Пит-лейн»', pk_neon: 'Набор «Неоновая ночь»', pk_aurora: 'Набор «Северное сияние»', pk_montecarlo: 'Набор «Монте-Карло»', pk_riga: 'Набор «Старая Рига»', pk_royal: 'Набор «Королевский двор»',
   },
 };
@@ -152,6 +161,9 @@ const uk: CosStrings = {
     t_none: 'Без титулу', t_lucky: 'Талісман', t_shark: 'Акула', t_bluff: 'Король блефу', t_queenslayer: 'Гроза дам', t_highroller: 'Хайролер', t_master: 'Майстер 125', t_legend: 'Легенда',
     nc_default: 'Звичайний', nc_gold: 'Золото', nc_ruby: 'Рубін', nc_ice: 'Лід', nc_emerald: 'Смарагд', nc_neon: 'Неон', nc_fire: 'Вогонь', nc_holo: 'Голограма',
     bn_felt: 'Сукно', bn_bokeh: 'Вогні казино', bn_sunburst: 'Золоте сонце', bn_aurora: 'Небо сяйва', bn_riga: 'Дахи Риги', bn_suits: 'Королівські масті',
+    // earned, never sold: achievements / collections / prestige (migration 012) and the Journey finale (011)
+    ach_t_phoenix: 'Фенікс', ach_t_detective: 'Детектор брехні', ach_t_immortal: 'Безсмертний', ach_t_founder: 'Засновник', ach_t_curator: 'Куратор', t_grand_tour: 'Великий мандрівник',
+    ach_fr_veteran: 'Вінок ветерана', ach_fr_prestige: 'Ореол престижу', ach_fr_obsidian: 'Обсидіанове кільце', ach_nc_ember: 'Жар', ach_nc_aurum: 'Аурум', ach_bn_vault: 'Сховище',
     pk_starter: 'Стартовий набір', pk_sakura: 'Набір «Сакура»', pk_racing: 'Набір «Піт-лейн»', pk_neon: 'Набір «Неонова ніч»', pk_aurora: 'Набір «Північне сяйво»', pk_montecarlo: 'Набір «Монте-Карло»', pk_riga: 'Набір «Стара Рига»', pk_royal: 'Набір «Королівський двір»',
   },
 };

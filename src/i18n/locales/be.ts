@@ -18,6 +18,7 @@ const be: FeaturePack = {
     orJoin: 'Ёсць код?',
     shop: { title: 'Крама', sub: 'Стылі, BM' },
     merch: { title: 'Мерч', sub: 'Калоды' },
+    dock: { journey: 'Падарожжа', quests: 'Заданні', stakes: 'Стаўкі', trophies: 'Трафеі', vault: 'Сейф' },
     rulesCue: 'Правілы',
     rules: {
       kicker: 'Адна старонка, адна хвіліна', title: 'Правілы', sub: 'Першым пазбаўцеся карт. Астатнія лічаць тое, што засталося на руках, — трымайце рахунак нізкім.',
@@ -206,6 +207,12 @@ const be: FeaturePack = {
         details: ['6 вінілавых стыкераў', 'Матавыя, воданепранікальныя', 'Аркуш A5'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default be;

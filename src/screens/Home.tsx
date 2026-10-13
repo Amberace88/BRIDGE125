@@ -12,6 +12,10 @@ import { useInstall } from '../install';
 import { useStrings } from '../i18n/pick';
 import { HOME } from '../i18n/home';
 import type { BotLevel } from '../engine/bot';
+import { QuestTracker } from '../campaign/QuestTracker';
+import { useJourney } from '../campaign/journeyStore';
+import { TOTAL_STARS, totalStars } from '../campaign/data';
+import { sfx } from '../sound';
 import '../styles/home.css';
 
 interface Props {
@@ -22,6 +26,16 @@ interface Props {
   onShop?: () => void;
   /** Physical merch store. The entry is hidden when not provided. */
   onMerch?: () => void;
+  /** The Journey campaign (/journey). */
+  onJourney?: () => void;
+  /** Quest log overlay (/quests) — opened from the compact quest tracker. */
+  onQuests?: () => void;
+  /** Achievements hall (/achievements). */
+  onAchievements?: () => void;
+  /** The vault: fortune wheel, boosts, collections, prestige (/vault). */
+  onVault?: () => void;
+  /** High-stakes tables: opens the StakePicker sheet. */
+  onStakes?: () => void;
 }
 
 // typed locally so it compiles before the engine adds hard/expert to BotLevel
@@ -34,7 +48,8 @@ function useViewport() {
   return vw;
 }
 
-export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin, onShop, onMerch }: Props) {
+export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin, onShop, onMerch,
+  onJourney, onQuests, onAchievements, onVault, onStakes }: Props) {
   const ins = useInstall();
   const [bannerOff, setBannerOff] = useState(() => { try { return localStorage.getItem('b125.installBanner') === 'off'; } catch { return false; } });
   const hideBanner = () => { setBannerOff(true); try { localStorage.setItem('b125.installBanner', 'off'); } catch { /* */ } };
@@ -45,6 +60,8 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
   const wide = vw >= 920;
   const cw = wide ? 150 : Math.round(Math.min(104, vw * 0.235));
   const [intro, setIntro] = useState(shouldShowIntro);
+  const journey = useJourney();
+  const jStars = totalStars(journey.stars);
   const scroller = useRef<HTMLDivElement>(null);
 
   // pointer → tilt (springs); idle drift when the pointer is still or on touch devices
@@ -211,6 +228,15 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
             </button>
             {qErr && <div className="qerr" role="alert">{t.quick.error}</div>}
 
+            <nav className="h5-dock" aria-label="Bridge 125">
+              {onJourney && <DockBtn icon={<JourneyIcon />} label={h.dock.journey} badge={jStars > 0 ? `${jStars}/${TOTAL_STARS}` : undefined} hot onClick={onJourney} />}
+              {onStakes && <DockBtn icon={<ChipsIcon />} label={h.dock.stakes} onClick={onStakes} />}
+              {onAchievements && <DockBtn icon={<TrophyIcon />} label={h.dock.trophies} onClick={onAchievements} />}
+              {onVault && <DockBtn icon={<VaultIcon />} label={h.dock.vault} onClick={onVault} />}
+            </nav>
+
+            {onQuests && <QuestTracker className="h5-quests" onOpen={onQuests} />}
+
             <div className={`h5-store ${onMerch ? '' : 'one'}`}>
               <StoreTile icon={<GemIcon />} title={h.shop.title} sub={h.shop.sub} onClick={shop} />
               {onMerch && <StoreTile icon={<BagIcon />} title={h.merch.title} sub={h.merch.sub} onClick={onMerch} />}
@@ -299,6 +325,30 @@ function StoreTile({ icon, title, sub, onClick }: { icon: ReactNode; title: stri
     </button>
   );
 }
+
+/** Frameless icon link (Home quick row): brass glyph, small caption, optional badge. */
+function DockBtn({ icon, label, badge, hot = false, onClick }: { icon: ReactNode; label: string; badge?: string; hot?: boolean; onClick: () => void }) {
+  return (
+    <motion.button className={`h5-dockbtn ${hot ? 'hot' : ''}`} onClick={() => { sfx.tap(); onClick(); }} whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }}>
+      <span className="di" aria-hidden>{icon}</span>
+      <span className="dl">{label}</span>
+      {badge && <span className="db">{badge}</span>}
+    </motion.button>
+  );
+}
+
+const JourneyIcon = () => (
+  <svg viewBox="0 0 28 28" aria-hidden><circle cx="14" cy="14" r="10.5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M14 2.5v3M14 22.5v3M2.5 14h3M22.5 14h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><path d="M17.8 10.2 12.4 12.4 10.2 17.8 15.6 15.6z" fill="currentColor" fillOpacity=".25" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><circle cx="14" cy="14" r="1.2" fill="currentColor" /></svg>
+);
+const ChipsIcon = () => (
+  <svg viewBox="0 0 28 28" aria-hidden><ellipse cx="14" cy="8.5" rx="8.5" ry="3.2" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M5.5 8.5v3.6c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2V8.5M5.5 12.1v3.6c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2v-3.6M5.5 15.7v3.6c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2v-3.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M11 8.5h6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+);
+const TrophyIcon = () => (
+  <svg viewBox="0 0 28 28" aria-hidden><path d="M8.5 4.5h11v5.5a5.5 5.5 0 0 1-11 0z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><path d="M8.5 6.5H5.2c0 3.2 1.4 5 3.9 5.4M19.5 6.5h3.3c0 3.2-1.4 5-3.9 5.4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><path d="M14 15.5v4M10 23.5h8M11 19.5h6l.8 4h-7.6z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" /><path d="m14 6.6.8 1.6 1.7.2-1.3 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.3-1.2 1.7-.2z" fill="currentColor" /></svg>
+);
+const VaultIcon = () => (
+  <svg viewBox="0 0 28 28" aria-hidden><rect x="3.5" y="4.5" width="21" height="19" rx="3" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="14" cy="14" r="5.2" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M14 8.8v2.2M14 17v2.2M8.8 14h2.2M17 14h2.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><circle cx="14" cy="14" r="1.4" fill="currentColor" /><path d="M6.5 23.5v1.5M21.5 23.5v1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+);
 
 const GemIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden><path d="M6.5 4h11l3.5 5-9 11L3 9z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M3 9h18M9.5 4 8 9l4 11 4-11-1.5-5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>

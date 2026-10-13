@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type GameState, apply, newGame, nextRound } from '../engine/engine';
 import { botAction } from '../engine/bot';
 import { useApp } from '../store';
@@ -11,8 +11,11 @@ import { starsFor } from '../campaign/data';
 import { clockStep, roundTwist, setupMatch, twistInfo } from '../campaign/twists';
 import { reportGame, useGameTally } from '../campaign/useGameQuests';
 import type { CampaignRun } from '../campaign/session';
-// end-of-game quest toasts live in their own chunk (strings + styles load with the first game)
-const QuestToasts = lazy(() => import('../campaign/QuestToasts').then(m => ({ default: m.QuestToasts })));
+import type { ActiveStake } from '../economy/api';
+import { STAKE_TABLE } from '../economy/config';
+import { markStakeGame } from '../economy/shield';
+import { StakeHud } from '../economy/StakePicker';
+import { finishStakeGame, recordGamePlus, useStakeGame } from '../economy/useEconomy';
 
 const SAVE_KEY = 'b125.game.v1';
 export function loadSavedGame(): GameState | null {
@@ -26,24 +29,33 @@ const freshDeal = (g: GameState) => g.events.length === 0 && g.pile.length === 1
 /**
  * Local game against bots. With `campaign` it runs a Journey match instead: the match decides seats, bot level and the
  * house rule; the game is not saved for "continue"; the result goes to `campaign.onEnd` (stars) instead of a rematch.
+ * With `stake` (entry already paid via StakePicker) it is a high-stakes table: 3 hard bots, no bluff, the stake id rides
+ * on the GameState (so "continue" resumes it), the Shield boost may soften one Q♠ penalty, game over settles the pot.
  */
-export function LocalGame({ resume, onExit, campaign }: { resume: GameState | null; onExit: () => void; campaign?: CampaignRun }) {
+export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameState | null; onExit: () => void; campaign?: CampaignRun; stake?: ActiveStake }) {
   const app = useApp();
   const { t } = app;
   const fresh = () => campaign
     ? setupMatch(campaign.match, campaign.names)
+    : stake
+    ? markStakeGame(newGame([
+      { name: app.name || t.you, bot: false },
+      ...t.botNames.slice(0, STAKE_TABLE.opponents).map(n => ({ name: n, bot: true })),
+    ], { bluff: STAKE_TABLE.bluff }), stake)
     : newGame([
       { name: app.name || t.you, bot: false },
       ...t.botNames.slice(0, app.opponents).map(n => ({ name: n, bot: true })),
     ], { bluff: !!app.bluff });
   const [g, setG] = useState<GameState>(() => resume ?? fresh());
-  useGameAchievements(g, 0);
+  const st = useStakeGame(g, 0);
+  const isStake = st.isStake && !campaign;
+  useGameAchievements(g, 0, { mode: isStake ? 'stake' : 'bots' });
   const { tally, reset: resetTally } = useGameTally(g, 0);
   const god = useGodFlags();
   const recorded = useRef(false);
-  const level = campaign?.match.level ?? app.level;
+  const level = campaign?.match.level ?? (isStake ? STAKE_TABLE.level : app.level);
   const turnMs = campaign ? twistInfo(campaign.match.twist).turnMs : undefined;
-  const mode = campaign ? 'journey' : 'bots';
+  const mode = campaign ? 'journey' : isStake ? 'stake' : 'bots';
 
   useEffect(() => { if (campaign) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(g)); } catch { /* */ } }, [g, campaign]);
   useEffect(() => {
@@ -54,7 +66,9 @@ export function LocalGame({ resume, onExit, campaign }: { resume: GameState | nu
     if (g.phase === 'gameOver' && !recorded.current) {
       recorded.current = true;
       const won = g.winners.includes(0);
-      app.recordGame(won, 'bots');
+      // stake tables record the game AND settle the pot; everything else goes through record_game_plus (boosts)
+      if (isStake) void finishStakeGame(app, won);
+      else void recordGamePlus(app, won, 'bots');
       track('game_end', { mode, won, rounds: g.round, players: g.players.length, ...(campaign ? { match: campaign.match.id } : {}) });
       if (campaign) {
         const myScore = g.players[0].score;
@@ -113,16 +127,16 @@ export function LocalGame({ resume, onExit, campaign }: { resume: GameState | nu
     <>
     <Table g={g} me={0} xray={god.xray}
       deadline={turnMs ? deadline : undefined} turnMs={turnMs}
-      onAct={a => setG(cur => apply(cur, 0, a))}
+      onAct={a => setG(cur => (isStake ? st.step(cur, apply(cur, 0, a)) : apply(cur, 0, a)))}
       onNextRound={() => setG(cur => advance(cur))}
-      onRematch={campaign ? undefined : () => {
+      onRematch={campaign || isStake ? undefined : () => {
         recorded.current = false; resetTally();
         track('game_start', { mode: 'bots', players: g.players.length, rematch: true });
         setG(newGame(g.players.map(p => ({ name: p.name, bot: p.bot })), { bluff: !!g.rules?.bluff }));
       }}
       onExit={() => { if (!campaign) clearSavedGame(); onExit(); }} />
     {campaign?.overlay}
-    <Suspense fallback={null}><QuestToasts /></Suspense>
+    {isStake && <StakeHud pot={st.active?.pot} shield={st.armed} shielded={st.shielded} />}
     </>
   );
 }

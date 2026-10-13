@@ -20,7 +20,9 @@ export function StakePicker({ onStart, onResume, onAuth, compact = false }: {
 }) {
   const E = useStrings(ECO_STRINGS);
   const st = useStakes();
-  const [sel, setSel] = useState<1 | 2 | 3>(2);
+  // until the player picks: the Private Room once it is unlocked, otherwise the Salon (never preselect a locked tier)
+  const [picked, setSel] = useState<1 | 2 | 3 | null>(null);
+  const sel: 1 | 2 | 3 = picked ?? (st.tiers.some(t => t.tier === 2 && !t.locked) ? 2 : 1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [askForfeit, setAskForfeit] = useState(false);

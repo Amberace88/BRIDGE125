@@ -15,6 +15,7 @@ import { CoinBurst, Ticker } from './Rewards';
 import { track } from '../analytics';
 import { sfx, buzz } from '../sound';
 import '../styles/economy.css';
+import { useApp } from '../store';
 
 export type VaultTab = 'wheel' | 'boosts' | 'collections' | 'prestige';
 const TABS: VaultTab[] = ['wheel', 'boosts', 'collections', 'prestige'];
@@ -207,6 +208,7 @@ function WheelFace({ rot, flap, win, spinning }: { rot: MotionValue<number>; fla
 }
 
 function WheelTab({ E, setBusy, flash }: { E: EcoStrings; setBusy: (b: boolean) => void; flash: (m: string) => void }) {
+  const privileged = useApp().isPrivileged;
   const eco = useEconomy();
   const rot = useMotionValue(0);
   const flapRaw = useMotionValue(0);
@@ -233,7 +235,8 @@ function WheelTab({ E, setBusy, flash }: { E: EcoStrings; setBusy: (b: boolean) 
   const w = eco.wheel;
   const free = !!w?.free;
   const paidLeft = w ? w.max_paid - w.paid : SPIN_PRICES.length;
-  const price = w?.next_price ?? SPIN_PRICES[0];
+  // admin / god: the server charges nothing for paid spins (wheel_spin) — show it
+  const price = privileged ? 0 : w?.next_price ?? SPIN_PRICES[0];
   const nextMs = eco.nextReset ? new Date(eco.nextReset).getTime() - now : 0;
 
   const spin = async () => {
@@ -340,6 +343,7 @@ function PrizeIcon({ kind }: { kind: PrizeKind }) {
 const BOOST_GLYPH: Record<BoostKind, string> = { xp2: '×2', lucky: '♣', shield: '⛨' };
 
 function BoostsTab({ E, flash }: { E: EcoStrings; flash: (m: string) => void }) {
+  const privileged = useApp().isPrivileged;   // buy_boost is free for admin / god
   const eco = useEconomy();
   const [busy, setBusy] = useState<BoostKind | null>(null);
   const [pop, setPop] = useState<BoostKind | null>(null);
@@ -373,7 +377,7 @@ function BoostsTab({ E, flash }: { E: EcoStrings; flash: (m: string) => void }) 
               </span>
               {left > 0 && b.maxMinutes > 0 && <span className="vbmeter"><i style={{ width: `${Math.min(100, (left / (b.maxMinutes * 60_000)) * 100)}%` }} /></span>}
               <button className="btn acc" disabled={!eco.ready || !!busy || maxed} onClick={() => buy(b.kind)}>
-                {busy === b.kind ? <span className="spinner" /> : maxed ? E.boosts.max : E.boosts.buy(`${fmtBm(b.price)} BM`)}
+                {busy === b.kind ? <span className="spinner" /> : maxed ? E.boosts.max : E.boosts.buy(`${fmtBm(privileged ? 0 : b.price)} BM`)}
               </button>
             </motion.div>
           );

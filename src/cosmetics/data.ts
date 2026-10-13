@@ -6,6 +6,7 @@
  * Admin ('admin') and co-author / main tester ('god') get every item free (store.canUse, buy_item, enforce trigger).
  */
 import { BANNER_ART } from './art';
+import { ACH_BANNERS, ACH_FRAMES, ACH_NAME_COLORS, ACH_TITLES } from '../economy/cosmetics';
 
 export type CosKind = 'face' | 'frame' | 'victory' | 'emotes' | 'title' | 'namecolor' | 'banner';
 export const COS_KINDS: CosKind[] = ['face', 'frame', 'victory', 'emotes', 'title', 'namecolor', 'banner'];
@@ -39,6 +40,8 @@ export const FRAMES: FrameStyle[] = [
   { id: 'fr_ice', name: 'Ice Crystal', premium: true },
   { id: 'fr_crown', name: 'Royal Crown', premium: true },
   { id: 'fr_diamond', name: 'Diamond', premium: true },
+  // earned, never sold (achievements, collections, prestige — migration 012)
+  ...ACH_FRAMES,
 ];
 
 /** Win celebrations: `<VictoryEffect id>` (src/cosmetics/VictoryEffect.tsx). */
@@ -69,6 +72,9 @@ export const TITLES: TitleBadge[] = [
   { id: 't_highroller', name: 'High Roller', glyph: '💰', premium: true },
   { id: 't_master', name: '125 Master', glyph: '✦', premium: true },
   { id: 't_legend', name: 'Legend', glyph: '★', premium: true },
+  // earned, never sold: the Journey finale (migration 011) and achievements (migration 012)
+  { id: 't_grand_tour', name: 'Grand Tourist', glyph: '⚜', premium: true },
+  ...ACH_TITLES,
 ];
 
 /** Name colours (CSS classes `.nc-<id>` in styles/cosmetics.css). */
@@ -81,6 +87,7 @@ export const NAME_COLORS: NameColor[] = [
   { id: 'nc_neon', name: 'Neon', swatch: 'linear-gradient(90deg,#ff5ce6,#00e5ff)', premium: true },
   { id: 'nc_fire', name: 'Fire', swatch: 'linear-gradient(90deg,#ffe066,#ff8a2a,#ff2e4d)', premium: true },
   { id: 'nc_holo', name: 'Holographic', swatch: 'linear-gradient(90deg,#ff9bd2,#ffd28a,#9cf5c8,#8ad0ff,#c69bff)', premium: true },
+  ...ACH_NAME_COLORS,
 ];
 
 /** Profile banners (the backdrop of the profile header / player card). */
@@ -91,6 +98,7 @@ export const BANNERS: Banner[] = [
   { id: 'bn_aurora', name: 'Aurora Sky', css: BANNER_ART.bn_aurora, premium: true },
   { id: 'bn_riga', name: 'Riga Rooftops', css: BANNER_ART.bn_riga, premium: true },
   { id: 'bn_suits', name: 'Royal Suits', css: BANNER_ART.bn_suits, premium: true },
+  ...ACH_BANNERS,
 ];
 
 export const COS_LISTS: Record<CosKind, CosItem[]> = {
@@ -106,6 +114,9 @@ export const COS_DEFAULTS: Record<CosKind, string> = {
 export const COS_COLUMN: Record<CosKind, string> = {
   face: 'card_face', frame: 'frame', victory: 'victory', emotes: 'emotes', title: 'title', namecolor: 'name_color', banner: 'banner',
 };
+
+/** Earned-only items (never in the shop): shown in the wardrobe as locked until unlocked by play. */
+export const EARNED_IDS = new Set(['t_grand_tour', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id)]);
 
 const PREMIUM = new Set(COS_KINDS.flatMap(k => COS_LISTS[k].filter(i => i.premium).map(i => i.id)));
 export const isCosPremium = (id: string) => PREMIUM.has(id);

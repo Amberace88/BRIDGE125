@@ -20,13 +20,17 @@ import { BackCard, CosmeticStage } from '../cosmetics/Previews';
 import { useCosmetics } from '../cosmetics/useCosmetics';
 import { takeShopFocus } from '../cosmetics/shopFocus';
 import { CoinBurst, Ticker } from './Rewards';
+import { DiamondPacks } from '../social/DiamondPacks';
+import { GiftItemSheet } from '../social/GiftItemSheet';
+import { DiamondIcon } from '../social/GiftArt';
+import { SOCIAL_STRINGS } from '../i18n/social';
 import '../styles/shop.css';
 
-type Tab = 'featured' | 'sets' | 'tables' | 'backs' | 'faces' | 'frames' | 'victory' | 'emotes' | 'titles' | 'colours' | 'bundles';
-const TABS: Tab[] = ['featured', 'sets', 'tables', 'backs', 'faces', 'frames', 'victory', 'emotes', 'titles', 'colours', 'bundles'];
+type Tab = 'featured' | 'diamonds' | 'sets' | 'tables' | 'backs' | 'faces' | 'frames' | 'victory' | 'emotes' | 'titles' | 'colours' | 'bundles';
+const TABS: Tab[] = ['featured', 'diamonds', 'sets', 'tables', 'backs', 'faces', 'frames', 'victory', 'emotes', 'titles', 'colours', 'bundles'];
 /** Item tabs list one or two slots (second one = a sub-section, e.g. Frames + Banners). */
 const TAB_SLOTS: Record<Tab, Slot[] | null> = {
-  featured: null, sets: null, bundles: null,
+  featured: null, diamonds: null, sets: null, bundles: null,
   tables: ['table'], backs: ['back'], faces: ['face'], frames: ['frame', 'banner'], victory: ['victory'], emotes: ['emotes'], titles: ['title', 'namecolor'], colours: ['accent'],
 };
 const tabOf = (c: Cosmetic): Tab => {
@@ -147,6 +151,8 @@ interface CardCtx {
   owned: (c: Cosmetic) => boolean; bought: (id: string) => boolean; equipped: (c: Cosmetic, slot: Slot | null) => boolean;
   price: (c: Cosmetic) => number;
   onBuy: (c: Cosmetic, slot: Slot | null) => void; onEquip: (c: Cosmetic, slot: Slot | null) => void; onAuth: () => void; onOpen: (c: Cosmetic, slot: Slot | null) => void;
+  /** "Gift to a friend" (paid in Diamonds, social module); null = not giftable */
+  onGift: ((c: Cosmetic) => void) | null; giftLabel: string;
 }
 
 function PriceTag({ bm }: { bm: number }) {
@@ -259,6 +265,9 @@ function DetailModal({ c, slot, ctx, onClose }: { c: Cosmetic; slot: Slot | null
               <ActionButton c={c} slot={slot} ctx={ctx} />
             </div>
             {ctx.admin && !ctx.bought(c.id) && <div className="sadmin" style={{ marginTop: 8 }}>👑 {S.adminFree}</div>}
+            {ctx.onGift && !pack && c.priceBm > 0 && (
+              <button className="alink sdgift" onClick={() => ctx.onGift?.(c)}><span aria-hidden>🎁</span> {ctx.giftLabel}</button>
+            )}
           </div>
         </motion.div>
       </div>
@@ -464,6 +473,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
   const Sall = useStrings(SHOP_STRINGS);
   const S = Sall.shop;
   const C = useStrings(COS_STRINGS);
+  const SOC = useStrings(SOCIAL_STRINGS);
   const p = useProgress();
   const cos = useCosmetics();
   const [focus] = useState(() => cosmetic(initialItem ?? takeShopFocus() ?? ''));
@@ -471,6 +481,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
   const [rar, setRar] = useState<Rarity | 'all'>('all');
   const [detail, setDetail] = useState<{ c: Cosmetic; slot: Slot | null } | null>(focus ? { c: focus, slot: null } : null);
   const [buying, setBuying] = useState<{ c: Cosmetic; slot: Slot | null; price: number } | null>(null);
+  const [giftFor, setGiftFor] = useState<Cosmetic | null>(null);
   const [fly, setFly] = useState<{ from: DOMRect; to: DOMRect; bg: string } | null>(null);
   const [pop, setPop] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -491,9 +502,9 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
 
   useEffect(() => { track('shop_view', { signed_in: !guest, admin, focus: focus?.id ?? null }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape' && !buying && !detail) onClose(); };
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape' && !buying && !detail && !giftFor) onClose(); };
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
-  }, [onClose, buying, detail]);
+  }, [onClose, buying, detail, giftFor]);
   useEffect(() => { bodyRef.current?.scrollTo({ top: 0 }); }, [tab]);
   useEffect(() => { tabsRef.current?.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [tab]);
 
@@ -528,6 +539,8 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
     onEquip: (c, slot) => { void equip(c, slot); },
     onOpen: (c, slot) => { sfx.tap(); setDetail({ c, slot }); track('shop_detail', { item: c.id }); },
     onAuth,
+    onGift: c => { sfx.tap(); setGiftFor(c); track('shop_gift_open', { item: c.id }); },
+    giftLabel: SOC.giftItem.action,
   };
 
   const onBought = (from: DOMRect | null) => {
@@ -545,6 +558,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
       case 'victory': return C.cats.victory;
       case 'emotes': return C.cats.emotes;
       case 'titles': return C.cats.title;
+      case 'diamonds': return SOC.dm.title;
       default: return S.tabs[k];
     }
   };
@@ -591,7 +605,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
           {TABS.map(k => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => { setTab(k); sfx.tap(); }}>
               {tab === k && <motion.span layoutId="stab" className="stabpill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-              <span>{tabLabel(k)}</span>
+              <span>{k === 'diamonds' && <DiamondIcon size={13} className="stabdm" />}{tabLabel(k)}</span>
             </button>
           ))}
         </nav>
@@ -674,6 +688,7 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
                 </>
               )}
 
+              {tab === 'diamonds' && <DiamondPacks onAuth={onAuth} />}
               {tab === 'bundles' && (
                 <>
                   <div className="ssec col"><b className="serif">{S.bundlesTitle}</b><span>{S.bundlesSub}</span></div>
@@ -691,6 +706,13 @@ export function ShopScreen({ onClose, onAuth, initialTab = 'featured', initialIt
 
       <AnimatePresence>
         {detail && !buying && <DetailModal key={'d' + detail.c.id} c={detail.c} slot={detail.slot} ctx={ctx} onClose={() => setDetail(null)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {giftFor && (
+          <GiftItemSheet key={'gift' + giftFor.id} itemId={giftFor.id} name={nameOf(S, app.lang, giftFor)} onClose={() => setGiftFor(null)}
+            onAuth={() => { setGiftFor(null); setDetail(null); onAuth(); }}
+            onDiamonds={() => { setGiftFor(null); setDetail(null); setTab('diamonds'); }} />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {buying && (

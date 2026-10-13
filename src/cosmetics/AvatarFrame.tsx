@@ -102,6 +102,11 @@ const DECOR: Record<string, { back?: ReactNode; front?: ReactNode }> = {
     back: <span className="afr-glow" aria-hidden />,
     front: <>{glint('-4%', '72%')}{glint('70%', '-6%')}{glint('80%', '82%')}{glint('-2%', '6%')}</>,
   },
+  // earned frames (migration 012): the ring itself is CSS (.afr-ach_fr_* in styles/cosmetics.css)
+  ach_fr_veteran: { front: <>{glint('-4%', '74%', '.6s')}</> },
+  ach_fr_prestige: { back: <span className="afr-glow" aria-hidden />, front: <>{glint('70%', '-6%')}{glint('-2%', '70%', '1.2s')}</> },
+  ach_fr_obsidian: { back: <span className="afr-glow" aria-hidden /> },
 };
 
-export const FRAME_IDS = Object.keys(DECOR).map(k => `fr_${k}`);
+/** Frame ids with decor: 'fr_<k>' for the shop frames, the earned 'ach_fr_*' ids as they are. */
+export const FRAME_IDS = Object.keys(DECOR).map(k => (k.startsWith('ach_') ? k : `fr_${k}`));

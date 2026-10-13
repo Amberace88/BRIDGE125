@@ -15,6 +15,7 @@ const es: FeaturePack = {
     orJoin: '¿Tienes un código?',
     shop: { title: 'Tienda', sub: 'Estilos y BM' },
     merch: { title: 'Merch', sub: 'Barajas' },
+    dock: { journey: 'Viaje', quests: 'Misiones', stakes: 'Apuestas', trophies: 'Trofeos', vault: 'Cámara' },
     rulesCue: 'Reglas',
     rules: {
       kicker: 'Una página, un minuto', title: 'Las reglas', sub: 'Quédate sin cartas primero. Los demás suman lo que les queda en la mano: mantén tu total bajo.',
@@ -203,6 +204,12 @@ const es: FeaturePack = {
         details: ['6 pegatinas de vinilo troqueladas', 'Mate, resistentes al agua', 'Lámina A5'] },
     },
   },
+  // not translated yet: these modules fall back to English key by key (see ../pick.ts withFallback)
+  social: {},
+  journey: {},
+  quests: {},
+  achievements: {},
+  economy: {},
 };
 
 export default es;
