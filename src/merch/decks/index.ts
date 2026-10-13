@@ -36,3 +36,4 @@ export function decksForLang(lang: string, products: Product[] = DECK_PRODUCTS):
   };
   return products.map((p, i) => ({ p, i })).sort((a, b) => score(a.p) - score(b.p) || a.i - b.i).map(x => x.p);
 }
+export { DECK_STRINGS } from './strings';

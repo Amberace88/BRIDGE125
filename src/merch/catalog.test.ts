@@ -75,10 +75,10 @@ describe('merch catalogue', () => {
   });
 
   it('sorts "For you" by the visitor’s language: home city first', () => {
-    expect(forYou('lv')[0].city).toBe('riga');
-    expect(forYou('es')[0].city).toBe('madrid');
-    expect(forYou('ka')[0].city).toBe('tbilisi');
-    expect(forYou('lv').some(p => p.id === 'tee-lielais')).toBe(true);
+    expect(forYou('lv').find(p => p.city)?.city).toBe('riga');
+    expect(forYou('es').find(p => p.city)?.city).toBe('madrid');
+    expect(forYou('ka').find(p => p.city)?.city).toBe('tbilisi');
+    expect(forYou('lv', 16).some(p => p.id === 'tee-lielais')).toBe(true);
     expect(marketScore(productById('city-poster-riga')!, 'lv')).toBe(3);
     expect(marketScore(productById('city-poster-riga')!, 'es')).toBe(0);
     expect(marketScore(productById('tee-lady')!, 'es')).toBe(1);

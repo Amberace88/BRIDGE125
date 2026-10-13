@@ -201,7 +201,7 @@ function Shell() {
         {overlay === 'vault' && <VaultScreen key="vault" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'games' && <GamesHub key="games" onClose={closeOverlay} onAuth={auth} onOpenGame={openGame}
           onPlayBridge={() => go({ name: 'local', resume: null, key: Date.now() })} />}
-        {overlay === 'merch' && <MerchScreen key="merch" onClose={closeOverlay} />}
+        {overlay === 'merch' && <MerchScreen key="merch" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'god' && <GodPanel key="god" onClose={closeOverlay} />}
         {(overlay === 'privacy' || overlay === 'terms') && (
           <Legal key="l" kind={overlay} onClose={closeOverlay} onSwitch={k => { history.replaceState(null, '', '/' + k); setOverlay(k); }} />

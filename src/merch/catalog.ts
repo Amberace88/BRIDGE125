@@ -213,7 +213,7 @@ export function marketScore(p: Product, lang: string): number {
 }
 
 /** "For you": the visitor's own city / market first, then the flagship decks and bestsellers; max n. */
-export function forYou(lang: string, n = 8): Product[] {
+export function forYou(lang: string, n = 10): Product[] {
   const rank = (p: Product) => marketScore(p, lang) * 10 + (p.category === 'cards' ? 4 : 0) + (p.badge === 'bestseller' ? 3 : p.badge === 'new' ? 2 : 0)
     + (marketsOf(p).length && marketsOf(p)[0] === lang ? 1 : 0);
   const seenCity = new Set<string>();

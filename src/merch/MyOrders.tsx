@@ -1,3 +1,5 @@
+import { productById } from './catalog';
+import { productCopy } from './copy';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
@@ -44,7 +46,7 @@ function OrderCard({ o, i }: { o: MyOrder; i: number }) {
   const qty = o.items.reduce((a, it) => a + it.qty, 0);
   const date = new Date(o.created_at).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' });
   const tracking = o.shipments.flatMap(f => f.tracking.map(t => ({ ...t, url: safeUrl(t.url) }))).filter(t => t.url || t.number);
-  const name = (id: string, title?: string | null) => m.products[id]?.name ?? title ?? id;
+  const name = (id: string, title?: string | null) => { const pr = productById(id); return pr ? productCopy(pr, m, lang).name : title ?? id; };
   const colour = (c: string | null) => (c ? (m.colours as Record<string, string>)[c] ?? c : null);
 
   return (

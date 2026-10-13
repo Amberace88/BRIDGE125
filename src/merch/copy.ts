@@ -15,7 +15,10 @@ const deckStrings = Reflect.get(DECKS, ['DECK', 'STRINGS'].join('_')) as CopyTab
 
 function deckCopy(id: string, lang: string): Partial<ProductCopy> | null {
   if (!deckStrings) return null;
-  const byLang = (l: string) => deckStrings[l]?.[id] ?? (deckStrings[id] as Record<string, Partial<ProductCopy>> | undefined)?.[l];
+  const byLang = (l: string) => {
+    const pack = deckStrings[l] as (Record<string, Partial<ProductCopy>> & { decks?: Record<string, Partial<ProductCopy>> }) | undefined;
+    return pack?.decks?.[id] ?? pack?.[id] ?? (deckStrings[id] as Record<string, Partial<ProductCopy>> | undefined)?.[l];
+  };
   return byLang(lang) ?? byLang('en') ?? null;
 }
 

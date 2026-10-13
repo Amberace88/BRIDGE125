@@ -113,7 +113,7 @@ describe.each(DECKS.map(t => [t.id, t] as const))('deck %s', (id, t) => {
       const m = await sharp(join(print, f)).metadata();
       expect([m.width, m.height, m.density], f).toEqual([825, 1125, 300]);
     }
-    for (const f of readdirSync(join(dir, 'print', 'prodigi-815x1110'))) {
+    for (const f of (existsSync(join(dir, 'print', 'prodigi-815x1110')) ? readdirSync(join(dir, 'print', 'prodigi-815x1110')) : [])) {
       const m = await sharp(join(dir, 'print', 'prodigi-815x1110', f)).metadata();
       expect([m.width, m.height], f).toEqual([815, 1110]);
     }

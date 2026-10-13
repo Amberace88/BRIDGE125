@@ -1,3 +1,5 @@
+import { productById } from './catalog';
+import { productCopy } from './copy';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MERCH_STRINGS } from '../i18n/merch';
@@ -25,7 +27,7 @@ const ago = (iso: string) => {
   if (m < 1) return 'tikko'; if (m < 60) return `pirms ${m} min`; const h = Math.round(m / 60); if (h < 48) return `pirms ${h} h`;
   return new Date(iso).toLocaleDateString('lv-LV', { day: 'numeric', month: 'short' });
 };
-const productName = (id: string, title?: string | null) => MERCH_STRINGS.lv?.products[id]?.name ?? MERCH_STRINGS.en.products[id]?.name ?? title ?? id;
+const productName = (id: string, title?: string | null) => { const pr = productById(id); return pr ? productCopy(pr, MERCH_STRINGS.lv ?? MERCH_STRINGS.en, 'lv').name : title ?? id; };
 
 export function OrdersAdmin() {
   const [view, setView] = useState<'orders' | 'providers'>('orders');
