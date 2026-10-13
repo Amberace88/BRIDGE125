@@ -3,8 +3,9 @@
  * stars and the little house-rule illustrations.
  */
 import { memo, useId, type CSSProperties, type ReactNode } from 'react';
-import type { Character, ChapterId, Silhouette, TwistId } from './data';
-import { CHAPTERS } from './data';
+import type { Character, ChapterId, RouteId, Silhouette, TwistId } from './data';
+import { CHAPTERS, ROUTES } from './data';
+import { BORDERS_D, LAND_D } from './mapData';
 import { CardFace } from '../components/CardView';
 import type { Card } from '../engine/engine';
 import type { Lang } from '../i18n';
@@ -191,7 +192,20 @@ type Part =
   | { t: 't'; x: number; w: number; h: number }               // crenellated tower
   | { t: 'w'; x: number; r: number }                           // ferris wheel
   | { t: 'hill'; x: number; w: number; h: number }            // hill
-  | { t: 'step'; x: number; w: number; h: number; sp: number }; // stepped high-rise with spire
+  | { t: 'step'; x: number; w: number; h: number; sp: number } // stepped high-rise with spire
+  | { t: 'tv'; x: number; w: number; h: number }               // TV tower: needle + sphere
+  | { t: 'mount'; x: number; w: number; h: number; seed?: number } // mountain range
+  | { t: 'ararat'; x: number; w: number; h: number }           // a great peak with its little sister
+  | { t: 'gate'; x: number; w: number; h: number }             // classical gate: entablature on columns
+  | { t: 'arch'; x: number; w: number; h: number }             // triumphal arch
+  | { t: 'flame'; x: number; w: number; h: number }            // flame-shaped tower
+  | { t: 'cone'; x: number; w: number; h: number }             // Armenian church: drum + cone
+  | { t: 'shard'; x: number; w: number; h: number }            // glass shard
+  | { t: 'pod'; x: number; w: number; h: number }              // bullet-shaped tower
+  | { t: 'minaret'; x: number; w: number; h: number }          // slender tower with balcony + cap
+  | { t: 'gem'; x: number; w: number; h: number }              // faceted "diamond" library on a plinth
+  | { t: 'cascade'; x: number; w: number; h: number }          // stairs climbing a hill
+  | { t: 'palace'; x: number; w: number; h: number };          // vast stepped palace
 
 const SKY: Record<ChapterId, Part[]> = {
   riga: [
@@ -231,6 +245,64 @@ const SKY: Record<ChapterId, Part[]> = {
     { t: 'b', x: 156, w: 44, h: 32 }, { t: 'd', x: 204, w: 22, h: 44 }, { t: 'b', x: 228, w: 36, h: 28 }, { t: 'w', x: 312, r: 44 },
     { t: 'b', x: 264, w: 20, h: 22 }, { t: 'b', x: 360, w: 40, h: 24 },
   ],
+  moscow: [
+    { t: 'b', x: 0, w: 40, h: 20 }, { t: 't', x: 6, w: 30, h: 27 }, { t: 's', x: 40, w: 16, h: 62, sp: 30 }, { t: 't', x: 56, w: 44, h: 24 },
+    { t: 'o', x: 104, w: 16, h: 40 }, { t: 'o', x: 118, w: 22, h: 58 }, { t: 'o', x: 138, w: 14, h: 44 }, { t: 'o', x: 150, w: 18, h: 50 },
+    { t: 's', x: 176, w: 14, h: 54, sp: 22 }, { t: 't', x: 192, w: 42, h: 24 }, { t: 'step', x: 240, w: 56, h: 88, sp: 30 },
+    { t: 'b', x: 300, w: 36, h: 30 }, { t: 'd', x: 340, w: 24, h: 46 }, { t: 'b', x: 366, w: 34, h: 22 },
+  ],
+  berlin: [
+    { t: 'b', x: 0, w: 44, h: 28 }, { t: 'gate', x: 50, w: 58, h: 40 }, { t: 'b', x: 112, w: 30, h: 34 },
+    { t: 'tv', x: 152, w: 14, h: 102 }, { t: 'b', x: 172, w: 44, h: 26 }, { t: 'd', x: 222, w: 44, h: 38 }, { t: 'b', x: 270, w: 34, h: 46 },
+    { t: 's', x: 310, w: 16, h: 58, sp: 28 }, { t: 'b', x: 330, w: 40, h: 30 }, { t: 'b', x: 372, w: 28, h: 20 },
+  ],
+  minsk: [
+    { t: 'b', x: 0, w: 50, h: 26 }, { t: 's', x: 52, w: 16, h: 52, sp: 24 }, { t: 'b', x: 70, w: 40, h: 36 },
+    { t: 'gem', x: 116, w: 50, h: 60 }, { t: 'b', x: 170, w: 30, h: 30 }, { t: 'step', x: 206, w: 44, h: 62, sp: 16 },
+    { t: 'b', x: 254, w: 36, h: 34 }, { t: 'o', x: 296, w: 18, h: 46 }, { t: 'b', x: 318, w: 40, h: 24 }, { t: 's', x: 362, w: 14, h: 44, sp: 20 }, { t: 'b', x: 378, w: 22, h: 22 },
+  ],
+  almaty: [
+    { t: 'mount', x: -10, w: 420, h: 82, seed: 3 }, { t: 'hill', x: 0, w: 130, h: 30 }, { t: 'tv', x: 52, w: 12, h: 84 },
+    { t: 'b', x: 130, w: 26, h: 40 }, { t: 'b', x: 158, w: 30, h: 30 }, { t: 'shard', x: 196, w: 24, h: 78 }, { t: 'b', x: 226, w: 34, h: 46 },
+    { t: 'o', x: 268, w: 18, h: 44 }, { t: 'o', x: 290, w: 14, h: 36 }, { t: 'b', x: 310, w: 44, h: 28 }, { t: 'b', x: 358, w: 42, h: 36 },
+  ],
+  tashkent: [
+    { t: 'b', x: 0, w: 40, h: 24 }, { t: 'minaret', x: 44, w: 12, h: 70 }, { t: 'd', x: 62, w: 44, h: 40 }, { t: 'minaret', x: 112, w: 12, h: 70 },
+    { t: 'b', x: 128, w: 30, h: 30 }, { t: 'tv', x: 170, w: 14, h: 102 }, { t: 'b', x: 190, w: 36, h: 28 }, { t: 'd', x: 232, w: 30, h: 34 },
+    { t: 'b', x: 266, w: 40, h: 26 }, { t: 'minaret', x: 310, w: 10, h: 56 }, { t: 'd', x: 324, w: 28, h: 30 }, { t: 'b', x: 356, w: 44, h: 22 },
+  ],
+  baku: [
+    { t: 'b', x: 0, w: 60, h: 18 }, { t: 't', x: 20, w: 22, h: 44 }, { t: 'b', x: 46, w: 40, h: 24 }, { t: 'minaret', x: 90, w: 10, h: 48 },
+    { t: 'b', x: 104, w: 34, h: 22 }, { t: 'flame', x: 148, w: 36, h: 88 }, { t: 'flame', x: 186, w: 32, h: 74 }, { t: 'flame', x: 220, w: 28, h: 62 },
+    { t: 'b', x: 254, w: 40, h: 30 }, { t: 'b', x: 298, w: 28, h: 44 }, { t: 'b', x: 330, w: 42, h: 24 }, { t: 'd', x: 376, w: 20, h: 28 },
+  ],
+  yerevan: [
+    { t: 'ararat', x: 120, w: 300, h: 88 },
+    { t: 'b', x: 0, w: 34, h: 30 }, { t: 'cone', x: 38, w: 22, h: 46 }, { t: 'b', x: 64, w: 40, h: 26 },
+    { t: 'cascade', x: 108, w: 76, h: 46 }, { t: 'b', x: 188, w: 30, h: 38 }, { t: 'cone', x: 222, w: 26, h: 56 }, { t: 'b', x: 252, w: 44, h: 24 },
+    { t: 's', x: 300, w: 14, h: 46, sp: 20 }, { t: 'b', x: 318, w: 40, h: 30 }, { t: 'cone', x: 362, w: 18, h: 38 }, { t: 'b', x: 382, w: 18, h: 20 },
+  ],
+  bucharest: [
+    { t: 'b', x: 0, w: 30, h: 26 }, { t: 'arch', x: 34, w: 36, h: 46 }, { t: 'b', x: 74, w: 28, h: 30 },
+    { t: 'palace', x: 108, w: 136, h: 58 }, { t: 'b', x: 248, w: 26, h: 34 }, { t: 'd', x: 278, w: 30, h: 46 }, { t: 'b', x: 312, w: 34, h: 28 },
+    { t: 's', x: 350, w: 14, h: 50, sp: 24 }, { t: 'b', x: 366, w: 34, h: 22 },
+  ],
+  sofia: [
+    { t: 'mount', x: -20, w: 440, h: 58, seed: 9 },
+    { t: 'b', x: 0, w: 40, h: 24 }, { t: 'd', x: 44, w: 20, h: 34 }, { t: 'b', x: 66, w: 34, h: 28 },
+    { t: 's', x: 108, w: 16, h: 68, sp: 22 }, { t: 'd', x: 126, w: 24, h: 42 }, { t: 'd', x: 148, w: 42, h: 56 }, { t: 'd', x: 188, w: 24, h: 42 },
+    { t: 'b', x: 218, w: 36, h: 30 }, { t: 'd', x: 260, w: 22, h: 36 }, { t: 'b', x: 286, w: 46, h: 26 }, { t: 'minaret', x: 336, w: 10, h: 54 }, { t: 'd', x: 348, w: 28, h: 30 }, { t: 'b', x: 378, w: 22, h: 20 },
+  ],
+  madrid: [
+    { t: 'b', x: 0, w: 30, h: 26 }, { t: 'gate', x: 34, w: 56, h: 34 }, { t: 'b', x: 94, w: 26, h: 32 },
+    { t: 'd', x: 124, w: 30, h: 52 }, { t: 'b', x: 158, w: 40, h: 34 }, { t: 'b', x: 204, w: 16, h: 96 }, { t: 'b', x: 224, w: 16, h: 88 },
+    { t: 'shard', x: 244, w: 18, h: 94 }, { t: 'b', x: 266, w: 16, h: 84 }, { t: 'b', x: 288, w: 50, h: 30 }, { t: 'd', x: 340, w: 24, h: 44 }, { t: 'b', x: 366, w: 34, h: 24 },
+  ],
+  london: [
+    { t: 'b', x: 0, w: 40, h: 26 }, { t: 's', x: 42, w: 14, h: 78, sp: 22 }, { t: 'g', x: 58, w: 40, h: 34 },
+    { t: 'w', x: 132, r: 36 }, { t: 'b', x: 172, w: 30, h: 28 }, { t: 'd', x: 206, w: 34, h: 46 }, { t: 'pod', x: 246, w: 22, h: 72 },
+    { t: 'shard', x: 274, w: 30, h: 102 }, { t: 't', x: 310, w: 16, h: 54 }, { t: 'b', x: 326, w: 28, h: 13 }, { t: 't', x: 354, w: 16, h: 54 }, { t: 'b', x: 372, w: 28, h: 22 },
+  ],
   montecarlo: [
     { t: 'hill', x: 0, w: 400, h: 34 }, { t: 'b', x: 20, w: 34, h: 54 }, { t: 'b', x: 56, w: 26, h: 70 }, { t: 'b', x: 86, w: 30, h: 48 },
     { t: 's', x: 130, w: 14, h: 52, sp: 20 }, { t: 'd', x: 150, w: 44, h: 46 }, { t: 's', x: 200, w: 14, h: 52, sp: 20 }, { t: 'b', x: 222, w: 40, h: 36 },
@@ -269,8 +341,75 @@ function partPath(p: Part, B: number): string {
       return `M${p.x} ${B}V${top + 40}H${p.x + p.w * 0.14}V${top + 18}H${p.x + p.w * 0.28}V${top}H${p.x + p.w * 0.42}V${top - 12}H${m - 2}L${m} ${top - 12 - p.sp}L${m + 2} ${top - 12}H${p.x + p.w * 0.58}V${top}H${p.x + p.w * 0.72}V${top + 18}H${p.x + p.w * 0.86}V${top + 40}H${p.x + p.w}V${B}Z`;
     }
     case 'w': return '';
+    case 'tv': {
+      const m = p.x + p.w / 2, top = B - p.h, sh = Math.max(2, p.w * 0.22), r = p.w * 0.55, cy = top + p.h * 0.3;
+      return `M${m - sh} ${B}V${cy + r}H${m + sh}V${B}Z M${m - r} ${cy}A${r} ${r} 0 1 1 ${m + r} ${cy}A${r} ${r} 0 1 1 ${m - r} ${cy}Z M${m - 0.8} ${cy - r + 1}V${top}H${m + 0.8}V${cy - r + 1}Z M${m - sh * 1.6} ${B}L${m - sh} ${B - p.h * 0.12}H${m + sh}L${m + sh * 1.6} ${B}Z`;
+    }
+    case 'mount': {
+      const r = prng((p.seed ?? 1) * 7121);
+      const n = Math.max(5, Math.round(p.w / 34));
+      let d = `M${p.x} ${B}L${p.x} ${B - p.h * 0.35}`;
+      for (let i = 0; i < n; i++) {
+        const x0 = p.x + (i / n) * p.w, x1 = p.x + ((i + 1) / n) * p.w;
+        const peak = B - p.h * (0.55 + r() * 0.45), valley = B - p.h * (0.3 + r() * 0.25);
+        d += `L${(x0 + (x1 - x0) * (0.35 + r() * 0.3)).toFixed(1)} ${peak.toFixed(1)}L${x1.toFixed(1)} ${valley.toFixed(1)}`;
+      }
+      return d + `L${p.x + p.w} ${B}Z`;
+    }
+    case 'ararat': {
+      const x = p.x, w = p.w, top = B - p.h;
+      return `M${x} ${B}C${x + w * 0.18} ${B - p.h * 0.18} ${x + w * 0.3} ${top + p.h * 0.2} ${x + w * 0.42} ${top}C${x + w * 0.46} ${top + 4} ${x + w * 0.5} ${top + p.h * 0.12} ${x + w * 0.58} ${top + p.h * 0.34}`
+        + `C${x + w * 0.64} ${top + p.h * 0.46} ${x + w * 0.7} ${top + p.h * 0.42} ${x + w * 0.76} ${top + p.h * 0.5}C${x + w * 0.84} ${B - p.h * 0.32} ${x + w * 0.92} ${B - p.h * 0.12} ${x + w} ${B}Z`;
+    }
+    case 'gate': {
+      const top = B - p.h, n = 6, cw = p.w / (n * 2 - 1);
+      let d = `M${p.x - 2} ${top + 10}H${p.x + p.w + 2}V${top + 4}H${p.x + p.w * 0.62}L${p.x + p.w / 2} ${top - 6}L${p.x + p.w * 0.38} ${top + 4}H${p.x - 2}Z`;
+      for (let i = 0; i < n; i++) { const x = p.x + i * 2 * cw; d += ` M${x} ${B}V${top + 10}H${x + cw}V${B}Z`; }
+      return d;
+    }
+    case 'arch': {
+      const top = B - p.h, m = p.x + p.w / 2, r = p.w * 0.2;
+      return `M${p.x} ${B}V${top}H${p.x + p.w}V${B}H${m + r}V${B - p.h * 0.45}A${r} ${r} 0 0 0 ${m - r} ${B - p.h * 0.45}V${B}Z M${p.x - 3} ${top}H${p.x + p.w + 3}V${top + 4}H${p.x - 3}Z`;
+    }
+    case 'flame': {
+      const x = p.x, w = p.w, top = B - p.h;
+      return `M${x} ${B}C${x - w * 0.05} ${B - p.h * 0.5} ${x + w * 0.2} ${top + p.h * 0.25} ${x + w * 0.62} ${top}C${x + w * 0.7} ${top + p.h * 0.2} ${x + w * 1.06} ${B - p.h * 0.55} ${x + w} ${B}Z`;
+    }
+    case 'cone': {
+      const top = B - p.h, m = p.x + p.w / 2, dw = p.w * 0.32;
+      return `M${p.x} ${B}V${top + p.h * 0.5}H${m - dw}V${top + p.h * 0.28}L${m} ${top}L${m + dw} ${top + p.h * 0.28}V${top + p.h * 0.5}H${p.x + p.w}V${B}Z M${m - 0.8} ${top + 1}V${top - 7}H${m + 0.8}V${top + 1}Z M${m - 3} ${top - 4.5}H${m + 3}V${top - 3}H${m - 3}Z`;
+    }
+    case 'shard': {
+      const top = B - p.h;
+      return `M${p.x} ${B}L${p.x + p.w * 0.42} ${top + 4}L${p.x + p.w * 0.47} ${top}L${p.x + p.w * 0.5} ${top + 6}L${p.x + p.w * 0.56} ${top + 1}L${p.x + p.w} ${B}Z`;
+    }
+    case 'pod': {
+      const top = B - p.h, m = p.x + p.w / 2;
+      return `M${p.x + p.w * 0.12} ${B}C${p.x - p.w * 0.1} ${B - p.h * 0.55} ${m - p.w * 0.3} ${top + 2} ${m} ${top}C${m + p.w * 0.3} ${top + 2} ${p.x + p.w * 1.1} ${B - p.h * 0.55} ${p.x + p.w * 0.88} ${B}Z`;
+    }
+    case 'minaret': {
+      const top = B - p.h, m = p.x + p.w / 2, sw = p.w * 0.3;
+      return `M${m - sw} ${B}V${top + p.h * 0.32}H${m - sw * 1.7}V${top + p.h * 0.28}H${m + sw * 1.7}V${top + p.h * 0.32}H${m + sw}V${B}Z M${m - sw * 0.8} ${top + p.h * 0.28}V${top + p.h * 0.12}A${sw * 0.8} ${sw * 1.2} 0 0 1 ${m + sw * 0.8} ${top + p.h * 0.12}V${top + p.h * 0.28}Z M${m - 0.6} ${top + p.h * 0.12 - sw * 1.1}V${top}H${m + 0.6}V${top + p.h * 0.12 - sw * 1.1}Z`;
+    }
+    case 'gem': {
+      const top = B - p.h, x = p.x, w = p.w, base = p.h * 0.22, g = p.h - base, c = w * 0.28;
+      return `M${x + w * 0.1} ${B}V${B - base}H${x + w * 0.9}V${B}Z M${x + c} ${B - base}L${x} ${B - base - g * 0.3}V${top + g * 0.3}L${x + c} ${top}H${x + w - c}L${x + w} ${top + g * 0.3}V${B - base - g * 0.3}L${x + w - c} ${B - base}Z`;
+    }
+    case 'cascade': {
+      const n = 6, sw = p.w / n;
+      let d = `M${p.x} ${B}`;
+      for (let i = 0; i < n; i++) { const y = B - p.h * ((i + 1) / n); d += `V${y.toFixed(1)}H${(p.x + (i + 1) * sw).toFixed(1)}`; }
+      return d + `V${B}Z`;
+    }
+    case 'palace': {
+      const top = B - p.h, x = p.x, w = p.w, m = x + w / 2;
+      return `M${x} ${B}V${top + p.h * 0.55}H${x + w * 0.12}V${top + p.h * 0.38}H${x + w * 0.26}V${top + p.h * 0.22}H${m - w * 0.07}V${top + 6}H${m - 3}V${top}H${m + 3}V${top + 6}H${m + w * 0.07}V${top + p.h * 0.22}H${x + w * 0.74}V${top + p.h * 0.38}H${x + w * 0.88}V${top + p.h * 0.55}H${x + w}V${B}Z`;
+    }
   }
 }
+
+/** Part types that get lit windows. */
+const LIT = new Set<Part['t']>(['b', 'g', 's', 'd', 'o', 't', 'step', 'gem', 'palace', 'cascade']);
 
 /** City skyline, 400×110 units, baseline at 110. `layer="far"` draws a dimmer, flattened copy. */
 export const Skyline = memo(function Skyline({ city, layer = 'near', className = '', lit = 0.22, tile = false }: { city: ChapterId; layer?: 'near' | 'far'; className?: string; lit?: number; tile?: boolean }) {
@@ -280,7 +419,7 @@ export const Skyline = memo(function Skyline({ city, layer = 'near', className =
   const windows: { x: number; y: number; w: number; h: number }[] = [];
   if (layer === 'near') {
     for (const p of parts) {
-      if (p.t === 'w' || p.t === 'hill') continue;
+      if (!LIT.has(p.t)) continue;
       const h = 'h' in p ? p.h : 0;
       const w = 'w' in p ? p.w : 0;
       for (let y = B - h + 7; y < B - 6; y += 7) for (let x = p.x + 3; x < p.x + w - 4; x += 6) if (r() < lit) windows.push({ x, y, w: 2.2, h: 3.2 });
@@ -288,7 +427,8 @@ export const Skyline = memo(function Skyline({ city, layer = 'near', className =
   }
   const wheel = parts.find((p): p is Extract<Part, { t: 'w' }> => p.t === 'w');
   const uid = 'sk' + useId().replace(/:/g, '');
-  const d = parts.map(p => partPath(p, B)).join(' ');
+  // mountains stand in the distance: only the far layer draws them
+  const d = parts.filter(p => layer === 'far' || (p.t !== 'mount' && p.t !== 'ararat')).map(p => partPath(p, B)).join(' ');
   return (
     <svg className={`skyline ${layer} ${className}`} viewBox={tile ? '-400 0 1200 110' : '0 0 400 110'} preserveAspectRatio="xMidYMax slice" aria-hidden>
       {tile && <use href={`#${uid}`} transform="translate(0 0) scale(-1 1)" />}
@@ -312,52 +452,60 @@ export const Skyline = memo(function Skyline({ city, layer = 'near', className =
 
 /* ================================================================================== the night map of Europe */
 
-export const MAP = { lon0: 3.6, lon1: 48.6, lat0: 40, lat1: 61.5, k: 40, cos: Math.cos(51 * Math.PI / 180) };
-export const MAP_W = Math.round((MAP.lon1 - MAP.lon0) * MAP.cos * MAP.k);
-export const MAP_H = Math.round((MAP.lat1 - MAP.lat0) * MAP.k);
-export const project = (lon: number, lat: number): [number, number] => [(lon - MAP.lon0) * MAP.cos * MAP.k, (MAP.lat1 - lat) * MAP.k];
+const RAD = Math.PI / 180;
+/**
+ * Equal-area conic projection centred on 36°E (standard parallels 40° and 58°) — wide enough for London and Madrid in
+ * the west and Almaty in the east, with gently curved parallels like an old engraved sheet. World units, y down.
+ * Keep in sync with the generator of mapData.ts.
+ */
+export const MAP = { lon0: 36, p1: 40, p2: 58, latRef: 50, k: 2000, x0: -0.63, y1: 0.47 };
+export const MAP_W = 2420;
+export const MAP_H = 1880;
+const CN = (Math.sin(MAP.p1 * RAD) + Math.sin(MAP.p2 * RAD)) / 2;
+const CC = Math.cos(MAP.p1 * RAD) ** 2 + 2 * CN * Math.sin(MAP.p1 * RAD);
+const rho = (lat: number) => Math.sqrt(CC - 2 * CN * Math.sin(lat * RAD)) / CN;
+const RHO0 = rho(MAP.latRef);
+export const project = (lon: number, lat: number): [number, number] => {
+  const t = CN * (lon - MAP.lon0) * RAD, r = rho(lat);
+  return [(r * Math.sin(t) - MAP.x0) * MAP.k, (MAP.y1 - (RHO0 - r * Math.cos(t))) * MAP.k];
+};
 
 type LL = [number, number];
-// simplified coastlines (lon, lat) — seas are filled polygons
-const SEAS: LL[][] = [
-  // North Sea + Kattegat + Baltic (Scandinavia carved out)
-  [[4, 51.6], [4, 52.2], [4.7, 52.9], [5.5, 53.4], [7, 53.6], [8.5, 53.6], [8.9, 54.1], [8.6, 55.4], [8.1, 56.5], [8.6, 57.1], [9.9, 57.6], [10.6, 57.75],
-    [10.4, 57.2], [10.3, 56.5], [10.9, 56.4], [10.6, 55.7], [10.0, 55.2], [10.0, 54.5], [11.0, 54.0], [12.5, 54.4], [13.8, 54.1], [14.3, 53.9], [16.0, 54.3],
-    [17.5, 54.75], [18.6, 54.75], [19.4, 54.4], [19.9, 54.9], [21.1, 55.3], [21.1, 56.1], [21.05, 56.8], [21.6, 57.4], [22.6, 57.75], [23.3, 57.1], [24.1, 57.0],
-    [24.4, 57.6], [24.3, 58.3], [23.6, 58.5], [23.5, 59.2], [24.1, 59.45], [25.5, 59.6], [26.9, 59.5], [28.0, 59.5], [29.0, 59.9], [30.2, 59.95], [29.0, 60.2],
-    [27.0, 60.5], [25.5, 60.3], [24.0, 60.0], [22.9, 59.85], [21.4, 60.6], [21.3, 61.5], [17.5, 61.5], [17.3, 61.3], [18.4, 60.3], [18.8, 59.6], [18.0, 59.0],
-    [16.9, 58.4], [16.6, 57.5], [16.2, 56.5], [15.6, 56.15], [14.3, 55.6], [12.9, 55.5], [12.6, 56.0], [12.4, 56.6], [11.8, 57.6], [11.2, 58.4], [11.0, 59.0],
-    [10.5, 59.5], [9.5, 59.0], [8.0, 58.1], [6.5, 58.1], [5.5, 58.8], [5.3, 59.3], [5.0, 60.4], [4.9, 61.0], [5.0, 61.5], [4, 61.5]],
-  // Black Sea + Azov
-  [[27.9, 42.0], [28.6, 43.4], [28.7, 44.3], [29.7, 45.2], [30.7, 46.5], [31.8, 46.6], [32.6, 46.1], [33.6, 46.0], [33.4, 45.2], [32.5, 45.4], [33.6, 44.5],
-    [34.5, 44.6], [35.5, 45.0], [36.5, 45.3], [35.4, 45.4], [35.0, 45.8], [35.5, 46.4], [36.8, 46.7], [38.4, 47.1], [39.2, 47.2], [38.2, 46.3], [37.8, 45.8],
-    [37.4, 45.0], [38.6, 44.4], [39.7, 43.6], [40.5, 43.0], [41.6, 42.0], [41.6, 41.6], [40.5, 41.0], [39.0, 41.0], [37.0, 41.2], [35.0, 42.0], [33.3, 42.0],
-    [31.5, 41.3], [29.1, 41.2], [28.0, 41.6]],
-  // Ligurian + Tyrrhenian
-  [[4, 43.5], [5.0, 43.35], [6.0, 43.1], [6.9, 43.45], [7.4, 43.73], [8.0, 43.9], [8.8, 44.4], [9.5, 44.1], [10.2, 43.9], [10.5, 43.3], [11.1, 42.4],
-    [12.0, 41.9], [12.6, 41.45], [13.6, 41.25], [14.4, 40.8], [15.0, 40.3], [15.6, 40.0], [4, 40]],
-  // Adriatic + Ionian opening
-  [[12.3, 44.3], [12.4, 45.4], [13.0, 45.65], [13.7, 45.7], [13.6, 45.1], [14.3, 45.25], [14.9, 44.7], [15.4, 44.0], [16.4, 43.5], [17.4, 43.0], [18.5, 42.45],
-    [19.4, 41.9], [19.5, 41.0], [19.4, 40.4], [19.6, 40.0], [18.6, 40.0], [18.5, 40.1], [18.0, 40.6], [17.0, 41.0], [16.0, 41.4], [15.9, 41.9], [14.7, 42.1],
-    [14.0, 42.6], [13.6, 43.5], [12.6, 44.0]],
-  // north Aegean + Marmara hint
-  [[22.6, 40.0], [22.6, 40.5], [23.4, 40.3], [24.0, 40.8], [25.2, 40.95], [26.0, 40.7], [26.5, 40.4], [26.2, 40.0]],
-  // Caspian edge
-  [[46.5, 44.5], [47.2, 44.0], [47.6, 43.2], [47.5, 42.3], [48.6, 41.8], [49.5, 40.0], [46.5, 40.0]],
+// a few lakes the 1:50m land layer doesn't cut out (lon, lat)
+const LAKES: LL[][] = [
+  [[29.9, 60.0], [30.6, 60.3], [31.5, 60.7], [32.6, 61.1], [32.9, 61.3], [32.4, 61.6], [31.3, 61.6], [30.4, 61.2], [29.9, 60.6]],   // Ladoga
+  [[34.2, 61.0], [35.6, 61.2], [36.3, 61.9], [36.0, 62.6], [35.2, 62.9], [34.5, 62.4], [34.8, 61.8], [34.3, 61.5]],               // Onega
+  [[27.3, 57.9], [27.8, 58.1], [27.7, 58.6], [27.4, 58.95], [27.0, 58.7], [27.2, 58.3]],                                           // Peipus
+  [[60.0, 46.0], [61.2, 46.3], [61.6, 46.7], [60.9, 46.9], [60.2, 46.6]],                                                         // North Aral
+  [[58.3, 44.2], [58.9, 44.6], [59.2, 45.3], [58.8, 45.9], [58.3, 45.4], [58.1, 44.7]],                                           // Aral
+  [[73.4, 46.6], [74.3, 46.3], [75.6, 46.5], [77.0, 46.5], [78.5, 46.4], [79.3, 46.6], [79.0, 46.85], [77.5, 46.9], [76.0, 46.9], [74.8, 46.95], [73.9, 47.1], [73.4, 46.9]], // Balkhash
+  [[76.2, 42.35], [77.2, 42.2], [78.4, 42.1], [78.6, 42.4], [77.6, 42.7], [76.6, 42.8], [76.2, 42.6]],                            // Issyk-Kul
+  [[45.0, 40.2], [45.5, 40.1], [45.6, 40.3], [45.2, 40.6], [44.95, 40.5]],                                                         // Sevan
+  [[45.1, 37.2], [45.9, 37.4], [45.9, 38.0], [45.5, 38.2], [45.2, 37.7]],                                                          // Urmia
 ];
-const ISLANDS: LL[][] = [
-  [[18.1, 56.9], [18.7, 57.2], [19.3, 57.95], [18.8, 57.9], [18.2, 57.5]],       // Gotland
-  [[21.8, 58.3], [22.6, 58.0], [23.3, 58.3], [22.9, 58.6], [22.1, 58.55]],       // Saaremaa
-  [[22.4, 58.75], [23.0, 58.7], [23.0, 59.05], [22.5, 59.05]],                   // Hiiumaa
-  [[11.1, 55.7], [12.1, 55.4], [12.6, 55.7], [12.3, 56.1], [11.5, 56.0]],       // Zealand
-  [[9.7, 55.5], [10.4, 55.1], [10.85, 55.3], [10.5, 55.6]],                       // Funen
-  [[16.4, 56.2], [16.7, 56.7], [16.9, 57.3], [16.6, 56.9]],                       // Öland
-  [[8.6, 41.4], [9.6, 41.4], [9.5, 42.6], [9.4, 43.0], [8.6, 42.1]],             // Corsica
-  [[8.4, 40.0], [9.8, 40.0], [9.7, 40.9], [9.2, 41.2], [8.3, 40.9]],             // Sardinia
-  [[33.6, 46.0], [33.4, 45.2], [32.5, 45.4], [33.6, 44.5], [34.5, 44.6], [35.5, 45.0], [35.4, 45.4], [35.0, 45.8], [34.5, 46.1]], // Crimea
+// mountain ranges, drawn as rows of little engraved peaks
+const RANGES: LL[][] = [
+  [[5.9, 44.9], [6.9, 45.9], [8.5, 46.4], [10.5, 46.6], [12.5, 47.0], [14.5, 47.2]],                 // Alps
+  [[-1.6, 43.0], [0.5, 42.75], [2.6, 42.5]],                                                         // Pyrenees
+  [[18.8, 49.4], [21.5, 49.3], [24.0, 48.4], [25.3, 47.4], [25.8, 46.0], [24.5, 45.5], [22.5, 45.4]], // Carpathians
+  [[22.4, 43.3], [24.5, 42.9], [26.5, 42.8]],                                                        // Balkan mountains
+  [[39.5, 43.6], [42.0, 43.2], [44.5, 42.7], [46.5, 41.9], [48.6, 41.2]],                            // Caucasus
+  [[69.5, 42.6], [72.0, 42.2], [74.5, 42.6], [77.0, 43.0], [79.5, 42.4], [81.5, 42.8]],              // Tian Shan
+  [[68.5, 39.2], [71.0, 39.6], [73.5, 39.4]],                                                        // Alay / Pamir edge
+  [[-6.0, 40.4], [-3.8, 40.9], [-2.0, 41.3]],                                                        // Sierra de Guadarrama
+  [[59.2, 51.5], [59.6, 54.0], [59.4, 56.5], [59.6, 59.0], [59.8, 61.5]],                            // Urals
+  [[13.5, 42.5], [14.5, 41.8], [15.8, 40.8]],                                                        // Apennines (south)
+];
+const SEA_LABELS: { t: string; lon: number; lat: number; r?: number; s?: number }[] = [
+  { t: 'Mare Balticum', lon: 19.4, lat: 56.7, r: -62 },
+  { t: 'Mare Germanicum', lon: 3.6, lat: 56.1, r: -66 },
+  { t: 'Pontus Euxinus', lon: 34.2, lat: 43.1, r: -4 },
+  { t: 'Mare Caspium', lon: 50.6, lat: 42.4, r: -74 },
+  { t: 'Mare Internum', lon: 17.5, lat: 35.6, r: 4, s: 1.25 },
+  { t: 'Oceanus Atlanticus', lon: -12.5, lat: 45.5, r: -70, s: 1.25 },
 ];
 
-const toPath = (pts: LL[], close = true) => pts.map(([lo, la], i) => { const [x, y] = project(lo, la); return `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`; }).join('') + (close ? 'Z' : '');
+const llPath = (pts: LL[], close = true) => pts.map(([lo, la], i) => { const [x, y] = project(lo, la); return `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`; }).join('') + (close ? 'Z' : '');
 
 /** Smooth curve through points (Catmull-Rom → cubic Bézier). */
 export function smoothPath(pts: [number, number][], tension = 0.5): string {
@@ -373,16 +521,18 @@ export function smoothPath(pts: [number, number][], tension = 0.5): string {
 }
 
 export const CITY_XY = Object.fromEntries(CHAPTERS.map(c => [c.id, project(c.lon, c.lat)])) as Record<ChapterId, [number, number]>;
-/** The night route, in chapter order, with a gentle bow between far-apart cities. */
-export function routePoints(): [number, number][] {
+
+/** A route's path, in chapter order, with a gentle bow between far-apart cities (alternating sides). */
+export function routePoints(route: RouteId): [number, number][] {
+  const ids = ROUTES[route];
   const pts: [number, number][] = [];
-  CHAPTERS.forEach((c, i) => {
-    const p = CITY_XY[c.id];
+  ids.forEach((id, i) => {
+    const p = CITY_XY[id];
     if (i > 0) {
-      const q = CITY_XY[CHAPTERS[i - 1].id];
+      const q = CITY_XY[ids[i - 1]];
       const dx = p[0] - q[0], dy = p[1] - q[1], len = Math.hypot(dx, dy);
-      if (len > 160) {
-        const bow = Math.min(90, len * 0.16) * (i % 2 ? 1 : -1);
+      if (len > 110) {
+        const bow = Math.min(90, len * 0.14) * (i % 2 ? 1 : -1);
         pts.push([(p[0] + q[0]) / 2 - (dy / len) * bow, (p[1] + q[1]) / 2 + (dx / len) * bow]);
       }
     }
@@ -390,56 +540,87 @@ export function routePoints(): [number, number][] {
   });
   return pts;
 }
-export const ROUTE_D = smoothPath(routePoints(), 0.85);
+const routeDs = new Map<RouteId, string>();
+export function routeD(route: RouteId): string {
+  let d = routeDs.get(route);
+  if (!d) { d = smoothPath(routePoints(route), 0.85); routeDs.set(route, d); }
+  return d;
+}
 
-/** Static engraved layers of the map (memoised — they never change). */
-export const MapEngraving = memo(function MapEngraving() {
-  const grat: ReactNode[] = [];
-  for (let lon = 5; lon <= 45; lon += 5) { const [x] = project(lon, 0); grat.push(<line key={'o' + lon} x1={x} y1={0} x2={x} y2={MAP_H} />); }
-  for (let lat = 45; lat <= 60; lat += 5) { const [, y] = project(0, lat); grat.push(<line key={'a' + lat} x1={0} y1={y} x2={MAP_W} y2={y} />); }
-  const labels = [45, 50, 55, 60].map(lat => { const [, y] = project(0, lat); return <text key={lat} x={8} y={y - 4} className="glab">{lat}°N</text>; });
-  const lonLabels = [10, 20, 30, 40].map(lon => { const [x] = project(lon, 0); return <text key={lon} x={x + 4} y={MAP_H - 8} className="glab">{lon}°E</text>; });
-  const seaD = SEAS.map(s => toPath(s)).join(' ');
+function rangeMarks(): string {
+  let d = '';
+  for (const r of RANGES) {
+    const pts = r.map(([lo, la]) => project(lo, la));
+    let carry = 0, k = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1], L = Math.hypot(bx - ax, by - ay);
+      for (let t = carry; t < L; t += 17) {
+        const x = ax + ((bx - ax) * t) / L, y = ay + ((by - ay) * t) / L + (k++ % 2 ? 4 : -3), s = 7 + (k % 3);
+        d += `M${(x - s).toFixed(1)} ${(y + s * 0.55).toFixed(1)}L${x.toFixed(1)} ${(y - s * 0.75).toFixed(1)}L${(x + s).toFixed(1)} ${(y + s * 0.55).toFixed(1)}`;
+        carry = t + 17 - L;
+      }
+    }
+  }
+  return d;
+}
+
+/** Graticule: meridians are straight rays of the cone, parallels are arcs (sampled). */
+function graticule() {
+  const lines: string[] = [];
+  for (let lon = -20; lon <= 90; lon += 10) lines.push(llPath(Array.from({ length: 31 }, (_, i): LL => [lon, 20 + i * 2]), false));
+  for (let lat = 30; lat <= 70; lat += 10) lines.push(llPath(Array.from({ length: 66 }, (_, i): LL => [-30 + i * 2, lat]), false));
+  return lines.join('');
+}
+
+/** Static engraved layers of the map in world units (memoised — they never change). Rendered inside the camera's <svg>. */
+export const MapLayers = memo(function MapLayers() {
+  const labels = [40, 50, 60].map(lat => { const [x, y] = project(-6, lat); return <text key={lat} x={x} y={y - 6} className="glab">{lat}°N</text>; });
+  const lonLabels = [0, 20, 40, 60, 80].map(lon => { const [x, y] = project(lon, 36.5); return <text key={lon} x={x + 5} y={y} className="glab">{lon === 0 ? '0°' : `${lon}°E`}</text>; });
   return (
-    <svg className="jmap-engr" viewBox={`0 0 ${MAP_W} ${MAP_H}`} preserveAspectRatio="xMidYMid meet" aria-hidden>
+    <>
       <defs>
-        <pattern id="jm-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
-          <line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#9fc7bb" strokeOpacity="0.09" strokeWidth="1" />
+        <pattern id="jm-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
+          <line x1="0" y1="4.5" x2="9" y2="4.5" stroke="#9fc7bb" strokeOpacity="0.1" strokeWidth="1.2" />
         </pattern>
-        <radialGradient id="jm-land" cx="0.45" cy="0.42" r="0.75">
-          <stop offset="0" stopColor="#14382d" />
-          <stop offset="0.6" stopColor="#0b2620" />
-          <stop offset="1" stopColor="#061512" />
+        <radialGradient id="jm-land" gradientUnits="userSpaceOnUse" cx={MAP_W * 0.42} cy={MAP_H * 0.42} r={MAP_W * 0.62}>
+          <stop offset="0" stopColor="#16402f" />
+          <stop offset="0.55" stopColor="#0c2a22" />
+          <stop offset="1" stopColor="#071713" />
         </radialGradient>
         <filter id="jm-grain" x="0" y="0" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" stitchTiles="stitch" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="7" stitchTiles="stitch" />
           <feColorMatrix values="0 0 0 0 0.8  0 0 0 0 0.75  0 0 0 0 0.55  0 0 0 0.05 0" />
         </filter>
       </defs>
-      <rect width={MAP_W} height={MAP_H} fill="url(#jm-land)" />
+      <rect x={-400} y={-400} width={MAP_W + 800} height={MAP_H + 800} className="sea" />
+      <rect x={-400} y={-400} width={MAP_W + 800} height={MAP_H + 800} fill="url(#jm-hatch)" />
+      <path d={LAND_D} className="coast2" />
+      <path d={LAND_D} fill="url(#jm-land)" />
       <rect width={MAP_W} height={MAP_H} filter="url(#jm-grain)" />
-      <g className="graticule">{grat}</g>
-      <path d={seaD} className="sea" />
-      <path d={seaD} fill="url(#jm-hatch)" />
-      <path d={seaD} className="coast2" />
-      <path d={seaD} className="coast" />
-      <path d={ISLANDS.map(s => toPath(s)).join(' ')} className="island" />
+      <path d={graticule()} className="graticule" />
+      <path d={BORDERS_D} className="border" />
+      <path d={LAKES.map(l => llPath(l)).join('')} className="lake" />
+      <path d={rangeMarks()} className="mtn" />
+      <path d={LAND_D} className="coast" />
+      {SEA_LABELS.map(l => { const [x, y] = project(l.lon, l.lat); return <text key={l.t} x={x} y={y} className="slab" transform={`rotate(${l.r ?? 0} ${x} ${y})`} style={l.s ? { fontSize: `${22 * l.s}px` } : undefined}>{l.t}</text>; })}
       {labels}{lonLabels}
-      <Compass x={MAP_W - 92} y={MAP_H - 104} />
-    </svg>
+    </>
   );
 });
 
-function Compass({ x, y }: { x: number; y: number }) {
+/** The compass rose (drawn over the frame corner, outside the camera). */
+export function Compass({ size = 96 }: { size?: number }) {
   return (
-    <g className="compass" transform={`translate(${x} ${y})`}>
-      <circle r="44" className="c1" />
-      <circle r="36" className="c2" />
-      {Array.from({ length: 32 }, (_, i) => { const a = (i / 32) * Math.PI * 2; const r0 = i % 8 === 0 ? 30 : i % 2 ? 40 : 37; return <line key={i} x1={Math.cos(a) * r0} y1={Math.sin(a) * r0} x2={Math.cos(a) * 44} y2={Math.sin(a) * 44} />; })}
-      <path d="M0 -40L6 -6L40 0L6 6L0 40L-6 6L-40 0L-6 -6Z" className="star" />
-      <path d="M0 -40L6 -6L0 0Z M40 0L6 6L0 0Z M0 40L-6 6L0 0Z M-40 0L-6 -6L0 0Z" className="starhi" />
-      <text y="-50" textAnchor="middle" className="cn">N</text>
-    </g>
+    <svg className="jmap-compass" width={size} height={size} viewBox="-50 -58 100 108" aria-hidden>
+      <g className="compass">
+        <circle r="44" className="c1" />
+        <circle r="36" className="c2" />
+        {Array.from({ length: 32 }, (_, i) => { const a = (i / 32) * Math.PI * 2; const r0 = i % 8 === 0 ? 30 : i % 2 ? 40 : 37; return <line key={i} x1={Math.cos(a) * r0} y1={Math.sin(a) * r0} x2={Math.cos(a) * 44} y2={Math.sin(a) * 44} />; })}
+        <path d="M0 -40L6 -6L40 0L6 6L0 40L-6 6L-40 0L-6 -6Z" className="star" />
+        <path d="M0 -40L6 -6L0 0Z M40 0L6 6L0 0Z M0 40L-6 6L0 0Z M-40 0L-6 -6L0 0Z" className="starhi" />
+        <text y="-48" textAnchor="middle" className="cn">N</text>
+      </g>
+    </svg>
   );
 }
 
@@ -476,6 +657,22 @@ export function TwistArt({ twist, lang, w = 46 }: { twist: TwistId; lang: Lang; 
     case 'croupier': return <div className="tart"><span className="t125 serif lim">100</span><b className="tbadge">≠130</b></div>;
     case 'trio': return <div className="tart"><Back w={w} style={{ transform: 'rotate(-10deg) translateX(8px)' }} /><Back w={w} style={{ transform: 'rotate(10deg) translateX(-8px)' }} /><b className="tbadge">3</b></div>;
     case 'handicap': return <div className="tart"><span className="t125 serif">20</span><b className="tbadge">+</b></div>;
+    case 'matryoshka': return <div className="tart"><Back w={w * 0.86} style={{ transform: 'rotate(-12deg) translateX(14px)' }} /><Mini id="QS" w={w} lang={lang} className="glowc" style={{ transform: 'rotate(6deg)' }} /><b className="tbadge big">+6</b></div>;
+    case 'spymaster': return <div className="tart"><Mini id="QS" w={w} lang={lang} className="glowc" /><b className="tbadge big">+6</b></div>;
+    case 'cognac': return <div className="tart"><span className="t125 serif">20</span><Mini id="QS" w={w * 0.8} lang={lang} style={{ transform: 'rotate(10deg) translateX(-4px)' }} /><b className="tbadge">+6</b></div>;
+    case 'selector': return (
+      <div className="tart"><svg className="tclock" viewBox="0 0 60 60" width={w * 1.3} height={w * 1.3}><circle cx="30" cy="32" r="24" /><circle cx="30" cy="32" r="19.5" className="in" />
+        {Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2; return <line key={i} x1={30 + Math.cos(a) * 16} y1={32 + Math.sin(a) * 16} x2={30 + Math.cos(a) * 19} y2={32 + Math.sin(a) * 19} />; })}
+        <path className="wedge" d="M30 32L30 12.5A19.5 19.5 0 0 1 46.9 41.75Z" /><line x1="30" y1="32" x2="30" y2="16" className="hand" /><line x1="30" y1="32" x2="40" y2="38" className="hand" /><rect x="26" y="3" width="8" height="5" rx="1.5" /></svg>
+        <b className="tbadge">20s</b></div>
+    );
+    case 'bison': return <div className="tart"><span className="t125 serif">15</span><b className="tbadge">?</b></div>;
+    case 'eagle': return <div className="tart"><Mini id="6S" w={w} lang={lang} className="glowc" style={{ transform: 'rotate(-6deg)' }} /><b className="tbadge">?</b></div>;
+    case 'matador': return <div className="tart"><Mini id="6S" w={w} lang={lang} className="glowc" style={{ transform: 'rotate(-6deg)' }} /><b className="tbadge">115</b></div>;
+    case 'caravan': return <div className="tart"><Back w={w} style={{ transform: 'rotate(-10deg) translateX(8px)' }} /><Back w={w} style={{ transform: 'rotate(10deg) translateX(-8px)' }} /><b className="tbadge">?</b></div>;
+    case 'fire': return <div className="tart"><span className="t125 serif">125</span><b className="tbadge">+15</b></div>;
+    case 'thorn': return <div className="tart"><span className="t125 serif">125</span><b className="tbadge">+10</b></div>;
+    case 'voivode': return <div className="tart"><span className="t125 serif lim">110</span><b className="tbadge">?</b></div>;
     default: return <div className="tart"><Mini id="AS" w={w} lang={lang} style={{ transform: 'rotate(-8deg) translateX(8px)' }} /><Mini id="JH" w={w} lang={lang} style={{ transform: 'rotate(8deg) translateX(-8px)' }} /></div>;
   }
 }

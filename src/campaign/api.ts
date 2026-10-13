@@ -17,7 +17,8 @@ async function soft<T>(fn: string, args?: Record<string, unknown>): Promise<T | 
 
 /* ------------------------------------------------------------------ journey */
 
-export interface JourneyProgressData { stars: StarMap; total: number }
+/** `route` is the player's stored route (migration 018), null when none is stored yet (or before 018). */
+export interface JourneyProgressData { stars: StarMap; total: number; route?: string | null }
 
 export interface JourneyReward {
   bm: number; xp: number; item: string | null; title: string | null;
@@ -30,11 +31,24 @@ export interface JourneyCompleteResult {
   reward?: JourneyReward; bm?: number; xp?: number; level?: number; owned?: string[];
 }
 
-export interface JourneyImportResult { ok: boolean; error?: string; imported?: number; stars?: StarMap; bm?: number; owned?: string[]; reward?: JourneyReward }
+export interface JourneyImportResult { ok: boolean; error?: string; imported?: number; stars?: StarMap; bm?: number; owned?: string[]; reward?: JourneyReward; route?: string }
+export interface JourneyRouteResult { ok: boolean; error?: 'auth' | 'banned' | 'unknown' | 'started' | string; route?: string }
+
+/** PostgREST "no function with these arguments" — the database predates migration 018: retry the old signature. */
+const isMissingFn = (e: unknown) => {
+  const x = e as { code?: string; message?: string } | null;
+  return x?.code === 'PGRST202' || /could not find the function/i.test(x?.message ?? '');
+};
+async function withLegacy<T>(fn: string, args: Record<string, unknown>, legacy: Record<string, unknown>): Promise<T | null> {
+  try { return await rpc<T>(fn, args); } catch (e) { return isMissingFn(e) ? soft<T>(fn, legacy) : null; }
+}
 
 export const journeyProgressRpc = () => soft<JourneyProgressData>('journey_progress');
-export const journeyCompleteRpc = (matchId: string, stars: number) => soft<JourneyCompleteResult>('journey_complete', { match_id: matchId, stars });
-export const journeyImportRpc = (progress: StarMap) => soft<JourneyImportResult>('journey_import', { progress });
+export const journeyCompleteRpc = (matchId: string, stars: number, route: string) =>
+  withLegacy<JourneyCompleteResult>('journey_complete', { match_id: matchId, stars, route }, { match_id: matchId, stars });
+export const journeyImportRpc = (progress: StarMap, route: string | null) =>
+  withLegacy<JourneyImportResult>('journey_import', { progress, route }, { progress });
+export const journeySetRouteRpc = (route: string) => soft<JourneyRouteResult>('journey_set_route', { route_id: route });
 
 /* ------------------------------------------------------------------ quests */
 

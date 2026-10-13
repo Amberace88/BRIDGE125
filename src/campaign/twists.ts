@@ -10,6 +10,8 @@ import type { MatchDef, TwistId } from './data';
 export const HANDICAP_POINTS = 20;
 /** Turn clock in the Clockmaker's room. */
 export const CLOCK_MS = 15000;
+/** Turn clock at the Berlin door. */
+export const SELECTOR_MS = 20000;
 
 export interface TwistInfo {
   /** game players: me + bots */
@@ -39,6 +41,18 @@ export function twistInfo(t: TwistId): TwistInfo {
     case 'countess': return { seats: 2, bluff: false, burnSplash: 10 };
     case 'maestro': return { seats: 4, bluff: false };
     case 'croupier': return { seats: 2, bluff: false, gameOverAt: 100 };
+    // the newer cities' bosses: combinations of the same table rules
+    case 'matryoshka': return { seats: 3, bluff: false, queenDraw: 6 };
+    case 'selector': return { seats: 2, bluff: false, turnMs: SELECTOR_MS };
+    case 'bison': return { seats: 2, bluff: true, myStart: 15 };
+    case 'eagle': return { seats: 2, bluff: true, banker: true };
+    case 'caravan': return { seats: 3, bluff: true };
+    case 'fire': return { seats: 2, bluff: false, burnSplash: 15 };
+    case 'cognac': return { seats: 2, bluff: false, myStart: 20, queenDraw: 6 };
+    case 'voivode': return { seats: 2, bluff: true, gameOverAt: 110 };
+    case 'thorn': return { seats: 3, bluff: false, burnSplash: 10 };
+    case 'matador': return { seats: 2, bluff: false, banker: true, gameOverAt: 115 };
+    case 'spymaster': return { seats: 2, bluff: false, queenDraw: 6 };
     default: return { seats: 2, bluff: false };
   }
 }

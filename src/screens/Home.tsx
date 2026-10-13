@@ -65,7 +65,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
   const cw = wide ? 150 : Math.round(Math.min(104, vw * 0.235));
   const [intro, setIntro] = useState(shouldShowIntro);
   const journey = useJourney();
-  const jStars = totalStars(journey.stars);
+  const jStars = totalStars(journey.stars, journey.route);
   const scroller = useRef<HTMLDivElement>(null);
 
   // pointer → tilt (springs); idle drift when the pointer is still or on touch devices
