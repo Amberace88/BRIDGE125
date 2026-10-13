@@ -1,20 +1,27 @@
 import { memo } from 'react';
-import type { Card, Suit } from '../engine/engine';
+import type { Rank, Suit } from '../engine/engine';
 import { rankLabel, type Lang } from '../i18n';
 
 // same as the engine's helpers — inlined so Home's hero / intro cards don't pull the whole rules engine into the first paint
 const SUIT_GLYPH: Record<Suit, string> = { S: '♠', C: '♣', H: '♥', D: '♦' };
 const isRed = (s: Suit) => s === 'H' || s === 'D';
-const isQS = (c: Card) => c.r === 'Q' && c.s === 'S';
+const isQS = (c: FaceCard) => c.r === 'Q' && c.s === 'S';
+
+/**
+ * What a face needs: rank + suit. Bridge's 36-card deck (6 … A) is the default; the full 52-card ranks 2 … 5 are
+ * accepted too (mini games such as Solitaire) and print like any other pip card. Bridge's `Card` fits as is.
+ */
+export type FaceRank = Rank | '2' | '3' | '4' | '5';
+export interface FaceCard { r: FaceRank; s: Suit; id?: string }
 
 /** The printed face of a card (static markup). Separate from CardView so Home's hero / intro don't load the table card. */
 const Crown = () => (
   <svg viewBox="0 0 34 18" aria-hidden="true"><path d="M2 16 L4 4 L11 10 L17 2 L23 10 L30 4 L32 16 Z" fill="currentColor" /><rect x="2" y="15" width="30" height="3" rx="1" fill="currentColor" /></svg>
 );
 
-export const CardFace = memo(function CardFace({ card, lang }: { card: Card; lang: Lang }) {
+export const CardFace = memo(function CardFace({ card, lang }: { card: FaceCard; lang: Lang }) {
   const g = SUIT_GLYPH[card.s];
-  const lab = rankLabel(card.r, lang);
+  const lab = rankLabel(card.r as Rank, lang); // 2 … 5 have no localized letter: printed as is
   const court = card.r === 'J' || card.r === 'Q' || card.r === 'K';
   return (
     <div className={`face ${isRed(card.s) ? 'red' : ''} ${isQS(card) ? 'qs' : ''}`}>
