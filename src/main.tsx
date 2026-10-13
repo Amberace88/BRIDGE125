@@ -3,9 +3,10 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import App from './App';
 import { captureInstallPrompt } from './install';
-import { localeReady } from './store';
+import { adoptUrlLang, localeReady } from './store';
 import { whenIdle } from './lazy';
 
+adoptUrlLang();   // /de/… landing-page links → German UI, plain path for the router
 captureInstallPrompt();
 // background music is opt-in: its synth engine is only fetched for players who switched it on (it then starts on the
 // first tap, as before); everyone else loads it when they open the audio controls

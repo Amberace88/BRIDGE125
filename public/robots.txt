@@ -1,6 +1,9 @@
+# Bridge 125 — https://bridge125.com
 User-agent: *
 Allow: /
+# API endpoints and private room invites are not content
 Disallow: /api/
 Disallow: /r/
+Disallow: /*/r/
 
 Sitemap: https://bridge125.com/sitemap.xml

@@ -9,6 +9,7 @@ import { DiamondIcon } from './GiftArt';
 import { DIAMOND_PACKS, fmtCents, fmtDm, type DiamondPack } from './gifts';
 import { paymentsEnabled, startCheckout } from './api';
 import { diamondsOf } from './PlayerSheet';
+import { WithdrawalConsent } from '../legal/WithdrawalConsent';
 import '../styles/social.css';
 
 /** A heap of gems that grows with the pack (deterministic layout, pure CSS 3D). */
@@ -68,12 +69,16 @@ export function DiamondPacks({ onAuth, compact = false }: { onAuth?: () => void;
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // EU withdrawal-right waiver: required before every checkout (see src/legal/WithdrawalConsent.tsx)
+  const [consent, setConsent] = useState(false);
+  const [needConsent, setNeedConsent] = useState(false);
   useEffect(() => { let dead = false; paymentsEnabled().then(v => { if (!dead) setEnabled(v); }); return () => { dead = true; }; }, []);
 
   const buy = async (p: DiamondPack) => {
     if (!app.session) { onAuth?.(); return; }
+    if (!consent) { setNeedConsent(true); return; }
     setBusy(p.id); setErr(null); sfx.tap();
-    const r = await startCheckout(p.id, app.session.access_token, app.lang);
+    const r = await startCheckout(p.id, app.session.access_token, app.lang, consent);
     if ('url' in r) { location.assign(r.url); return; }
     setBusy(null);
     if (r.error === 'unavailable') setEnabled(false);
@@ -92,6 +97,7 @@ export function DiamondPacks({ onAuth, compact = false }: { onAuth?: () => void;
       </div>
       {!compact && <ul className="dmuses">{S.dm.uses.map(u => <li key={u}>{u}</li>)}</ul>}
       {!enabled && <div className="dmsoon"><DiamondIcon size={16} /> {S.dm.soonNote}</div>}
+      {enabled && <div className="dmconsent"><WithdrawalConsent checked={consent} onChange={v => { setConsent(v); if (v) setNeedConsent(false); }} need={needConsent} /></div>}
       <div className="dmgrid">
         {DIAMOND_PACKS.map((p, i) => <PackCard key={p.id} p={p} i={i} lang={app.lang} enabled={enabled} busy={busy === p.id} onBuy={() => void buy(p)} S={S} />)}
       </div>
