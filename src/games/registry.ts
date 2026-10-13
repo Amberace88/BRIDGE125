@@ -3,6 +3,7 @@ import { zole } from './zole';
 import { durak } from './durak';
 import { solitaire } from './solitaire';
 import { sudoku } from './sudoku';
+import { mahjong } from './mahjong';
 
 // One line per game. Keep Bridge out of here: Bridge is the main game and keeps its own home screen.
 const MODULES: GameModule[] = [
@@ -10,6 +11,7 @@ const MODULES: GameModule[] = [
   durak,
   solitaire,
   sudoku,
+  mahjong,
 ];
 
 export const GAMES: readonly GameModule[] = MODULES;
