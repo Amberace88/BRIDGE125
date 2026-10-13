@@ -49,16 +49,19 @@ function whiteNoise(c: AudioContext) {
 }
 
 /** Decaying noise burst through a band-pass (card snaps, slides). */
-function noise(dur: number, freq: number, gain: number, at = 0, type: BiquadFilterType = 'bandpass', q = 0.8) {
+function noise(dur: number, freq: number, gain: number, at = 0, type: BiquadFilterType = 'bandpass', q = 0.8, pan = 0, attack = 0) {
   const c = ac(); if (!c) return;
   const len = Math.floor(c.sampleRate * dur);
   const buf = c.createBuffer(1, len, c.sampleRate);
   const d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  const a = Math.max(1, Math.floor(len * attack));
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3) * (i < a ? i / a : 1);
   const src = c.createBufferSource(); src.buffer = buf;
   const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
   const g = c.createGain(); g.gain.value = gain;
-  src.connect(f).connect(g).connect(out()); src.start(c.currentTime + at);
+  let node: AudioNode = src.connect(f).connect(g);
+  if (pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); node = node.connect(p); }
+  node.connect(out()); src.start(c.currentTime + at);
 }
 
 function tone(freq: number, dur: number, gain = 0.08, type: OscillatorType = 'sine', at = 0, glide?: number, pan = 0) {
@@ -114,6 +117,10 @@ export const sfx = {
   good: () => { tone(523, 0.18, 0.07); tone(659, 0.18, 0.07, 'sine', 0.09); tone(784, 0.3, 0.07, 'sine', 0.18); },
   big: () => { [392, 494, 587, 784].forEach((f, i) => tone(f, 0.4, 0.06, 'triangle', i * 0.08)); },
   tap: () => tone(880, 0.05, 0.03, 'sine'),
+  /** The dealer's slide: a soft paper "ffft" across the felt, panned toward the seat (-1 left … 1 right). */
+  deal: (pan = 0) => { if (!live()) return; noise(0.085, 3100, 0.13, 0, 'bandpass', 0.55, pan * 0.55, 0.35); noise(0.035, 820, 0.07, 0.055, 'lowpass', 0.7, pan * 0.55); },
+  /** A card turned face-up: a light, crisp snap. */
+  flip: () => { if (!live()) return; noise(0.03, 4600, 0.09, 0, 'highpass', 0.7); noise(0.04, 1500, 0.05, 0.012, 'bandpass', 0.9); },
 
   /* ---------- cinematic set ---------- */
   /** Q♠ / multiplier: a heavy table slam with a short metallic ring. */

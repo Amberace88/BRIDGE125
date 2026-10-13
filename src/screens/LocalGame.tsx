@@ -24,6 +24,7 @@ import { clearJourneyRun, clearSavedGame, loadJourneyRun, saveGame, saveJourneyR
 import type { Tally } from '../campaign/quests';
 import { useStrings } from '../i18n/pick';
 import { SAVING } from '../i18n/saving';
+import { FAST_TEMPO, botDelayMs, dealMs, useFastMode } from '../pace';
 
 export { loadSavedGame, clearSavedGame } from './savedGame';
 
@@ -113,11 +114,21 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
     }
   }, [g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* ---------- rhythm: calm by default, » fast mode, long-press "skip to my turn" ---------- */
+  const pace = useFastMode();
+  const [rush, setRush] = useState(false);
+  /** the table is playing the dealing show (bots wait for it) */
+  const [dealing, setDealing] = useState(false);
+  const playing = g.phase === 'play' || g.phase === 'chooseSuit';
+  // "skip to my turn" ends as soon as it is my turn, or the round is over
+  useEffect(() => { if (rush && (!playing || g.current === 0)) setRush(false); }, [g.seq, g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (g.phase !== 'play' && g.phase !== 'chooseSuit') return;
     if (!g.players[g.current].bot) return;
-    const heavy = g.events.some(e => ['queen', 'transfer', 'kings', 'reset125', 'eight'].includes(e.t));
-    const delay = ((g.phase === 'chooseSuit' ? 650 : 820) + (heavy ? 650 : 0) + Math.random() * 350) * god.botDelay;
+    if (dealing) return; // the first move waits for the deal; this re-runs when it ends
+    // right after the deal the table has just settled: a shorter beat before the first bot card
+    const delay = botDelayMs({ events: g.events, chooseSuit: g.phase === 'chooseSuit', fast: pace.fast, rush, god: god.botDelay, rand: Math.random() }) * (freshDeal(g) ? 0.65 : 1);
     const seq = g.seq;
     const tm = setTimeout(() => {
       setG(cur => {
@@ -128,7 +139,7 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
       });
     }, delay);
     return () => clearTimeout(tm);
-  }, [g.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g.seq, dealing, rush, pace.fast]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- Journey: the Clockmaker's turn clock (my turns only) ---------- */
   const [deadline, setDeadline] = useState<number | null>(null);
@@ -140,7 +151,9 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
     // a new turn: it just came to me, a new deal, or an ace skipped everyone else
     const newTurn = lastTurn.current !== 0 || freshDeal(g) || g.events.some(e => e.t === 'skip' && e.p !== 0);
     lastTurn.current = 0;
-    if (newTurn || deadline === null) setDeadline(Date.now() + turnMs + (freshDeal(g) ? 2600 : 0));
+    // a fresh deal: the clock starts once the cards are on the table (the deal's own length + a beat)
+    const dealWait = freshDeal(g) ? dealMs(g.players.length, g.players[0].hand.length, pace.fast ? FAST_TEMPO : 1) + 400 : 0;
+    if (newTurn || deadline === null) setDeadline(Date.now() + turnMs + dealWait);
   }, [g.seq, g.phase]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!turnMs || deadline === null) return;
@@ -157,6 +170,8 @@ export function LocalGame({ resume, onExit, campaign, stake, daily }: { resume: 
   return (
     <>
     <Table g={g} me={0} xray={god.xray} looks={looks}
+      pace={{ fast: pace.fast, onToggle: pace.toggle, rushing: rush, onRush: () => { if (playing && g.current !== 0) setRush(true); } }}
+      onDealing={setDealing}
       deadline={turnMs ? deadline : undefined} turnMs={turnMs}
       onAct={a => setG(cur => (isStake ? st.step(cur, apply(cur, 0, a)) : apply(cur, 0, a)))}
       onNextRound={() => setG(cur => advance(cur))}

@@ -9,6 +9,7 @@ import {
   type Action, type Card, type GameEvent, type GameState, type Suit, RESET_AT, SUITS, SUIT_GLYPH, isQS, is6S, isRed, options, validatePlay,
 } from '../engine/engine';
 import { CardView, type Flight, type Pose } from '../components/CardView';
+import { after } from '../components/stageClock';
 import { useApp } from '../store';
 import { buzz, sfx } from '../sound';
 import { QuickAudio } from '../voice/AudioControls';
@@ -17,6 +18,8 @@ import { useNarrator } from '../voice/useNarrator';
 import { CountUp, Results, ScoreBar, scoreTone } from './Results';
 import { useStrings } from '../i18n/pick';
 import { TABLE_STRINGS } from '../i18n/table';
+import { PACE } from '../i18n/pace';
+import { FAST_TEMPO, RUSH_TEMPO, dealTimeline, markPaceHint, paceHintSeen } from '../pace';
 import '../styles/table.css';
 
 interface Banner { id: number; text: string; sub?: string; tone: 'bad' | 'good' | 'info' }
@@ -42,8 +45,15 @@ export interface TableProps {
   offline?: number[];                 // seats currently disconnected
   /** Play the dealing show at the start of each round (default true). */
   dealAnimation?: boolean;
-  /** Delay before the round summary opens after the last card (ms, default 1500). */
+  /** Delay before the round summary opens after the last card (ms, default 1900; fast mode shortens it). */
   resultsDelayMs?: number;
+  /**
+   * Games against bots: the » glyph in the top bar. Tap toggles fast mode (bots ~2× quicker, shorter animations);
+   * long-press asks to skip ahead to my turn (`onRush`). Omitted (online) → no glyph, normal tempo.
+   */
+  pace?: TablePace;
+  /** Told when the dealing show starts / ends (bots wait for it before the first move). */
+  onDealing?: (on: boolean) => void;
   /** Social layer (online tables): drawn over the table with the live seat geometry (chat bubbles, gifts). */
   overlay?: (geo: TableGeo) => ReactNode;
   /** Tap on an opponent's seat (player card: gifts, tip, mute). */
@@ -71,6 +81,14 @@ export interface TableGeo {
   dealing: boolean;
 }
 
+export interface TablePace {
+  fast: boolean;
+  onToggle: () => void;
+  /** "skip to my turn" is running (bots act at once, the table moves at rush tempo) */
+  rushing?: boolean;
+  onRush?: () => void;
+}
+
 /* ---------- forward-compatible engine shapes (bluff mode is optional) ---------- */
 type Opts = ReturnType<typeof options> & { canChallenge?: boolean };
 type LooseEvent = { t: string; p?: number; by?: number };
@@ -93,6 +111,63 @@ const dealSig = (s: GameState) => `${s.round}:${s.pile[0]?.id}:${s.players.map(p
 const IconMenu = () => (<svg viewBox="0 0 24 24" aria-hidden><path d="M4 7h16M4 12h11M4 17h16" /></svg>);
 const IconSmile = () => (<svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="8.5" /><path d="M8.5 14.2c1.9 2.2 5.1 2.2 7 0" /><circle cx="9.2" cy="10" r=".9" className="fillme" /><circle cx="14.8" cy="10" r=".9" className="fillme" /></svg>);
 const IconClose = () => (<svg viewBox="0 0 24 24" aria-hidden><path d="M7 7l10 10M17 7L7 17" /></svg>);
+const IconFast = () => (<svg viewBox="0 0 24 24" aria-hidden><path className="ch1" d="M5.5 6.5L11 12l-5.5 5.5" /><path className="ch2" d="M12.5 6.5L18 12l-5.5 5.5" /></svg>);
+
+/* ---------- » fast mode glyph (games against bots): tap = fast mode, hold = skip to my turn ---------- */
+function PaceGlyph({ pace, canRush }: { pace: TablePace; canRush: boolean }) {
+  const { t } = useApp();
+  const ps = useStrings(PACE);
+  const [tip, setTip] = useState<{ id: number; text: string; long?: boolean } | null>(null);
+  const hold = useRef<number | null>(null);
+  const held = useRef(false);
+  const downAt = useRef(0);
+  const show = (text: string, long = false) => setTip({ id: Date.now(), text, long });
+  // first time the glyph appears on this device: say what it does
+  useEffect(() => {
+    if (paceHintSeen()) return;
+    const tm = setTimeout(() => { show(ps.hint, true); markPaceHint(); }, 900);
+    return () => clearTimeout(tm);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!tip) return;
+    const id = tip.id;
+    const tm = setTimeout(() => setTip(x => (x?.id === id ? null : x)), tip.long ? 5200 : 1500);
+    return () => clearTimeout(tm);
+  }, [tip]);
+  const clearHold = () => { if (hold.current) { clearTimeout(hold.current); hold.current = null; } };
+  useEffect(() => clearHold, []);
+  const active = pace.fast || !!pace.rushing;
+  return (
+    <div className="pacewrap">
+      <button className={`glyph pace ${active ? 'on' : ''} ${pace.rushing ? 'rush' : ''}`} aria-pressed={pace.fast} aria-label={ps.fast} title={ps.fast}
+        onPointerDown={() => {
+          held.current = false; clearHold(); downAt.current = Date.now();
+          if (!pace.onRush || !canRush) return;
+          hold.current = window.setTimeout(() => { held.current = true; hold.current = null; buzz([12, 40, 12]); sfx.tap(); pace.onRush?.(); show(ps.skipping); }, 480);
+        }}
+        onPointerUp={clearHold} onPointerLeave={clearHold} onPointerCancel={clearHold}
+        onContextMenu={e => e.preventDefault()}
+        onClick={() => {
+          // a long press never toggles (even when there was nothing to skip)
+          const long = held.current || (downAt.current > 0 && Date.now() - downAt.current > 450);
+          held.current = false; downAt.current = 0; // (keyboard Enter / Space has no press: always a tap)
+          if (long) return;
+          clearHold(); sfx.tap(); pace.onToggle();
+          show(`${ps.fast} · ${pace.fast ? ps.off ?? t.off : ps.on ?? t.on}`);
+        }}>
+        <IconFast />
+      </button>
+      <AnimatePresence>
+        {tip && (
+          <motion.div key={tip.id} className={`pacetip ${tip.long ? 'long' : ''}`} role="status"
+            initial={{ opacity: 0, y: -4, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }}>
+            {tip.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 const IconTap = () => (
   <svg viewBox="0 0 40 48" aria-hidden className="tapicon">
     <circle cx="16" cy="12" r="9" className="ripple" />
@@ -156,7 +231,7 @@ function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emo
 
 /* =================================================================================== */
 
-export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false, overlay, onSeatTap, myRowExtra, looks, exitLabel, exitNote }: TableProps) {
+export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1900, xray = false, overlay, onSeatTap, myRowExtra, looks, exitLabel, exitNote, pace, onDealing }: TableProps) {
   const app = useApp();
   const cos = useCosmetics();
   const EMOTES = cos.emotes;
@@ -182,17 +257,21 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
 
   /* ---------- displayed state: holds new states while the deal is playing, then replays them ---------- */
   const animDeal = dealAnimation && !reduce;
+  /** animation time multiplier: 1 normally, shorter in fast mode, shortest while skipping to my turn */
+  const tempo = pace?.rushing ? RUSH_TEMPO : pace?.fast ? FAST_TEMPO : 1;
   const [shown, setShown] = useState<GameState>(g);
   const queue = useRef<GameState[]>([]);
   const [qTick, setQTick] = useState(0);
   const dealtSig = useRef<string | null>(null);
-  type Deal = { sig: string; skip: boolean };
+  /** a dealing show; `tempo` is fixed when it starts, `home` = the deck has gone back to its spot (starter card dealt) */
+  type Deal = { sig: string; skip: boolean; tempo: number; home?: boolean };
   const [dealing, setDealing] = useState<Deal | null>(() => {
     if (!animDeal || !isFreshDeal(g)) return null;
     dealtSig.current = dealSig(g);
-    return { sig: dealtSig.current, skip: false };
+    return { sig: dealtSig.current, skip: false, tempo };
   });
   const hold = !!dealing;
+  useLayoutEffect(() => { onDealing?.(hold); }, [hold]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (g === shown) return;
@@ -209,9 +288,9 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       const nx = queue.current.shift();
       if (nx) setShown(nx);
       setQTick(x => x + 1);
-    }, 420);
+    }, Math.max(180, 420 * tempo));
     return () => clearTimeout(tm);
-  }, [hold, shown, qTick]);
+  }, [hold, shown, qTick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const vg = shown;
   const live = vg === g && !dealing;
@@ -222,8 +301,8 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
     const sig = dealSig(vg);
     if (dealtSig.current === sig) return;
     dealtSig.current = sig;
-    setDealing({ sig, skip: false });
-  }, [vg, animDeal]);
+    setDealing({ sig, skip: false, tempo });
+  }, [vg, animDeal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setSel([]); }, [vg.seq]);
 
@@ -315,7 +394,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       if (add.length) setFx(list => [...list.slice(-6), ...add.map(f => ({ ...f, id: ++fxId.current }) as FxItem)]);
     };
     if (!pend.length && !add.length) return;
-    if (playEv && !reduce) { const tm = setTimeout(fire, LAND_MS); return () => { clearTimeout(tm); fire(); }; }
+    if (playEv && !reduce) { const tm = setTimeout(fire, LAND_MS * tempo); return () => { clearTimeout(tm); fire(); }; }
     fire();
   }, [vg.seq]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -328,11 +407,11 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
 
   useEffect(() => {
     if (vg.phase === 'roundOver' || vg.phase === 'gameOver') {
-      const tm = setTimeout(() => setShowResult(true), resultsDelayMs);
+      const tm = setTimeout(() => setShowResult(true), resultsDelayMs * (tempo < 1 ? 0.55 : 1));
       return () => clearTimeout(tm);
     }
     setShowResult(false);
-  }, [vg.phase, vg.seq, resultsDelayMs]);
+  }, [vg.phase, vg.seq, resultsDelayMs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------- parallax: pointer on desktop, device tilt where the browser allows it ---------- */
   const px = useMotionValue(0), py = useMotionValue(0);
@@ -415,6 +494,9 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
   const tableY = Math.round(Math.max(seatsBottom + ch / 2 + 50, Math.min((seatsBottom + myRowY) / 2 + 6, myRowY - ch / 2 - (desk ? 128 : 96))));
   const deckPos = { x: cx - cw * (desk ? 0.95 : 0.78), y: tableY };
   const pilePos = { x: cx + cw * (desk ? 0.75 : 0.62), y: tableY };
+  /** during the deal the dealer's deck sits at the table centre; it slides back to its spot as the starter card leaves */
+  const dealerAtCentre = !!dealing && !dealing.skip && !dealing.home;
+  const deckAt = dealerAtCentre ? { x: cx, y: tableY } : deckPos;
 
   const feltTop = desk ? 100 : seatTop + 66;
   const feltBottom = desk ? H - 60 : H - 6;
@@ -423,7 +505,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
   const feltR = Math.min(feltW, feltH) / 2;
 
   const poses = new Map<string, Pose>();
-  const deckPose = (i = 0): Pose => ({ x: deckPos.x - i * 1.4, y: deckPos.y - i * 1.8, rot: -2, scale: 1, z: 10 - i, up: false, rx: TILT });
+  const deckPose = (i = 0, at = deckAt): Pose => ({ x: at.x - i * 1.4, y: at.y - i * 1.8, rot: -2, scale: 1, z: 10 - i, up: false, rx: TILT });
   vg.deck.slice(0, 3).forEach((c, i) => poses.set(c.id, deckPose(i)));
   const pileShown = vg.pile.slice(-7);
   const pilePose = (c: Card, i: number): Pose => {
@@ -463,36 +545,42 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
   const ready = useRef(false);
   const kround = vg.round;
   const keyOf = (c: Card) => `${kround}:${c.id}`;
-  let dealEnd = 0;
-  if (dealing) {
-    const total = vg.players.reduce((a, p) => a + p.hand.length, 0);
-    const iv = Math.max(0.06, Math.min(0.12, 1.25 / Math.max(1, total)));
-    const t0 = 0.32, fd = 0.5;
-    const from = deckPose(0);
-    const lastLand = t0 + (total - 1) * iv + fd;
+  const handSize = Math.max(0, ...vg.players.map(p => p.hand.length));
+  const tl = dealing ? dealTimeline(n, handSize, dealing.tempo) : null;
+  if (dealing && tl) {
+    // The dealer's deal: from the deck at the table centre, one card at a time, round-robin from the starter,
+    // each a low straight slide that eases onto its seat. Cards waiting their turn hide under the deck's top card.
+    const from: Pose = { ...deckPose(0, { x: cx, y: tableY }), z: 5 };
+    const lift = Math.round(cw * 0.1);
+    const key = 'deal' + dealing.sig;
     vg.players.forEach((p, pi) => {
-      const j = (pi - vg.starter + n + 1) % n;
+      const j = (pi - vg.starter + n) % n;
       p.hand.forEach((c, i) => {
-        const delay = t0 + (i * n + j) * iv;
         if (dealing.skip) { flights.set(c.id, { key: 'skip' + dealing.sig, instant: true }); return; }
+        const delay = tl.t0 + (i * n + j) * tl.iv;
         if (pi === me) {
+          // my cards land in a neat face-down row in front of me, then turn over one by one and fan into the hand
           const k = i - (p.hand.length - 1) / 2;
-          const via: Pose = { x: cx + k * 2.5, y: handY + 4, rot: k * 1.2, scale: hs, z: 100 + i, up: false, rx: 7 };
-          const settleAt = lastLand + 0.08 + i * 0.045;
-          flights.set(c.id, { key: 'deal' + dealing.sig, from, delay, dur: fd, via, settleAt, flipAt: settleAt + 0.12 + i * 0.03, spin: 360 });
-          dealEnd = Math.max(dealEnd, settleAt + 0.7);
+          const via: Pose = { x: cx + k * cw * 0.2, y: handY + 4, rot: k * 0.8, scale: hs * 0.94, z: 100 + i, up: false, rx: 9 };
+          const settleAt = tl.lastLand + 0.06 * dealing.tempo + i * tl.fanStep;
+          flights.set(c.id, { key, glide: true, from, delay, dur: tl.fly, lift, via, settleAt, settleDur: tl.fanDur, flipAt: settleAt, flipDur: tl.fanDur * 0.9, flipLift: Math.round(cw * 0.16) });
         } else {
-          flights.set(c.id, { key: 'deal' + dealing.sig, from, delay, dur: fd, spin: 360 });
+          flights.set(c.id, { key, glide: true, from, delay, dur: tl.fly, lift: Math.round(lift * 0.7) });
         }
       });
     });
     const top = vg.pile[vg.pile.length - 1];
     if (top) {
-      const d = t0 + total * iv + 0.05;
-      flights.set(top.id, dealing.skip ? { key: 'skip' + dealing.sig, instant: true } : { key: 'deal' + dealing.sig, from, delay: d, dur: 0.55, flipAt: Math.max(d + 0.55, lastLand + 0.15), flourish: true });
-      dealEnd = Math.max(dealEnd, Math.max(d + 0.55, lastLand + 0.15) + 0.9);
+      flights.set(top.id, dealing.skip ? { key: 'skip' + dealing.sig, instant: true }
+        : { key, glide: true, from, delay: tl.starterAt, dur: tl.fly, lift, flipAt: tl.starterFlip, flipDur: 0.46 * Math.max(0.75, dealing.tempo), flipLift: Math.round(cw * 0.22) });
     }
-    dealEnd = Math.max(dealEnd, lastLand + 0.3);
+    // the deck: glides in to the centre for the deal, back to its spot with the starter card
+    vg.deck.slice(0, 3).forEach((c, i) => {
+      if (dealing.skip) { flights.set(c.id, { key: 'skip' + dealing.sig, instant: true }); return; }
+      flights.set(c.id, dealing.home
+        ? { key: key + ':home', glide: true, dur: 0.5 * Math.max(0.75, dealing.tempo) }
+        : { key: key + ':in', glide: true, from: ready.current ? deckPose(i, deckPos) : undefined, dur: Math.max(0.2, tl.t0 - 0.02) });
+    });
   } else if (ready.current) {
     const fromSeat = new Map<string, Pose>();
     for (const e of vg.events ?? []) if (e.t === 'play' && e.p !== me) for (const c of e.cards) fromSeat.set(c.id, { ...oppPose(e.p, 0, 1), up: false });
@@ -512,15 +600,27 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
   useEffect(() => {
     if (!dealing) return;
     if (dealing.skip) { const tm = setTimeout(() => setDealing(null), 380); return () => clearTimeout(tm); }
+    const { sig } = dealing;
+    const T = dealTimeline(n, handSize, dealing.tempo);
+    // the same frame-paced clock the cards use, so sounds and the deck stay in step with them through any hitch
+    const ticks: (() => void)[] = [];
+    const at = (sec: number, f: () => void) => { ticks.push(after(Math.max(0, sec * 1000), f)); };
     sfx.shuffle();
-    const total = vg.players.reduce((a, p) => a + p.hand.length, 0);
-    const iv = Math.max(0.06, Math.min(0.12, 1.25 / Math.max(1, total)));
-    const ticks: number[] = [];
-    for (let i = 0; i < total; i++) ticks.push(window.setTimeout(() => sfx.draw(), (0.32 + i * iv + 0.42) * 1000));
-    ticks.push(window.setTimeout(() => sfx.play(), (dealEnd - 0.9) * 1000));
-    const tm = setTimeout(() => setDealing(null), dealEnd * 1000);
-    return () => { clearTimeout(tm); ticks.forEach(clearTimeout); };
-  }, [dealing]); // eslint-disable-line react-hooks/exhaustive-deps
+    // a quiet slide for every card, panned toward its seat
+    const order: number[] = [];
+    for (let r = 0; r < handSize; r++) for (let j = 0; j < n; j++) order.push((vg.starter + j) % n);
+    order.forEach((pi, i) => {
+      const sx = pi === me ? cx : seatOf(pi).x;
+      at(T.t0 + i * T.iv + 0.02, () => sfx.deal((sx - cx) / Math.max(1, W / 2)));
+    });
+    // the starter card: slides out as the deck goes home, then turns over
+    at(T.starterAt, () => { sfx.deal(0.4); setDealing(d => (d && d.sig === sig ? { ...d, home: true } : d)); });
+    at(T.starterFlip + 0.12, () => sfx.play());
+    // my cards turn over one by one
+    for (let i = 0; i < (vg.players[me]?.hand.length ?? 0); i++) at(T.lastLand + 0.06 * dealing.tempo + i * T.fanStep + T.fanDur * 0.35, () => sfx.flip());
+    at(T.end, () => setDealing(d => (d && d.sig === sig ? null : d)));
+    return () => { ticks.forEach(cancel => cancel()); };
+  }, [dealing?.sig, dealing?.skip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const skipDeal = () => { if (dealing && !dealing.skip) setDealing({ ...dealing, skip: true }); };
 
@@ -620,7 +720,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       <div className="feltclick" onClick={() => setSel([])} aria-hidden />
 
       {/* top bar */}
-      <div className="tbar">
+      <div className={`tbar ${pace ? 'has-pace' : ''}`}>
         <button className="glyph" aria-label={s.menu} title={s.menu} onClick={() => setMenu(true)}><IconMenu /></button>
         <div className="tcenter">
           {topCenter ?? null}
@@ -630,7 +730,10 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
             <span><i className="lg130" />{s.rule130}</span>
           </div>
         </div>
-        <QuickAudio />
+        <div className="tright">
+          {pace && <PaceGlyph pace={pace} canRush={playing && vg.current !== me && !reveal} />}
+          <QuickAudio />
+        </div>
       </div>
 
       {/* opponents */}
@@ -656,7 +759,11 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
       {/* cards */}
       <motion.div className="cards" style={{ x: layerX, y: layerY }}>
         {/* deck body + inviting halo */}
-        <div className={`deckbody ${vg.deck.length === 0 ? 'empty' : ''}`} style={{ left: deckPos.x - cw / 2, top: tableY - ch / 2, width: cw, height: ch, ['--depth' as string]: Math.min(10, Math.ceil(vg.deck.length / 3)) }} />
+        <div className={`deckbody ${vg.deck.length === 0 ? 'empty' : ''}`} style={{
+          left: deckPos.x - cw / 2, top: tableY - ch / 2, width: cw, height: ch, ['--depth' as string]: Math.min(10, Math.ceil(vg.deck.length / 3)),
+          translate: `${Math.round(deckAt.x - deckPos.x)}px 0`,
+          transitionDuration: dealing && !dealing.skip ? `${dealing.home ? 0.5 * Math.max(0.75, dealing.tempo) : Math.max(0.2, (tl?.t0 ?? 0.3) - 0.02)}s` : '0.24s',
+        }} />
         <div className={`halo deckhalo ${deckAction ? 'on' : ''} ${deckAction === 'accept' ? 'bad' : ''}`} style={{ left: deckPos.x - cw / 2, top: tableY - ch / 2, width: cw, height: ch }} />
         <div className={`halo pilehalo ${pileTarget || dragOverPile ? 'on' : ''} ${dragOverPile ? 'over' : ''}`} style={{ left: pilePos.x - cw / 2, top: tableY - ch / 2, width: cw, height: ch }} />
 
@@ -669,7 +776,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
           const addable = isMine && sel.length > 0 && !selected && !!selFirst && (c.r === selFirst.r || (isQS(selFirst) && is6S(c) && sel.length === 1));
           const canDrag = isMine && canAct && !reduce && (legalSet.has(c.id) || selected) && !o.forcedDraw;
           return (
-            <CardView key={keyOf(c)} card={c} lang={lang} w={cw} pose={pose} flight={flights.get(c.id)}
+            <CardView key={keyOf(c)} card={c} lang={lang} w={cw} pose={pose} flight={flights.get(c.id)} tempo={tempo}
               legal={legal || addable} sel={selected}
               dim={isMine && canAct && !bluff && !legal && !selected && !addable && !o.forcedDraw && !sel.length}
               onTap={isMine && canAct ? () => onTapCard(c) : undefined}
