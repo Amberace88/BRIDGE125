@@ -119,4 +119,179 @@ const uk: GodStrings = {
   footer: 'Кожна дія записується як god_tool у подіях адмінки.',
 };
 
-export const GOD: Strings<GodStrings> = { en, lv, ru, uk };
+const be: GodStrings = {
+  title: 'GOD MODE', sub: 'Інструменты ўладальніка і тэсціроўшчыка — бачаць толькі прывілеяваныя акаўнты.', who: { admin: 'Уладальнік · галоўны адмін', god: 'Сааўтар · галоўны тэсціроўшчык' },
+  close: 'Закрыць', noAccess: 'Няма доступу', noAccessSub: 'GOD MODE толькі для ўладальніка і галоўнага тэсціроўшчыка.', back: 'Назад', signInFirst: 'Увайдзіце з прывілеяваным акаўнтам.',
+  readout: { bm: 'Bridge Money', level: 'Узровень', owned: 'У калекцыі', ach: 'Дасягненні', streak: 'Серыя дзён', xpTo: n => `${n} XP да наступнага` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'Адзін дотык — крэдыты заўсёды пад рукой.', progress: 'Узроўні і ўзнагароды', progressSub: 'Тэстуйце ўзроўні, куфар дня і дасягненні.',
+    collection: 'Калекцыя', collectionSub: 'Адкрыйце ўсё або пачніце з нуля, каб тэставаць пакупкі.', testing: 'Лакальныя тэставыя пераключальнікі', testingSub: 'Захоўваюцца толькі на гэтай прыладзе.', danger: 'Небяспечная зона',
+  },
+  topup: 'Папоўніць', custom: 'Свая сума', add: 'Дадаць', setExact: 'Задаць', amountHint: '1 – 1 000 000', badAmount: 'Увядзіце 1 – 1 000 000',
+  addXp: n => `+${n} XP`, unlockAch: 'Адкрыць усе дасягненні', unlockAchSub: 'Усе дасягненні адзначаюцца атрыманымі (BM не выплачваюцца).',
+  resetDaily: 'Скінуць узнагароду дня', resetDailySub: 'Куфар дня можна адкрыць сёння яшчэ раз.',
+  unlockAll: 'Адкрыць усё', unlockAllSub: 'Дадае ўсе тавары крамы ў калекцыю.', resetOwned: 'Ачысціць калекцыю', resetOwnedSub: 'Ачышчае калекцыю, каб можна было тэставаць пакупкі.',
+  xray: 'Рэнтген', xraySub: 'Бачыць карты ботаў — толькі ў лакальных гульнях.', fast: 'Хуткія боты', fastSub: 'Боты гуляюць прыкладна ў 3 разы хутчэй.',
+  replayIntro: 'Паўтарыць інтра', replayIntroSub: 'Перазагружае галоўны экран з уступнай анімацыяй.',
+  resetProgress: 'Скінуць мой прагрэс', resetProgressSub: 'XP, узровень, серыі, дасягненні, гульні і перамогі — у нуль. BM і прадметы застаюцца.',
+  confirmTitle: 'Скінуць прагрэс?', confirmBody: 'Узровень, XP, серыя дзён, дасягненні, згуляныя гульні і перамогі абнуляцца. Баланс BM і прадметы застаюцца. Гэта нельга адмяніць.',
+  confirmYes: 'Так, скінуць', cancel: 'Адмена',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `Баланс: ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'Усё адкрыта', reset_owned: 'Калекцыя ачышчана',
+    reset_daily: 'Куфар дня гатовы', reset_progress: 'Прагрэс скінуты', unlock_achievements: 'Усе дасягненні адкрыты', on: 'укл.', off: 'выкл.',
+  },
+  err: { generic: 'Не атрымалася — паспрабуйце яшчэ раз.', network: 'Няма злучэння.', forbidden: 'Для гэтага акаўнта не дазволена.' },
+  footer: 'Кожнае дзеянне запісваецца як god_tool у падзеях адміна.',
+};
+
+const kk: GodStrings = {
+  title: 'GOD MODE', sub: 'Иесі мен тестерге арналған құралдар — тек артықшылығы бар аккаунттар көреді.', who: { admin: 'Иесі · бас әкімші', god: 'Қосавтор · бас тестер' },
+  close: 'Жабу', noAccess: 'Қолжетімсіз', noAccessSub: 'GOD MODE тек иесі мен бас тестерге арналған.', back: 'Артқа', signInFirst: 'Артықшылығы бар аккаунтпен кіріңіз.',
+  readout: { bm: 'Bridge Money', level: 'Деңгей', owned: 'Коллекцияда', ach: 'Жетістіктер', streak: 'Күндер сериясы', xpTo: n => `Келесіге ${n} XP` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'Бір түрту — кредит әрқашан қолда.', progress: 'Деңгейлер мен сыйлықтар', progressSub: 'Деңгейлерді, күн сандығын және жетістіктерді тексеріңіз.',
+    collection: 'Коллекция', collectionSub: 'Бәрін ашыңыз немесе сатып алуды тексеру үшін нөлден бастаңыз.', testing: 'Жергілікті тест қосқыштары', testingSub: 'Тек осы құрылғыда сақталады.', danger: 'Қауіпті аймақ',
+  },
+  topup: 'Толтыру', custom: 'Өз сомасы', add: 'Қосу', setExact: 'Орнату', amountHint: '1 – 1 000 000', badAmount: '1 – 1 000 000 енгізіңіз',
+  addXp: n => `+${n} XP`, unlockAch: 'Барлық жетістікті ашу', unlockAchSub: 'Барлық жетістік алынды деп белгіленеді (BM төленбейді).',
+  resetDaily: 'Күн сыйлығын қалпына келтіру', resetDailySub: 'Күн сандығын бүгін қайта ашуға болады.',
+  unlockAll: 'Бәрін ашу', unlockAllSub: 'Дүкендегі барлық затты коллекцияға қосады.', resetOwned: 'Коллекцияны тазарту', resetOwnedSub: 'Сатып алуды тексеру үшін коллекцияны босатады.',
+  xray: 'Рентген', xraySub: 'Боттардың картасын көру — тек жергілікті ойында.', fast: 'Жылдам боттар', fastSub: 'Боттар шамамен 3 есе жылдам ойнайды.',
+  replayIntro: 'Интроны қайталау', replayIntroSub: 'Басты экранды кіріспе анимациясымен қайта жүктейді.',
+  resetProgress: 'Прогресімді нөлдеу', resetProgressSub: 'XP, деңгей, сериялар, жетістіктер, ойындар мен жеңістер нөлге түседі. BM мен заттар қалады.',
+  confirmTitle: 'Прогресті нөлдеу керек пе?', confirmBody: 'Деңгей, XP, күндер сериясы, жетістіктер, ойындар мен жеңістер нөлге түседі. BM балансы мен заттар сақталады. Мұны қайтару мүмкін емес.',
+  confirmYes: 'Иә, нөлдеу', cancel: 'Бас тарту',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `Баланс: ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'Бәрі ашылды', reset_owned: 'Коллекция тазартылды',
+    reset_daily: 'Күн сандығы дайын', reset_progress: 'Прогресс нөлденді', unlock_achievements: 'Барлық жетістік ашылды', on: 'қосулы', off: 'өшірулі',
+  },
+  err: { generic: 'Болмады — қайталап көріңіз.', network: 'Байланыс жоқ.', forbidden: 'Бұл аккаунтқа рұқсат жоқ.' },
+  footer: 'Әр әрекет әкімші оқиғаларында god_tool ретінде тіркеледі.',
+};
+
+const uz: GodStrings = {
+  title: 'GOD MODE', sub: 'Egasi va testerning vositalari — faqat imtiyozli akkauntlar koʻradi.', who: { admin: 'Egasi · bosh admin', god: 'Hammuallif · bosh tester' },
+  close: 'Yopish', noAccess: 'Ruxsat yoʻq', noAccessSub: 'GOD MODE faqat egasi va bosh tester uchun.', back: 'Orqaga', signInFirst: 'Imtiyozli akkaunt bilan kiring.',
+  readout: { bm: 'Bridge Money', level: 'Daraja', owned: 'Kolleksiyada', ach: 'Yutuqlar', streak: 'Kunlar seriyasi', xpTo: n => `Keyingisigacha ${n} XP` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'Bir bosish — kreditlar doim qoʻl ostida.', progress: 'Darajalar va mukofotlar', progressSub: 'Darajalar, kunlik sandiq va yutuqlarni sinang.',
+    collection: 'Kolleksiya', collectionSub: 'Hammasini oching yoki xaridni sinash uchun noldan boshlang.', testing: 'Mahalliy test kalitlari', testingSub: 'Faqat shu qurilmada saqlanadi.', danger: 'Xavfli hudud',
+  },
+  topup: 'Toʻldirish', custom: 'Oʻz summasi', add: 'Qoʻshish', setExact: 'Belgilash', amountHint: '1 – 1 000 000', badAmount: '1 – 1 000 000 kiriting',
+  addXp: n => `+${n} XP`, unlockAch: 'Barcha yutuqlarni ochish', unlockAchSub: 'Barcha yutuqlar olingan deb belgilanadi (BM toʻlanmaydi).',
+  resetDaily: 'Kunlik mukofotni tiklash', resetDailySub: 'Kunlik sandiqni bugun yana ochish mumkin.',
+  unlockAll: 'Hammasini ochish', unlockAllSub: 'Doʻkondagi barcha buyumlarni kolleksiyaga qoʻshadi.', resetOwned: 'Kolleksiyani tozalash', resetOwnedSub: 'Xaridni sinash uchun kolleksiyani boʻshatadi.',
+  xray: 'Rentgen', xraySub: 'Botlarning kartalarini koʻrish — faqat mahalliy oʻyinlarda.', fast: 'Tez botlar', fastSub: 'Botlar taxminan 3 barobar tez oʻynaydi.',
+  replayIntro: 'Introni takrorlash', replayIntroSub: 'Bosh ekranni kirish animatsiyasi bilan qayta yuklaydi.',
+  resetProgress: 'Progressimni nollash', resetProgressSub: 'XP, daraja, seriyalar, yutuqlar, oʻyinlar va gʻalabalar nolga tushadi. BM va buyumlar qoladi.',
+  confirmTitle: 'Progressni nollaysizmi?', confirmBody: 'Daraja, XP, kunlar seriyasi, yutuqlar, oʻyinlar va gʻalabalar nolga tushadi. BM balansi va buyumlar saqlanadi. Buni ortga qaytarib boʻlmaydi.',
+  confirmYes: 'Ha, nollash', cancel: 'Bekor qilish',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `Balans: ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'Hammasi ochildi', reset_owned: 'Kolleksiya tozalandi',
+    reset_daily: 'Kunlik sandiq tayyor', reset_progress: 'Progress nollandi', unlock_achievements: 'Barcha yutuqlar ochildi', on: 'yoniq', off: 'oʻchiq',
+  },
+  err: { generic: 'Boʻlmadi — qayta urinib koʻring.', network: 'Aloqa yoʻq.', forbidden: 'Bu akkaunt uchun ruxsat yoʻq.' },
+  footer: 'Har bir amal admin hodisalarida god_tool sifatida qayd etiladi.',
+};
+
+const az: GodStrings = {
+  title: 'GOD MODE', sub: 'Sahibin və testerin alətləri — yalnız imtiyazlı hesablar görür.', who: { admin: 'Sahib · baş admin', god: 'Həmmüəllif · baş tester' },
+  close: 'Bağla', noAccess: 'Giriş yoxdur', noAccessSub: 'GOD MODE yalnız sahib və baş tester üçündür.', back: 'Geri', signInFirst: 'İmtiyazlı hesabla daxil olun.',
+  readout: { bm: 'Bridge Money', level: 'Səviyyə', owned: 'Kolleksiyada', ach: 'Nailiyyətlər', streak: 'Günlər seriyası', xpTo: n => `Növbətiyə ${n} XP` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'Bir toxunuş — kreditlər həmişə əlinizin altında.', progress: 'Səviyyələr və mükafatlar', progressSub: 'Səviyyələri, gündəlik sandığı və nailiyyətləri yoxlayın.',
+    collection: 'Kolleksiya', collectionSub: 'Hər şeyi açın və ya alışı yoxlamaq üçün sıfırdan başlayın.', testing: 'Lokal test açarları', testingSub: 'Yalnız bu cihazda saxlanılır.', danger: 'Təhlükəli zona',
+  },
+  topup: 'Artır', custom: 'Öz məbləğ', add: 'Əlavə et', setExact: 'Təyin et', amountHint: '1 – 1 000 000', badAmount: '1 – 1 000 000 daxil edin',
+  addXp: n => `+${n} XP`, unlockAch: 'Bütün nailiyyətləri aç', unlockAchSub: 'Bütün nailiyyətlər qazanılmış kimi qeyd olunur (BM ödənilmir).',
+  resetDaily: 'Gündəlik mükafatı sıfırla', resetDailySub: 'Gündəlik sandığı bu gün yenidən açmaq olar.',
+  unlockAll: 'Hər şeyi aç', unlockAllSub: 'Mağazadakı bütün əşyaları kolleksiyaya əlavə edir.', resetOwned: 'Kolleksiyanı təmizlə', resetOwnedSub: 'Alışı yoxlamaq üçün kolleksiyanı boşaldır.',
+  xray: 'Rentgen', xraySub: 'Botların kartlarını görün — yalnız lokal oyunlarda.', fast: 'Sürətli botlar', fastSub: 'Botlar təxminən 3 dəfə sürətli oynayır.',
+  replayIntro: 'İntronu təkrarla', replayIntroSub: 'Ana ekranı giriş animasiyası ilə yenidən yükləyir.',
+  resetProgress: 'İrəliləyişimi sıfırla', resetProgressSub: 'XP, səviyyə, seriyalar, nailiyyətlər, oyunlar və qələbələr sıfırlanır. BM və əşyalar qalır.',
+  confirmTitle: 'İrəliləyiş sıfırlansın?', confirmBody: 'Səviyyə, XP, günlər seriyası, nailiyyətlər, oyunlar və qələbələr sıfırlanacaq. BM balansı və əşyalar qalır. Bunu geri qaytarmaq olmaz.',
+  confirmYes: 'Bəli, sıfırla', cancel: 'Ləğv et',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `Balans: ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'Hər şey açıldı', reset_owned: 'Kolleksiya təmizləndi',
+    reset_daily: 'Gündəlik sandıq hazırdır', reset_progress: 'İrəliləyiş sıfırlandı', unlock_achievements: 'Bütün nailiyyətlər açıldı', on: 'açıq', off: 'bağlı',
+  },
+  err: { generic: 'Alınmadı — yenidən cəhd edin.', network: 'Bağlantı yoxdur.', forbidden: 'Bu hesab üçün icazə yoxdur.' },
+  footer: 'Hər əməliyyat admin hadisələrində god_tool kimi qeydə alınır.',
+};
+
+const ka: GodStrings = {
+  title: 'GOD MODE', sub: 'მფლობელისა და ტესტერის ხელსაწყოები — ჩანს მხოლოდ პრივილეგირებულ ანგარიშებზე.', who: { admin: 'მფლობელი · მთავარი ადმინი', god: 'თანაავტორი · მთავარი ტესტერი' },
+  close: 'დახურვა', noAccess: 'წვდომა არ არის', noAccessSub: 'GOD MODE მხოლოდ მფლობელისა და მთავარი ტესტერისთვისაა.', back: 'უკან', signInFirst: 'შედით პრივილეგირებული ანგარიშით.',
+  readout: { bm: 'Bridge Money', level: 'დონე', owned: 'კოლექციაში', ach: 'მიღწევები', streak: 'დღეების სერია', xpTo: n => `${n} XP შემდეგამდე` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'ერთი შეხება — კრედიტები ყოველთვის ხელთაა.', progress: 'დონეები და ჯილდოები', progressSub: 'გატესტეთ დონეები, დღის სკივრი და მიღწევები.',
+    collection: 'კოლექცია', collectionSub: 'გახსენით ყველაფერი ან დაიწყეთ ნულიდან ყიდვის სატესტოდ.', testing: 'ლოკალური სატესტო გადამრთველები', testingSub: 'ინახება მხოლოდ ამ მოწყობილობაზე.', danger: 'საშიში ზონა',
+  },
+  topup: 'შევსება', custom: 'სხვა თანხა', add: 'დამატება', setExact: 'დაყენება', amountHint: '1 – 1 000 000', badAmount: 'შეიყვანეთ 1 – 1 000 000',
+  addXp: n => `+${n} XP`, unlockAch: 'ყველა მიღწევის გახსნა', unlockAchSub: 'ყველა მიღწევა მოპოვებულად მოინიშნება (BM არ გაიცემა).',
+  resetDaily: 'დღის ჯილდოს განულება', resetDailySub: 'დღის სკივრის გახსნა დღეს კიდევ შეიძლება.',
+  unlockAll: 'ყველაფრის გახსნა', unlockAllSub: 'მაღაზიის ყველა ნივთს კოლექციაში ამატებს.', resetOwned: 'კოლექციის გასუფთავება', resetOwnedSub: 'ცლის კოლექციას, რომ ყიდვა გატესტოთ.',
+  xray: 'რენტგენი', xraySub: 'ბოტების კარტების ნახვა — მხოლოდ ლოკალურ თამაშებში.', fast: 'სწრაფი ბოტები', fastSub: 'ბოტები დაახლოებით 3-ჯერ სწრაფად თამაშობენ.',
+  replayIntro: 'ინტროს გამეორება', replayIntroSub: 'მთავარ ეკრანს შესავალი ანიმაციით გადატვირთავს.',
+  resetProgress: 'ჩემი პროგრესის განულება', resetProgressSub: 'XP, დონე, სერიები, მიღწევები, თამაშები და მოგებები ნულდება. BM და ნივთები რჩება.',
+  confirmTitle: 'განვანულოთ პროგრესი?', confirmBody: 'დონე, XP, დღეების სერია, მიღწევები, ნათამაშები და მოგებები განულდება. BM ბალანსი და ნივთები რჩება. ამის გაუქმება შეუძლებელია.',
+  confirmYes: 'დიახ, განულება', cancel: 'გაუქმება',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `ბალანსი: ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'ყველაფერი გაიხსნა', reset_owned: 'კოლექცია გასუფთავდა',
+    reset_daily: 'დღის სკივრი მზადაა', reset_progress: 'პროგრესი განულდა', unlock_achievements: 'ყველა მიღწევა გაიხსნა', on: 'ჩართ.', off: 'გამორთ.',
+  },
+  err: { generic: 'ვერ მოხერხდა — სცადეთ ხელახლა.', network: 'კავშირი არ არის.', forbidden: 'ამ ანგარიშისთვის დაუშვებელია.' },
+  footer: 'ყოველი მოქმედება ადმინის მოვლენებში god_tool-ად ჩაიწერება.',
+};
+
+const hy: GodStrings = {
+  title: 'GOD MODE', sub: 'Սեփականատիրոջ և թեստավորողի գործիքներ․ տեսանելի են միայն արտոնյալ հաշիվներին։', who: { admin: 'Սեփականատեր · գլխավոր ադմին', god: 'Համահեղինակ · գլխավոր թեստավորող' },
+  close: 'Փակել', noAccess: 'Մուտք չկա', noAccessSub: 'GOD MODE-ը միայն սեփականատիրոջ և գլխավոր թեստավորողի համար է։', back: 'Հետ', signInFirst: 'Մուտք գործեք արտոնյալ հաշվով։',
+  readout: { bm: 'Bridge Money', level: 'Մակարդակ', owned: 'Հավաքածուում', ach: 'Նվաճումներ', streak: 'Օրերի շարք', xpTo: n => `${n} XP մինչև հաջորդը` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'Մեկ հպում՝ վարկերը միշտ ձեռքի տակ են։', progress: 'Մակարդակներ և պարգևներ', progressSub: 'Փորձարկեք մակարդակները, օրվա սնդուկը և նվաճումները։',
+    collection: 'Հավաքածու', collectionSub: 'Բացեք ամեն ինչ կամ սկսեք զրոյից՝ գնումները փորձարկելու համար։', testing: 'Տեղային թեստային փոխանջատիչներ', testingSub: 'Պահվում են միայն այս սարքում։', danger: 'Վտանգավոր գոտի',
+  },
+  topup: 'Լիցքավորել', custom: 'Այլ գումար', add: 'Ավելացնել', setExact: 'Սահմանել', amountHint: '1 – 1 000 000', badAmount: 'Մուտքագրեք 1 – 1 000 000',
+  addXp: n => `+${n} XP`, unlockAch: 'Բացել բոլոր նվաճումները', unlockAchSub: 'Բոլոր նվաճումները նշվում են ստացված (BM չի վճարվում)։',
+  resetDaily: 'Զրոյացնել օրվա պարգևը', resetDailySub: 'Օրվա սնդուկը կարելի է այսօր կրկին բացել։',
+  unlockAll: 'Բացել ամեն ինչ', unlockAllSub: 'Խանութի բոլոր ապրանքներն ավելացնում է հավաքածուին։', resetOwned: 'Մաքրել հավաքածուն', resetOwnedSub: 'Դատարկում է հավաքածուն՝ գնումները փորձարկելու համար։',
+  xray: 'Ռենտգեն', xraySub: 'Տեսնել բոտերի քարտերը՝ միայն տեղային խաղերում։', fast: 'Արագ բոտեր', fastSub: 'Բոտերը խաղում են մոտ 3 անգամ արագ։',
+  replayIntro: 'Կրկնել ինտրոն', replayIntroSub: 'Վերաբեռնում է գլխավոր էկրանը ներածական անիմացիայով։',
+  resetProgress: 'Զրոյացնել իմ առաջընթացը', resetProgressSub: 'XP, մակարդակ, շարքեր, նվաճումներ, խաղեր և հաղթանակներ՝ զրոյի։ BM-ը և իրերը մնում են։',
+  confirmTitle: 'Զրոյացնե՞լ առաջընթացը', confirmBody: 'Մակարդակը, XP-ն, օրերի շարքը, նվաճումները, խաղերը և հաղթանակները կզրոյանան։ BM հաշվեկշիռը և իրերը կմնան։ Սա հնարավոր չէ հետարկել։',
+  confirmYes: 'Այո, զրոյացնել', cancel: 'Չեղարկել',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `Հաշվեկշիռ՝ ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'Ամեն ինչ բացված է', reset_owned: 'Հավաքածուն մաքրված է',
+    reset_daily: 'Օրվա սնդուկը պատրաստ է', reset_progress: 'Առաջընթացը զրոյացված է', unlock_achievements: 'Բոլոր նվաճումները բացված են', on: 'միաց.', off: 'անջ.',
+  },
+  err: { generic: 'Չստացվեց — փորձեք կրկին։', network: 'Կապ չկա։', forbidden: 'Այս հաշվի համար թույլատրված չէ։' },
+  footer: 'Յուրաքանչյուր գործողություն գրանցվում է որպես god_tool ադմինի իրադարձություններում։',
+};
+
+const bg: GodStrings = {
+  title: 'GOD MODE', sub: 'Инструменти за собственика и тестера — виждат ги само привилегировани профили.', who: { admin: 'Собственик · главен админ', god: 'Съавтор · главен тестер' },
+  close: 'Затвори', noAccess: 'Няма достъп', noAccessSub: 'GOD MODE е само за собственика и главния тестер.', back: 'Назад', signInFirst: 'Влез с привилегирован профил.',
+  readout: { bm: 'Bridge Money', level: 'Ниво', owned: 'В колекцията', ach: 'Постижения', streak: 'Серия дни', xpTo: n => `${n} XP до следващото` },
+  sec: {
+    money: 'Bridge Money', moneySub: 'Едно докосване — кредитите винаги под ръка.', progress: 'Нива и награди', progressSub: 'Тествай нивата, дневния сандък и постиженията.',
+    collection: 'Колекция', collectionSub: 'Отключи всичко или започни на празно, за да тестваш покупки.', testing: 'Локални тестови превключватели', testingSub: 'Пазят се само на това устройство.', danger: 'Опасна зона',
+  },
+  topup: 'Зареди', custom: 'Друга сума', add: 'Добави', setExact: 'Задай', amountHint: '1 – 1 000 000', badAmount: 'Въведи 1 – 1 000 000',
+  addXp: n => `+${n} XP`, unlockAch: 'Отключи всички постижения', unlockAchSub: 'Всички постижения се отбелязват като спечелени (без BM).',
+  resetDaily: 'Нулирай дневната награда', resetDailySub: 'Дневният сандък може да се отвори отново днес.',
+  unlockAll: 'Отключи всичко', unlockAllSub: 'Добавя всички артикули от магазина в колекцията.', resetOwned: 'Изчисти колекцията', resetOwnedSub: 'Изпразва колекцията, за да тестваш покупки.',
+  xray: 'Рентген', xraySub: 'Виж картите на ботовете — само в локални игри.', fast: 'Бързи ботове', fastSub: 'Ботовете играят около 3 пъти по-бързо.',
+  replayIntro: 'Повтори интрото', replayIntroSub: 'Презарежда началния екран с встъпителната анимация.',
+  resetProgress: 'Нулирай прогреса ми', resetProgressSub: 'XP, ниво, серии, постижения, игри и победи се нулират. BM и предметите остават.',
+  confirmTitle: 'Да нулираме ли прогреса?', confirmBody: 'Нивото, XP, серията дни, постиженията, изиграните игри и победите се нулират. BM балансът и предметите остават. Това не може да се отмени.',
+  confirmYes: 'Да, нулирай', cancel: 'Отказ',
+  done: {
+    topup: n => `+${n} BM`, set_bm: n => `Баланс: ${n} BM`, add_xp: n => `+${n} XP`, unlock_all: 'Всичко е отключено', reset_owned: 'Колекцията е изчистена',
+    reset_daily: 'Дневният сандък е готов', reset_progress: 'Прогресът е нулиран', unlock_achievements: 'Всички постижения са отключени', on: 'вкл.', off: 'изкл.',
+  },
+  err: { generic: 'Не стана — опитай пак.', network: 'Няма връзка.', forbidden: 'Не е разрешено за този профил.' },
+  footer: 'Всяко действие се записва като god_tool в админ събитията.',
+};
+
+export const GOD: Strings<GodStrings> = { en, lv, ru, uk, be, kk, uz, az, ka, hy, bg };

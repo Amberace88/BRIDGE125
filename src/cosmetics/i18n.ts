@@ -169,3 +169,6 @@ const uk: CosStrings = {
 };
 
 export const COS_STRINGS: Strings<CosStrings> = { en, lv, ru, uk };
+
+import { registerStrings } from '../i18n/pick';
+registerStrings('cosmetics', COS_STRINGS);
