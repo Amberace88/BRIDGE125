@@ -39,6 +39,7 @@ import { findQuickMatch, newRoomCode } from './online/ids';
 import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
 import type { GameState } from './engine/engine';
+import { gameById } from './games/registry';
 
 type Route =
   | { name: 'home' }
@@ -47,8 +48,19 @@ type Route =
   /** the Journey campaign: map → city → match (it runs LocalGame in campaign mode itself) */
   | { name: 'journey' }
   /** the Daily challenge: same seeded deal for everyone (it runs LocalGame in daily mode itself) */
-  | { name: 'daily' };
+  | { name: 'daily' }
+  /** a mini game from src/games/registry.ts (/g/<id>) */
+  | { name: 'game'; id: string };
 type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | LegalKind | null;
+
+/** /g/<id>: the registered mini game, or back home for an unknown id. */
+function MiniGame({ id, onExit, onAuth }: { id: string; onExit: () => void; onAuth: () => void }) {
+  const m = gameById(id);
+  useEffect(() => { if (!m) onExit(); }, [m]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!m) return null;
+  const S = m.Screen;
+  return <S onExit={onExit} onAuth={onAuth} />;
+}
 
 function parse(): { route: Route; overlay: Overlay } {
   const p = location.pathname;
@@ -56,6 +68,8 @@ function parse(): { route: Route; overlay: Overlay } {
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
   if (/^\/journey\/?$/.test(p)) return { route: { name: 'journey' }, overlay: null };
   if (/^\/daily\/?$/.test(p)) return { route: { name: 'daily' }, overlay: null };
+  const gm = p.match(/^\/g\/([a-z0-9-]{2,24})\/?$/);
+  if (gm) return { route: { name: 'game', id: gm[1] }, overlay: null };
   const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault|season)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
@@ -156,6 +170,12 @@ function Shell() {
           <motion.div key="journey" style={{ position: 'absolute', inset: 0 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
             <Suspense fallback={null}><Journey onExit={home} onAuth={auth} /></Suspense>
+          </motion.div>
+        )}
+        {route.name === 'game' && (
+          <motion.div key={'game' + route.id} style={{ position: 'absolute', inset: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+            <Suspense fallback={null}><MiniGame id={route.id} onExit={home} onAuth={auth} /></Suspense>
           </motion.div>
         )}
         {route.name === 'daily' && (
