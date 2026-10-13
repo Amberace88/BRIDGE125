@@ -8,6 +8,7 @@ import { PaperHat } from './Art';
 import type { Card } from './engine';
 import type { DurakSettings } from './save';
 import { DURAK_STRINGS } from './strings';
+import { PlayModes } from '../online/PlayModes';
 
 const HERO: Card[] = [
   { id: '6S', r: '6', s: 'S' }, { id: '9D', r: '9', s: 'D' }, { id: 'QC', r: 'Q', s: 'C' }, { id: 'KH', r: 'K', s: 'H' }, { id: 'AS', r: 'A', s: 'S' },
@@ -73,6 +74,7 @@ export function Lobby({ settings, onChange, onStart, onResume, onRules, onExit }
         <motion.h1 className="serif dktitle" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>{s.title}</motion.h1>
         <motion.p className="dktag" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>{s.tagline}</motion.p>
 
+        <PlayModes game="durak">
         <motion.div className="dkpanel" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 24 }}>
           <div className="label">{s.players}</div>
           <Seg id="pl" value={settings.players} onChange={v => set({ players: v })}
@@ -94,6 +96,7 @@ export function Lobby({ settings, onChange, onStart, onResume, onRules, onExit }
             <span>{onResume ? s.newGame : s.play}</span><span className="arr" aria-hidden>→</span>
           </button>
         </motion.div>
+        </PlayModes>
       </div>
     </div>
   );

@@ -60,13 +60,15 @@ export interface ThousandGameProps {
   onToggleFast: () => void;
   onAct: (a: Action) => void;
   onBot: (seq: number, p: number, a: Action) => void;
+  /** online table (src/games/online): the server plays the bots — no local bot timers */
+  remote?: boolean;
   onExit: () => void;
   onNewGame: () => void;
   /** game over: open the shared result sheet */
   onResults: () => void;
 }
 
-export function ThousandGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, onNewGame, onResults }: ThousandGameProps) {
+export function ThousandGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, onNewGame, onResults, remote }: ThousandGameProps) {
   const app = useApp();
   const { t, lang } = app;
   const s = useStrings(THOUSAND);
@@ -143,7 +145,7 @@ export function ThousandGame({ g, level, fast, onToggleFast, onAct, onBot, onExi
   const who = actor(g);
   const paused = menu || rules || sheetPeek;
   useEffect(() => {
-    if (who == null || !g.players[who]?.bot || busy || paused) return;
+    if (remote || who == null || !g.players[who]?.bot || busy || paused) return;
     const base = g.phase === 'bid' ? BOT_MS.bid : g.phase === 'give' ? BOT_MS.give : g.phase === 'contract' ? BOT_MS.contract : BOT_MS.play + (g.trick.length === 0 ? 180 : 0);
     const delay = (base + Math.random() * BOT_MS.jitter) * (fast ? 0.5 : 1);
     const seq = g.seq, p = who;
@@ -420,7 +422,7 @@ export function ThousandGame({ g, level, fast, onToggleFast, onAct, onBot, onExi
     const mine = p === me;
     const look = looks[p];
     const frame = mine ? cos.equipped.frame : look?.frame;
-    const face = mine ? (app.avatar || names[me].slice(0, 1).toUpperCase()) : (look?.avatar ?? '🤖');
+    const face = mine ? (app.avatar || names[me].slice(0, 1).toUpperCase()) : (look?.avatar ?? (g.players[p]?.bot === false ? names[p].slice(0, 1).toUpperCase() : '🤖'));
     const av = <div className="av">{face}</div>;
     const turn = live && who === p;
     const nameColor = mine ? cos.equipped.namecolor : look?.nameColor;

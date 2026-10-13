@@ -4,6 +4,8 @@ import { handleMerch, merchCron, servePrint } from './merch';
 import type { MerchEnv } from './merchTypes';
 export { Room } from './room';
 export { Lobby } from './lobby';
+export { GameRoom, GameLobby } from './gameroom';
+import { routeGames, type GameEnv } from './gameroom';
 
 const CODE = /^\/api\/room\/([A-Z0-9]{4,6})\/ws$/;
 
@@ -30,8 +32,9 @@ async function iceServers(env: IceEnv): Promise<Response> {
 }
 
 export default {
-  async fetch(req: Request, env: Env & MerchEnv, ctx: ExecutionContext): Promise<Response> {
+  async fetch(req: Request, env: Env & MerchEnv & GameEnv, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
+    if (url.pathname.startsWith('/api/g/')) { const r = routeGames(req, env, url); if (r) return r; }
     const m = url.pathname.match(CODE);
     if (m) {
       const stub = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
@@ -50,7 +53,7 @@ export default {
     return env.ASSETS.fetch(req);
   },
   /** Cron (wrangler.jsonc → triggers.crons): merch provider-order retries + status polling. */
-  async scheduled(_c: ScheduledController, env: Env & MerchEnv, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_c: ScheduledController, env: Env & MerchEnv & GameEnv, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(merchCron(env).then(r => { if (r.submitted.length || r.polled) console.log('merch cron', JSON.stringify(r)); }).catch(e => console.error('merch cron', e)));
   },
-} satisfies ExportedHandler<Env & MerchEnv>;
+} satisfies ExportedHandler<Env & MerchEnv & GameEnv>;

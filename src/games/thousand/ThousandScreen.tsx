@@ -16,6 +16,7 @@ import { TITLES } from './titles';
 import { loadSave, writeSave, type ThousandPrefs, type ThousandRun } from './save';
 import { ThousandGame } from './ThousandGame';
 import { RulesSheet } from './RulesSheet';
+import { PlayModes } from '../online/PlayModes';
 import '../../styles/table.css';
 import './thousand.css';
 
@@ -141,6 +142,7 @@ function Lobby({ prefs, onStart, onExit }: { prefs: ThousandPrefs; onStart: (p: 
         <motion.h1 className="serif kl-title" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>{TITLES[lang] ?? 'Thousand'}</motion.h1>
         <motion.p className="kl-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>{s.lobby.sub}</motion.p>
 
+        <PlayModes game="thousand">
         <motion.div className="kl-opts" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <div className="kl-row">
             <span className="lbl">{s.lobby.level}</span>
@@ -164,6 +166,7 @@ function Lobby({ prefs, onStart, onExit }: { prefs: ThousandPrefs; onStart: (p: 
           <button className="btn acc" onClick={() => onStart({ level, rules })}>{s.lobby.start}</button>
           <button className="kl-link" onClick={() => setHowTo(true)}>{s.lobby.howTo}</button>
         </motion.div>
+        </PlayModes>
       </div>
       <AnimatePresence>{howTo && <RulesSheet key="r" rules={rules} onClose={() => setHowTo(false)} />}</AnimatePresence>
     </div>

@@ -59,11 +59,13 @@ export interface ZoleGameProps {
   onAct: (a: Action) => void;
   /** a bot's action, applied only if the state did not move on (seq) */
   onBot: (seq: number, p: number, a: Action) => void;
+  /** online table (src/games/online): the server plays the bots — no local bot timers */
+  remote?: boolean;
   onExit: () => void;
   onNewSession: () => void;
 }
 
-export function ZoleGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, onNewSession }: ZoleGameProps) {
+export function ZoleGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, onNewSession, remote }: ZoleGameProps) {
   const app = useApp();
   const { t, lang } = app;
   const s = useStrings(ZOLE);
@@ -123,7 +125,7 @@ export function ZoleGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, o
   const who = actor(g);
   const paused = menu || rules;
   useEffect(() => {
-    if (who == null || !g.players[who]?.bot || busy || paused) return;
+    if (remote || who == null || !g.players[who]?.bot || busy || paused) return;
     const base = g.phase === 'bid' ? BOT_MS.bid : g.phase === 'discard' ? BOT_MS.discard : BOT_MS.play + (g.trick.length === 0 ? 180 : 0);
     const delay = (base + Math.random() * BOT_MS.jitter) * (fast ? 0.5 : 1);
     const seq = g.seq, p = who;
@@ -404,7 +406,7 @@ export function ZoleGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, o
     const mine = p === me;
     const look = looks[p];
     const frame = mine ? cos.equipped.frame : look?.frame;
-    const face = mine ? (app.avatar || names[me].slice(0, 1).toUpperCase()) : (look?.avatar ?? '🤖');
+    const face = mine ? (app.avatar || names[me].slice(0, 1).toUpperCase()) : (look?.avatar ?? (g.players[p]?.bot === false ? names[p].slice(0, 1).toUpperCase() : '🤖'));
     const av = <div className="av">{face}</div>;
     const turn = live && who === p;
     return (
