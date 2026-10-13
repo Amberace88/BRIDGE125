@@ -1,5 +1,6 @@
 import type { Strings } from './pick';
 import type { Category, ColourId } from '../merch/catalog';
+import { DECK_STRINGS } from '../merch/decks/strings';
 
 export interface ProductCopy { name: string; tagline: string; desc: string; details: string[] }
 
@@ -274,6 +275,9 @@ const uk: MerchStrings = {
       details: ['6 вінілових наліпок', 'Матові, вологостійкі', 'Аркуш A5'] },
   },
 };
+
+// the deck collection's copy (src/merch/decks/strings.ts, keyed by product id, incl. 'deck') — same shape as ProductCopy
+for (const [l, m] of Object.entries({ en, lv, ru, uk })) Object.assign(m.products, (DECK_STRINGS[l] ?? DECK_STRINGS.en).decks);
 
 export const MERCH_STRINGS: Strings<MerchStrings> = { en, lv, ru, uk };
 

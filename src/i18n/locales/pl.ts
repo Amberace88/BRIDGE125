@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Polish: dama pik, walet, as, król; "kolor" for suit, "dobierać" for drawing, "traci kolejkę" for a skip.
 const few = (n: number) => n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
@@ -213,6 +214,8 @@ const pl: FeaturePack = {
       'stickers': { name: 'Arkusz naklejek', tagline: 'Sześć wycinanych naklejek winylowych',
         desc: 'Cała kolekcja w miniaturze: logo, Dama, Bluff, Bridge Club, 125 → 0 i cztery walety.',
         details: ['6 wycinanych naklejek winylowych', 'Matowe, wodoodporne', 'Arkusz A5'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.pl!.decks,
     },
   },
   social: {

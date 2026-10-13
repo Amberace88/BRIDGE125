@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Azerbaijani: pika daması, valet, tuz, kral; "mast" for suit, "götürmək" for drawing, "gedişi buraxır" for a skip.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -207,6 +208,8 @@ const az: FeaturePack = {
       'stickers': { name: 'Stiker vərəqi', tagline: 'Altı kəsilmiş vinil stiker',
         desc: 'Bütün kolleksiya miniatürdə: loqo, Dama, Bluff, Bridge Club, 125 → 0 və dörd valet.',
         details: ['6 vinil stiker', 'Tutqun, suya davamlı', 'A5 vərəq'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.az!.decks,
     },
   },
   social: {

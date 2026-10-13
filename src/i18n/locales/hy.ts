@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Armenian (as in src/locales/hy.ts): sentences end with “։”, the stressed vowel of a question takes “՞”.
 // Card vocabulary: պիկի դամա, վալետ, տուզ, թագավոր; մաստ = suit; կապուկ = deck.
@@ -218,6 +219,8 @@ const hy: FeaturePack = {
       'stickers': { name: 'Պիտակների թերթ', tagline: 'Վեց կտրված վինիլային պիտակ',
         desc: 'Ամբողջ հավաքածուն մանրանկարով՝ լոգոն, Դաման, Bluff, Bridge Club, 125 → 0 և չորս վալետ։',
         details: ['6 վինիլային պիտակ', 'Փայլատ, ջրակայուն', 'A5 թերթ'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.hy!.decks,
     },
   },
   social: {

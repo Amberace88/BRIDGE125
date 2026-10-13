@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Estonian: poti emand, poiss, äss, kuningas; "mast" for suit, "võtma" for drawing, "jääb vahele" for a skip.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -209,6 +210,8 @@ const et: FeaturePack = {
       'stickers': { name: 'Kleebiseleht', tagline: 'Kuus väljalõigatud vinüülkleebist',
         desc: 'Kogu kollektsioon miniatuuris: logo, Emand, Bluff, Bridge Club, 125 → 0 ja neli poissi.',
         details: ['6 väljalõigatud vinüülkleebist', 'Matid, veekindlad', 'A5-leht'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.et!.decks,
     },
   },
   social: {

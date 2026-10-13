@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // German: Pik-Dame, Bube, Ass, König; "Farbe" for suit, "ziehen" for drawing, "aussetzen" for a skipped turn.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -209,6 +210,8 @@ const de: FeaturePack = {
       'stickers': { name: 'Stickerbogen', tagline: 'Sechs konturgeschnittene Vinyl-Sticker',
         desc: 'Die ganze Kollektion im Kleinformat: das Logo, die Dame, Bluff, Bridge Club, 125 → 0 und vier Buben.',
         details: ['6 Vinyl-Sticker, konturgeschnitten', 'Matt, wasserfest', 'A5-Bogen'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.de!.decks,
     },
   },
   social: {

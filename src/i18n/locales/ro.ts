@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Romanian: dama de pică, valet, as, popă; "culoare" for suit, "a trage" for drawing, "stă o tură" for a skip.
 const de20 = (n: number) => n !== 0 && (n % 100 === 0 || n % 100 >= 20);   // "20 de produse"
@@ -215,6 +216,8 @@ const ro: FeaturePack = {
       'stickers': { name: 'Coală de stickere', tagline: 'Șase stickere din vinil decupate',
         desc: 'Toată colecția în miniatură: logoul, Dama, Bluff, Bridge Club, 125 → 0 și patru valeți.',
         details: ['6 stickere din vinil decupate', 'Mate, rezistente la apă', 'Coală A5'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.ro!.decks,
     },
   },
   social: {

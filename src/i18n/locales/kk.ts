@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Kazakh: players use the Russian card words (пик дамасы, валет, туз, король, масть) — kept consistent with src/locales/kk.ts.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -207,6 +208,8 @@ const kk: FeaturePack = {
       'stickers': { name: 'Стикерлер парағы', tagline: 'Алты кесілген винил стикер',
         desc: 'Бүкіл коллекция миниатюрада: логотип, Дама, Bluff, Bridge Club, 125 → 0 және төрт валет.',
         details: ['6 винил стикер', 'Күңгірт, суға төзімді', 'A5 парақ'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.kk!.decks,
     },
   },
   social: {

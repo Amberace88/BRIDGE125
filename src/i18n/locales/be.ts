@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Belarusian: пікавая дама, валет, туз, кароль; "масць", "браць" for drawing, "прапускае ход" for a skip.
 const one = (n: number) => n % 10 === 1 && n % 100 !== 11;
@@ -214,6 +215,8 @@ const be: FeaturePack = {
       'stickers': { name: 'Аркуш стыкераў', tagline: 'Шэсць выразаных вінілавых стыкераў',
         desc: 'Уся калекцыя ў мініяцюры: лагатып, Дама, Bluff, Bridge Club, 125 → 0 і чатыры валеты.',
         details: ['6 вінілавых стыкераў', 'Матавыя, воданепранікальныя', 'Аркуш A5'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.be!.decks,
     },
   },
   social: {

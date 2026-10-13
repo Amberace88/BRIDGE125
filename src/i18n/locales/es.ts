@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Spanish (Spain): reina de picas, jota, as, rey; "palo" for suit, "robar" for drawing.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -209,6 +210,8 @@ const es: FeaturePack = {
       'stickers': { name: 'Lámina de pegatinas', tagline: 'Seis pegatinas de vinilo troqueladas',
         desc: 'Toda la colección en miniatura: el logo, la Reina, Bluff, Bridge Club, 125 → 0 y cuatro jotas.',
         details: ['6 pegatinas de vinilo troqueladas', 'Mate, resistentes al agua', 'Lámina A5'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.es!.decks,
     },
   },
   social: {

@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Uzbek (Latin, with ʻ U+02BB as in src/locales/uz.ts): pika damasi, valet, tuz, qirol; "mast" for suit.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -207,6 +208,8 @@ const uz: FeaturePack = {
       'stickers': { name: 'Stikerlar varagʻi', tagline: 'Oltita kesilgan vinil stiker',
         desc: 'Butun kolleksiya miniatyurada: logotip, Dama, Bluff, Bridge Club, 125 → 0 va toʻrtta valet.',
         details: ['6 ta vinil stiker', 'Xira, suvga chidamli', 'A5 varaq'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.uz!.decks,
     },
   },
   social: {

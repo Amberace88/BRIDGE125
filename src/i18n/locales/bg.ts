@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Bulgarian: дама пика, вале, асо, поп; "боя" for suit, "тегли" for drawing, "пропуска ход" for a skip.
 // Count form after numbers: one → singular, otherwise the plural/count form passed in (2 рунда, 5 играча).
@@ -211,6 +212,8 @@ const bg: FeaturePack = {
       'stickers': { name: 'Лист стикери', tagline: 'Шест изрязани винилови стикера',
         desc: 'Цялата колекция в миниатюра: логото, Дамата, Bluff, Bridge Club, 125 → 0 и четири валета.',
         details: ['6 изрязани винилови стикера', 'Матови, водоустойчиви', 'Лист A5'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.bg!.decks,
     },
   },
   social: {

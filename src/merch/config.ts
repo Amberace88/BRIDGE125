@@ -18,6 +18,13 @@
  */
 export const MERCH_CHECKOUT: Record<string, string> = {
   'deck': '',
+  'deck-baltic': '',
+  'deck-slavic': '',
+  'deck-caucasus': '',
+  'deck-iberian': '',
+  'deck-bauhaus': '',
+  'deck-neon': '',
+  'deck-ivory': '',
   'tee-queen': '',
   'hoodie-varsity': '',
   'poster-riga': '',

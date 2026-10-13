@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Lithuanian: vynų dama, valetas, tūzas, karalius; "rūšis" for suit, "imti" for drawing.
 /** 1, 21, 31… partiją · 2–9, 22–29… partijas · 0, 10–20, 30… partijų. */
@@ -212,6 +213,8 @@ const lt: FeaturePack = {
       'stickers': { name: 'Lipdukų lapas', tagline: 'Šeši iškirpti vinilo lipdukai',
         desc: 'Visa kolekcija miniatiūroje: logotipas, Dama, Bluff, Bridge Club, 125 → 0 ir keturi valetai.',
         details: ['6 iškirpti vinilo lipdukai', 'Matiniai, atsparūs vandeniui', 'A5 lapas'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.lt!.decks,
     },
   },
   social: {

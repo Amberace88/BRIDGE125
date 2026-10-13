@@ -1,4 +1,5 @@
 import type { FeaturePack } from './types';
+import { DECK_STRINGS } from '../../merch/decks/strings';
 
 // Georgian: ყვავის ქალი, ვალეტი, ტუზი, მეფე; "მასტი" for suit, "იღებს" for drawing — as in src/locales/ka.ts.
 /** Thousands with a thin space, as in the English modules: 1 250. */
@@ -207,6 +208,8 @@ const ka: FeaturePack = {
       'stickers': { name: 'სტიკერების ფურცელი', tagline: 'ექვსი ამოჭრილი ვინილის სტიკერი',
         desc: 'მთელი კოლექცია მინიატურაში: ლოგო, ქალი, Bluff, Bridge Club, 125 → 0 და ოთხი ვალეტი.',
         details: ['6 ვინილის სტიკერი', 'მქრქალი, წყალგამძლე', 'A5 ფურცელი'] },
+      // the deck collection (src/merch/decks/strings.ts) — last, so it replaces the old 36-card 'deck' copy
+      ...DECK_STRINGS.ka!.decks,
     },
   },
   social: {

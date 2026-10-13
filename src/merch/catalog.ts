@@ -32,9 +32,8 @@ const c = (id: ColourId, ...images: string[]): Colour => ({ id, swatch: SWATCH[i
 
 import { DECK_PRODUCTS } from './decks';
 
+// 'deck' (the Signature deck, store hero) now comes from DECK_PRODUCTS with the rest of the deck collection
 const BASE_PRODUCTS: Product[] = [
-  { id: 'deck', category: 'cards', price: 19, design: 'deck/QS', hero: true, badge: 'new',
-    colours: [c('felt', 'deck-hero', 'deck-fan', 'deck-backs')] },
   { id: 'tee-queen', category: 'apparel', price: 32, design: 'queen-of-spades', badge: 'bestseller', sizes: APPAREL,
     colours: [c('ink', 'tee-queen-ink'), c('forest', 'tee-queen-forest')] },
   { id: 'hoodie-varsity', category: 'apparel', price: 59, design: 'varsity-club', sizes: HOODIE,
