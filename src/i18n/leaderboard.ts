@@ -114,4 +114,15 @@ const es: LbStrings = {
   emptyWeek: 'Aún no hay victorias esta semana: sé el primero.',
 };
 
-export const LB: Strings<LbStrings> = { en, lv, ru, uk, lt, et, pl, de, es };
+const ro: LbStrings = {
+  tabs: { wins: 'Din totdeauna', week: 'Săptămâna asta', bm: 'Cei mai bogați', level: 'Nivel' },
+  metric: { wins: 'victorii', week: 'victorii săptămâna asta', bm: 'BM', level: 'nivel' },
+  hint: { wins: 'Cele mai multe victorii', week: 'Victorii în ultimele 7 zile', bm: 'Cel mai mare sold Bridge Money', level: 'Cel mai înalt nivel' },
+  lvl: n => `Niv. ${n}`,
+  youRank: n => `Tu: #${n}`,
+  refresh: 'Reîmprospătează', updated: 'Actualizat', pull: 'Trage ca să reîmprospătezi', release: 'Eliberează ca să reîmprospătezi', retry: 'Încearcă din nou',
+  guestTitle: 'Intră în clasament', guestSub: 'Conectează-te — fiecare partidă contează pentru locul tău.', noGames: 'încă nicio partidă',
+  emptyWeek: 'Nicio victorie săptămâna asta — fii primul.',
+};
+
+export const LB: Strings<LbStrings> = { en, lv, ru, uk, lt, et, pl, de, ro, es };

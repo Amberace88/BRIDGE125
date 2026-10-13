@@ -10,6 +10,7 @@ import { SOCIAL_STRINGS } from '../social';
 import { JOURNEY_STRINGS, QUEST_STRINGS } from '../journey';
 import { ACH_STRINGS } from '../achievements';
 import { ECO_STRINGS } from '../economy';
+import { COS_STRINGS } from '../../cosmetics/i18n';
 import { missingKeys, pick, registeredStrings, withFallback, type Strings } from '../pick';
 import { FEATURE_LANGS } from './index';
 import type { FeaturePack } from './types';
@@ -17,7 +18,14 @@ import type { FeaturePack } from './types';
 const MODULES: Record<keyof FeaturePack, Strings<unknown>> = {
   home: HOME, table: TABLE_STRINGS, shop: SHOP_STRINGS, media: MEDIA, merch: MERCH_STRINGS,
   social: SOCIAL_STRINGS, journey: JOURNEY_STRINGS, quests: QUEST_STRINGS, achievements: ACH_STRINGS, economy: ECO_STRINGS,
+  cosmetics: COS_STRINGS,
 };
+
+/** Modules a pack may leave out entirely (they then show English). */
+const OPTIONAL = new Set<string>(['cosmetics']);
+
+/** Languages whose packs are complete: every key of every module, cosmetics included, is translated. */
+const COMPLETE = ['lt', 'et', 'pl', 'de', 'ro', 'es'];
 
 /** Functions whose arguments are strings (names, prices, times); everything else takes numbers. */
 const STRING_ARGS = /\.(setOf|confirmBuy|notEnough|equippedToast|nextIn|itemUnlocked|xp|toNext|bluffCaughtSub|pod|buy)$/;
@@ -57,7 +65,7 @@ describe('feature string modules', () => {
         const s = pick(mod, id);
         expect(missingKeys(mod.en, s), `${id} ${name}`).toEqual([]);
         check(s, name, id);
-        if (FEATURE_LANGS.includes(id)) expect(mod[id], `${id} ${name} pack installed`).toBeDefined();
+        if (FEATURE_LANGS.includes(id) && (!OPTIONAL.has(name) || COMPLETE.includes(id))) expect(mod[id], `${id} ${name} pack installed`).toBeDefined();
       }
     });
   }
@@ -76,6 +84,16 @@ describe('feature string modules', () => {
     if (report.length) console.warn(`Untranslated feature strings (showing English):\n  ${report.join('\n  ')}`);
     expect(Array.isArray(report)).toBe(true);
   });
+
+  for (const id of COMPLETE) {
+    it(`${id}: the pack translates every key of every module (no English fallback)`, async () => {
+      const files = import.meta.glob<{ default: FeaturePack }>(['./*.ts', '!./index.ts', '!./types.ts', '!./*.test.ts']);
+      const pack = (await files[`./${id}.ts`]()).default;
+      for (const [name, mod] of Object.entries(MODULES)) {
+        expect(missingKeys(mod.en, pack[name as keyof FeaturePack]), `${id}.${name}`).toEqual([]);
+      }
+    });
+  }
 });
 
 describe('withFallback', () => {
