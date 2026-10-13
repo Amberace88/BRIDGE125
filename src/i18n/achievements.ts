@@ -22,7 +22,7 @@ export interface AchStrings {
 
 const en: AchStrings = {
   title: 'Trophy Hall', sub: 'Every medal is earned at the table — and some are hidden.', kicker: 'Bridge 125 · Club honours',
-  cats: { all: 'All', firsts: 'Firsts', mastery: 'Mastery', cards: 'Special cards', scoring: 'Scoring', social: 'Social', bluff: 'Bluff', collector: 'Collector', streaks: 'Streaks', journey: 'Journey', secret: 'Secrets' },
+  cats: { all: 'All', firsts: 'Firsts', mastery: 'Mastery', cards: 'Special cards', scoring: 'Scoring', social: 'Social', bluff: 'Bluff', collector: 'Collector', streaks: 'Streaks', journey: 'Journey', games: 'Games', secret: 'Secrets' },
   tiers: { bronze: 'Bronze', silver: 'Silver', gold: 'Gold', platinum: 'Platinum' },
   count: (n, t) => `${n} of ${t} unlocked`,
   secretName: '???', secretTag: 'Secret', lockedTag: 'Locked', unlockedTag: 'Unlocked', newTag: 'New',
@@ -123,12 +123,21 @@ const en: AchStrings = {
     s_liar: { name: 'Takes One to Know One', desc: 'Catch a bluffer and get away with a bluff in the same game.', hint: 'Liar, liar…' },
     s_queen_finish: { name: "Her Majesty's Exit", desc: 'Go out with the Q♠ as your last card.', hint: 'The Queen always has the last word.' },
     s_founder: { name: 'Founding Member', desc: 'Play Bridge 125 in its first season.', hint: 'You were here before it was cool.' },
+    mg_first: { name: 'New Table', desc: 'Play your first mini game.' },
+    mg_games_100: { name: 'Games Room Regular', desc: 'Play 100 mini games.' },
+    mg_zole_master: { name: 'Zole Master', desc: 'Win 25 games of Zole.' },
+    mg_never_durak: { name: 'Never the Durak', desc: 'Win 5 games of Durak in a row.' },
+    mg_patience: { name: 'Patience', desc: 'Solve 10 games of Solitaire.' },
+    mg_sudoku_25: { name: 'Number Cruncher', desc: 'Solve 25 Sudoku puzzles.' },
+    mg_daily_solver: { name: 'Daily Solver', desc: 'Solve 7 daily puzzles.' },
+    mg_clockwork: { name: 'Clockwork', desc: 'Solve the daily puzzle 7 days in a row.' },
+    mg_all_rounder: { name: 'All-Rounder', desc: 'Win at least once in 4 different mini games.' },
   },
 };
 
 const lv: AchStrings = {
   title: 'Trofeju zāle', sub: 'Katra medaļa tiek nopelnīta pie galda — un dažas ir paslēptas.', kicker: 'Bridge 125 · Kluba apbalvojumi',
-  cats: { all: 'Visi', firsts: 'Pirmās reizes', mastery: 'Meistarība', cards: 'Īpašās kārtis', scoring: 'Punkti', social: 'Sabiedrība', bluff: 'Blefs', collector: 'Kolekcionārs', streaks: 'Sērijas', journey: 'Ceļojums', secret: 'Noslēpumi' },
+  cats: { all: 'Visi', firsts: 'Pirmās reizes', mastery: 'Meistarība', cards: 'Īpašās kārtis', scoring: 'Punkti', social: 'Sabiedrība', bluff: 'Blefs', collector: 'Kolekcionārs', streaks: 'Sērijas', journey: 'Ceļojums', games: 'Spēles', secret: 'Noslēpumi' },
   tiers: { bronze: 'Bronza', silver: 'Sudrabs', gold: 'Zelts', platinum: 'Platīns' },
   count: (n, t) => `Atbloķēti ${n} no ${t}`,
   secretName: '???', secretTag: 'Noslēpums', lockedTag: 'Slēgts', unlockedTag: 'Atbloķēts', newTag: 'Jauns',
@@ -229,12 +238,21 @@ const lv: AchStrings = {
     s_liar: { name: 'Pazīst savējo', desc: 'Vienā spēlē pieķer blefotāju un pats izsprūc sveikā ar blefu.', hint: 'Meli, meli…' },
     s_queen_finish: { name: 'Viņas Majestātes aiziešana', desc: 'Izej no raunda ar pīķa dāmu kā pēdējo kārti.', hint: 'Dāmai vienmēr pieder pēdējais vārds.' },
     s_founder: { name: 'Dibinātājs', desc: 'Spēlē Bridge 125 tā pirmajā sezonā.', hint: 'Tu biji šeit, pirms tas kļuva populāri.' },
+    mg_first: { name: 'Jauns galds', desc: 'Nospēlē savu pirmo mini spēli.' },
+    mg_games_100: { name: 'Spēļu zāles pastāvīgais', desc: 'Nospēlē 100 mini spēles.' },
+    mg_zole_master: { name: 'Zoles meistars', desc: 'Uzvari 25 Zoles partijas.' },
+    mg_never_durak: { name: 'Nekad muļķis', desc: 'Uzvari 5 Durak partijas pēc kārtas.' },
+    mg_patience: { name: 'Pacietība', desc: 'Izliec 10 pasjansus.' },
+    mg_sudoku_25: { name: 'Skaitļu meistars', desc: 'Atrisini 25 Sudoku mīklas.' },
+    mg_daily_solver: { name: 'Dienas risinātājs', desc: 'Atrisini 7 dienas mīklas.' },
+    mg_clockwork: { name: 'Kā pulkstenis', desc: 'Atrisini dienas mīklu 7 dienas pēc kārtas.' },
+    mg_all_rounder: { name: 'Universālis', desc: 'Uzvari vismaz vienu reizi 4 dažādās mini spēlēs.' },
   },
 };
 
 const ru: AchStrings = {
   title: 'Зал трофеев', sub: 'Каждую медаль зарабатывают за столом — а некоторые спрятаны.', kicker: 'Bridge 125 · Награды клуба',
-  cats: { all: 'Все', firsts: 'Первые шаги', mastery: 'Мастерство', cards: 'Особые карты', scoring: 'Очки', social: 'Клуб', bluff: 'Блеф', collector: 'Коллекция', streaks: 'Серии', journey: 'Путешествие', secret: 'Секреты' },
+  cats: { all: 'Все', firsts: 'Первые шаги', mastery: 'Мастерство', cards: 'Особые карты', scoring: 'Очки', social: 'Клуб', bluff: 'Блеф', collector: 'Коллекция', streaks: 'Серии', journey: 'Путешествие', games: 'Игры', secret: 'Секреты' },
   tiers: { bronze: 'Бронза', silver: 'Серебро', gold: 'Золото', platinum: 'Платина' },
   count: (n, t) => `Открыто ${n} из ${t}`,
   secretName: '???', secretTag: 'Секрет', lockedTag: 'Закрыто', unlockedTag: 'Открыто', newTag: 'Новое',
@@ -335,12 +353,21 @@ const ru: AchStrings = {
     s_liar: { name: 'Рыбак рыбака', desc: 'В одной партии поймайте блефующего и сами сблефуйте незамеченным.', hint: 'Лжец, лжец…' },
     s_queen_finish: { name: 'Уход Её Величества', desc: 'Выйдите из раунда с дамой пик последней картой.', hint: 'Последнее слово всегда за дамой.' },
     s_founder: { name: 'Основатель', desc: 'Играйте в Bridge 125 в его первом сезоне.', hint: 'Вы были здесь до того, как это стало модным.' },
+    mg_first: { name: 'Новый стол', desc: 'Сыграйте свою первую мини-игру.' },
+    mg_games_100: { name: 'Завсегдатай игрового зала', desc: 'Сыграйте 100 мини-игр.' },
+    mg_zole_master: { name: 'Мастер Золе', desc: 'Выиграйте 25 партий в Золе.' },
+    mg_never_durak: { name: 'Никогда не дурак', desc: 'Выиграйте 5 партий в Дурака подряд.' },
+    mg_patience: { name: 'Терпение', desc: 'Разложите 10 пасьянсов.' },
+    mg_sudoku_25: { name: 'Повелитель чисел', desc: 'Решите 25 судоку.' },
+    mg_daily_solver: { name: 'Решатель дня', desc: 'Решите 7 ежедневных головоломок.' },
+    mg_clockwork: { name: 'Как часы', desc: 'Решайте ежедневную головоломку 7 дней подряд.' },
+    mg_all_rounder: { name: 'Универсал', desc: 'Победите хотя бы раз в 4 разных мини-играх.' },
   },
 };
 
 const uk: AchStrings = {
   title: 'Зала трофеїв', sub: 'Кожну медаль заробляють за столом — а деякі заховані.', kicker: 'Bridge 125 · Нагороди клубу',
-  cats: { all: 'Усі', firsts: 'Перші кроки', mastery: 'Майстерність', cards: 'Особливі карти', scoring: 'Очки', social: 'Клуб', bluff: 'Блеф', collector: 'Колекція', streaks: 'Серії', journey: 'Подорож', secret: 'Секрети' },
+  cats: { all: 'Усі', firsts: 'Перші кроки', mastery: 'Майстерність', cards: 'Особливі карти', scoring: 'Очки', social: 'Клуб', bluff: 'Блеф', collector: 'Колекція', streaks: 'Серії', journey: 'Подорож', games: 'Ігри', secret: 'Секрети' },
   tiers: { bronze: 'Бронза', silver: 'Срібло', gold: 'Золото', platinum: 'Платина' },
   count: (n, t) => `Відкрито ${n} з ${t}`,
   secretName: '???', secretTag: 'Секрет', lockedTag: 'Закрито', unlockedTag: 'Відкрито', newTag: 'Нове',
@@ -441,6 +468,15 @@ const uk: AchStrings = {
     s_liar: { name: 'Рибак рибака', desc: 'За одну партію спіймайте блефувальника й самі сблефуйте непоміченим.', hint: 'Брехун, брехун…' },
     s_queen_finish: { name: 'Вихід Її Величності', desc: 'Вийдіть із раунду з дамою пік останньою картою.', hint: 'Останнє слово завжди за дамою.' },
     s_founder: { name: 'Засновник', desc: 'Грайте в Bridge 125 у його першому сезоні.', hint: 'Ви були тут ще до того, як це стало модним.' },
+    mg_first: { name: 'Новий стіл', desc: 'Зіграйте свою першу міні-гру.' },
+    mg_games_100: { name: 'Завсідник ігрового залу', desc: 'Зіграйте 100 міні-ігор.' },
+    mg_zole_master: { name: 'Майстер Золе', desc: 'Виграйте 25 партій у Золе.' },
+    mg_never_durak: { name: 'Ніколи не дурень', desc: 'Виграйте 5 партій у Дурня поспіль.' },
+    mg_patience: { name: 'Терпіння', desc: 'Розкладіть 10 пасьянсів.' },
+    mg_sudoku_25: { name: 'Володар чисел', desc: 'Розв’яжіть 25 судоку.' },
+    mg_daily_solver: { name: 'Розв’язувач дня', desc: 'Розв’яжіть 7 щоденних головоломок.' },
+    mg_clockwork: { name: 'Як годинник', desc: 'Розв’язуйте щоденну головоломку 7 днів поспіль.' },
+    mg_all_rounder: { name: 'Універсал', desc: 'Переможіть хоча б раз у 4 різних міні-іграх.' },
   },
 };
 

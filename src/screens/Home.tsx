@@ -16,6 +16,7 @@ import { useJourney } from '../campaign/journeyStore';
 import { TOTAL_STARS, totalStars } from '../campaign/data';
 import { sfx } from '../sound';
 import { SeasonDockBtn } from '../season/parts';
+import { GamesDockBtn } from '../games/hub/GamesDockBtn';
 import '../styles/home.css';
 
 interface Props {
@@ -40,6 +41,8 @@ interface Props {
   onDaily?: () => void;
   /** Season Pass (/season). */
   onSeason?: () => void;
+  /** The games room (/games): Bridge + the mini games. */
+  onGames?: () => void;
 }
 
 // typed locally so it compiles before the engine adds hard/expert to BotLevel
@@ -53,7 +56,7 @@ function useViewport() {
 }
 
 export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoom, onJoinRoom, onQuick, onLegal, onLeaders, onInstall, onAdmin, onShop, onMerch,
-  onJourney, onQuests, onAchievements, onVault, onStakes, onDaily, onSeason }: Props) {
+  onJourney, onQuests, onAchievements, onVault, onStakes, onDaily, onSeason, onGames }: Props) {
   const ins = useInstall();
   const [bannerOff, setBannerOff] = useState(() => { try { return localStorage.getItem('b125.installBanner') === 'off'; } catch { return false; } });
   const hideBanner = () => { setBannerOff(true); try { localStorage.setItem('b125.installBanner', 'off'); } catch { /* */ } };
@@ -238,6 +241,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
               {onStakes && <DockBtn icon={<ChipsIcon />} label={h.dock.stakes} onClick={onStakes} />}
               {onAchievements && <DockBtn icon={<TrophyIcon />} label={h.dock.trophies} onClick={onAchievements} />}
               {onVault && <DockBtn icon={<VaultIcon />} label={h.dock.vault} onClick={onVault} />}
+              {onGames && <GamesDockBtn onClick={onGames} />}
             </nav>
 
             {onQuests && <QuestTracker className="h5-quests" onOpen={onQuests} />}

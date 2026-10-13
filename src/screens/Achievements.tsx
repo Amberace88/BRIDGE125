@@ -15,7 +15,7 @@ import '../styles/achievements.css';
 type Cat = AchCategory | 'all';
 type Filter = 'all' | 'got' | 'todo';
 const CAT_GLYPH: Record<Cat, string> = {
-  all: '◈', firsts: '✦', mastery: '♛', cards: '♠', scoring: '125', social: '◎', bluff: '◐', collector: '❖', streaks: '≋', journey: '➶', secret: '?',
+  all: '◈', firsts: '✦', mastery: '♛', cards: '♠', scoring: '125', social: '◎', bluff: '◐', collector: '❖', streaks: '≋', journey: '➶', games: '◈', secret: '?',
 };
 
 export const achName = (S: AchStrings, code: string) => S.list[code]?.name ?? ACH_STRINGS.en.list[code]?.name ?? code;

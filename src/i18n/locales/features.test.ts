@@ -15,6 +15,7 @@ import { LB } from '../leaderboard';
 import { DAILY_STRINGS } from '../daily';
 import { INVITE_STRINGS } from '../invite';
 import { SEASON_STRINGS } from '../season';
+import { GAMES_STRINGS } from '../games';
 import { missingKeys, pick, registeredStrings, withFallback, type Strings } from '../pick';
 import { FEATURE_LANGS } from './index';
 import type { FeaturePack } from './types';
@@ -25,6 +26,7 @@ const MODULES: Record<keyof FeaturePack, Strings<unknown>> = {
   cosmetics: COS_STRINGS,
   daily: DAILY_STRINGS, invite: INVITE_STRINGS,
   season: SEASON_STRINGS,
+  games: GAMES_STRINGS,
 };
 /** Modules a pack may leave out entirely (the language then simply shows English for them). */
 const OPTIONAL = new Set<string>(['cosmetics']);

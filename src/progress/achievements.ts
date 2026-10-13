@@ -12,8 +12,8 @@ import type { GameState } from '../engine/engine';
  * or counters in `profiles.ach_stats` fed by report_game_stats / the economy RPCs (see `_ach_stats()` in 012).
  * Journey achievements have no goal: the campaign grants them by code (`journey_*`).
  */
-export type AchCategory = 'firsts' | 'mastery' | 'cards' | 'scoring' | 'social' | 'bluff' | 'collector' | 'streaks' | 'journey' | 'secret';
-export const ACH_CATEGORIES: AchCategory[] = ['firsts', 'mastery', 'cards', 'scoring', 'social', 'bluff', 'collector', 'streaks', 'journey', 'secret'];
+export type AchCategory = 'firsts' | 'mastery' | 'cards' | 'scoring' | 'social' | 'bluff' | 'collector' | 'streaks' | 'journey' | 'games' | 'secret';
+export const ACH_CATEGORIES: AchCategory[] = ['firsts', 'mastery', 'cards', 'scoring', 'social', 'bluff', 'collector', 'streaks', 'journey', 'games', 'secret'];
 export type AchTier = 'bronze' | 'silver' | 'gold' | 'platinum';
 export const ACH_TIERS: AchTier[] = ['bronze', 'silver', 'gold', 'platinum'];
 
@@ -26,6 +26,8 @@ export const COUNTER_STATS = [
   'bluff_caught', 'bluff_ok', 'liar', 'online_wins', 'quick_wins', 'quick_games', 'hosted',
   // economy (server-side only)
   'spins', 'jackpots', 'stake_played', 'stake_wins', 'stake_big_wins', 'boosts',
+  // mini games (server-side only: record_minigame, migration 019)
+  'mg_games', 'mg_zole_wins', 'mg_durak_streak', 'mg_solitaire_wins', 'mg_sudoku_wins', 'mg_dailies', 'mg_daily_streak', 'mg_variety',
 ] as const;
 export type AchStat = typeof COLUMN_STATS[number] | typeof COUNTER_STATS[number];
 
@@ -166,6 +168,17 @@ export const ACHIEVEMENTS: AchDef[] = [
   a('s_liar', 'secret', 'gold', 1500, '◐', ['liar', 1], SC),
   a('s_queen_finish', 'secret', 'gold', 1500, 'Q!', ['queen_finish', 1], SC),
   a('s_founder', 'secret', 'gold', 1000, 'F', ['founder', 1], { secret: true, item: 'ach_t_founder' }),
+
+  // ---- mini games (migration 019 seeds these rows with sort 86…; record_minigame feeds the mg_* counters)
+  a('mg_first', 'games', 'bronze', 100, '◈', ['mg_games', 1]),
+  a('mg_games_100', 'games', 'silver', 1200, '◈100', ['mg_games', 100]),
+  a('mg_zole_master', 'games', 'gold', 1500, 'Z', ['mg_zole_wins', 25]),
+  a('mg_never_durak', 'games', 'silver', 800, 'D×5', ['mg_durak_streak', 5]),
+  a('mg_patience', 'games', 'silver', 600, 'K♥', ['mg_solitaire_wins', 10]),
+  a('mg_sudoku_25', 'games', 'silver', 800, '9', ['mg_sudoku_wins', 25]),
+  a('mg_daily_solver', 'games', 'silver', 700, '☀7', ['mg_dailies', 7]),
+  a('mg_clockwork', 'games', 'gold', 1500, '7d', ['mg_daily_streak', 7]),
+  a('mg_all_rounder', 'games', 'gold', 1500, '4◈', ['mg_variety', 4]),
 ];
 
 const BY_CODE = new Map(ACHIEVEMENTS.map(x => [x.code, x]));

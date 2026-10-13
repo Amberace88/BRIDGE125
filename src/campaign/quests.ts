@@ -8,13 +8,21 @@
 import type { GameState } from '../engine/engine';
 import { isQS } from '../engine/engine';
 
-export type Metric =
+export type BridgeMetric =
   | 'games' | 'wins' | 'queen' | 'burn125' | 'jacks' | 'rounds' | 'rounds_won' | 'bluff_rounds' | 'bounce' | 'kings'
   | 'quick_win' | 'journey_win' | 'journey_3star';
+/**
+ * Mini-game quest metrics (supabase/migration_019_minigames.sql). The server alone moves them (record_minigame), and
+ * assigns at most one game quest a day, on top of Bridge's three, to players who played a mini game recently.
+ */
+export type GameMetric = 'mg_games' | 'mg_zole_win' | 'mg_durak_win' | 'mg_solitaire_win' | 'mg_sudoku_daily';
+export type Metric = BridgeMetric | GameMetric;
+export const isGameMetric = (m: string): m is GameMetric => m.startsWith('mg_');
 
 export type QuestKind = 'daily' | 'weekly';
 
-export interface QuestDef { id: string; kind: QuestKind; metric: Metric; goal: number; bm: number; xp: number }
+export interface QuestDef { id: string; kind: QuestKind; metric: BridgeMetric; goal: number; bm: number; xp: number }
+export interface GameQuestDef { id: string; kind: 'daily'; metric: GameMetric; goal: number; bm: number; xp: number; game: string }
 
 export const QUEST_DEFS: QuestDef[] = [
   { id: 'd_play3', kind: 'daily', metric: 'games', goal: 3, bm: 150, xp: 40 },
@@ -38,6 +46,15 @@ export const QUEST_DEFS: QuestDef[] = [
   { id: 'w_kings', kind: 'weekly', metric: 'kings', goal: 1, bm: 800, xp: 250 },
 ];
 
+/** Game quests (server-only, migration 019) — keep in sync with its quest_defs seed. Never in the guest / local board. */
+export const GAME_QUEST_DEFS: GameQuestDef[] = [
+  { id: 'g_zole2', kind: 'daily', metric: 'mg_zole_win', goal: 2, bm: 150, xp: 40, game: 'zole' },
+  { id: 'g_durak2', kind: 'daily', metric: 'mg_durak_win', goal: 2, bm: 150, xp: 40, game: 'durak' },
+  { id: 'g_solitaire', kind: 'daily', metric: 'mg_solitaire_win', goal: 1, bm: 120, xp: 35, game: 'solitaire' },
+  { id: 'g_sudoku_day', kind: 'daily', metric: 'mg_sudoku_daily', goal: 1, bm: 150, xp: 40, game: 'sudoku' },
+  { id: 'g_any3', kind: 'daily', metric: 'mg_games', goal: 3, bm: 120, xp: 30, game: 'any' },
+];
+
 export const questDef = (id: string) => QUEST_DEFS.find(q => q.id === id);
 export const DAILY_COUNT = 3;
 export const WEEKLY_COUNT = 5;
@@ -45,7 +62,7 @@ export const REROLL_COST = 100;
 export const CHEST = { bm: 1500, xp: 400 } as const;
 
 /** Most a single finished game may add to each metric (the server clamps with the same numbers). */
-export const QUEST_CAPS: Record<Metric, number> = {
+export const QUEST_CAPS: Record<BridgeMetric, number> = {
   games: 1, wins: 1, queen: 6, burn125: 3, jacks: 3, rounds: 30, rounds_won: 20, bluff_rounds: 30, bounce: 4, kings: 2,
   quick_win: 1, journey_win: 1, journey_3star: 1,
 };
@@ -111,7 +128,7 @@ export function clampEvents(ev: QuestEvents): QuestEvents {
   const out: QuestEvents = {};
   for (const [k, v] of Object.entries(ev) as [Metric, number][]) {
     if (!(k in QUEST_CAPS)) continue;
-    const n = Math.max(0, Math.min(QUEST_CAPS[k], Math.floor(Number(v) || 0)));
+    const n = Math.max(0, Math.min(QUEST_CAPS[k as BridgeMetric], Math.floor(Number(v) || 0)));
     if (n > 0) out[k] = n;
   }
   return out;

@@ -5,6 +5,7 @@ import sql12 from '../../supabase/migration_012_economy.sql?raw';
 import sql13 from '../../supabase/migration_013_integration.sql?raw';
 import sql14 from '../../supabase/migration_014_daily_referrals.sql?raw';
 import sql16 from '../../supabase/migration_016_season.sql?raw';
+import sql19 from '../../supabase/migration_019_minigames.sql?raw';
 import { SHOP_ROWS, COSMETICS, ALL_SLOTS, slotOptions } from '../shop/catalog';
 import { ACHIEVEMENTS, ACH_CATEGORIES, ACH_ITEMS, CLIENT_CODES, COLUMN_STATS, COUNTER_STATS, achProgress, detectAchievements } from './achievements';
 import { GAME_STAT_CAPS, GameTracker } from './tracker';
@@ -68,8 +69,8 @@ describe('catalogue is in sync with the SQL seed', () => {
     for (const r of rows) expect(ACHIEVEMENTS.find(a => a.code === r.code), r.code).toMatchObject({ bm: r.bm, source: r.source });
   });
 
-  it('achievement_defs: 012 seed equals the TS catalogue, field by field', () => {
-    const rows = insertBlocks(sql12, 'achievement_defs').flatMap(b => [...b.matchAll(
+  it('achievement_defs: 012 + 019 seeds equal the TS catalogue, field by field', () => {
+    const rows = [...insertBlocks(sql12, 'achievement_defs'), ...insertBlocks(sql19, 'achievement_defs')].flatMap(b => [...b.matchAll(
       /\('([a-z0-9_]+)', (\d+), '(server|client)', (\d+), '(\w+)', '(\w+)', (\d+), (\d+), (true|false), (null|'\w+'), (null|\d+), (null|'\w+')\)/g,
     )].map(m => ({
       code: m[1], bm: Number(m[2]), source: m[3], sort: Number(m[4]), cat: m[5], tier: m[6], xp: Number(m[7]), shards: Number(m[8]),

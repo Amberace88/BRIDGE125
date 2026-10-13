@@ -22,6 +22,7 @@ const Journey = lazy(() => import('./screens/Journey').then(m => ({ default: m.J
 const QuestsScreen = lazy(() => import('./screens/Quests').then(m => ({ default: m.QuestsScreen })));
 const AchievementsHall = lazy(() => import('./screens/Achievements').then(m => ({ default: m.AchievementsHall })));
 const VaultScreen = lazy(() => import('./screens/Wheel').then(m => ({ default: m.VaultScreen })));
+const GamesHub = lazy(() => import('./games/hub/GamesHub').then(m => ({ default: m.GamesHub })));
 // everything below loads after the first Home paint (tables are prefetched on idle; sheets / layers on demand)
 const LocalGame = lazyNamed(() => import('./screens/LocalGame'), 'LocalGame');
 const OnlineRoom = lazyNamed(() => import('./screens/OnlineRoom'), 'OnlineRoom');
@@ -51,7 +52,7 @@ type Route =
   | { name: 'daily' }
   /** a mini game from src/games/registry.ts (/g/<id>) */
   | { name: 'game'; id: string };
-type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | LegalKind | null;
+type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | 'games' | LegalKind | null;
 
 /** /g/<id>: the registered mini game, or back home for an unknown id. */
 function MiniGame({ id, onExit, onAuth }: { id: string; onExit: () => void; onAuth: () => void }) {
@@ -70,7 +71,7 @@ function parse(): { route: Route; overlay: Overlay } {
   if (/^\/daily\/?$/.test(p)) return { route: { name: 'daily' }, overlay: null };
   const gm = p.match(/^\/g\/([a-z0-9-]{2,24})\/?$/);
   if (gm) return { route: { name: 'game', id: gm[1] }, overlay: null };
-  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault|season)\/?$/);
+  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault|season|games)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
 
@@ -97,6 +98,9 @@ function Shell() {
     setNavs(n => n + 1); setRoute(r); setOverlay(null);
   };
   const home = () => go({ name: 'home' }, '/');
+  /** leave a mini game: back to the games room it was opened from */
+  const toGames = () => { go({ name: 'home' }, '/games'); setOverlay('games'); };
+  const openGame = (id: string) => go({ name: 'game', id }, `/g/${id}`);
   const openOverlay = (o: Exclude<Overlay, null>) => { history.pushState(null, '', '/' + o); setOverlay(o); };
   const closeOverlay = () => { if (route.name === 'home' && location.pathname !== '/') history.pushState(null, '', '/'); setOverlay(null); };
   const saved = route.name === 'home' ? loadSavedGame() : null;
@@ -147,6 +151,7 @@ function Shell() {
               onAchievements={() => openOverlay('achievements')}
               onVault={() => openOverlay('vault')}
               onSeason={() => openOverlay('season')}
+              onGames={() => openOverlay('games')}
               onStakes={() => setSheet('stakes')}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
@@ -175,7 +180,7 @@ function Shell() {
         {route.name === 'game' && (
           <motion.div key={'game' + route.id} style={{ position: 'absolute', inset: 0 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-            <Suspense fallback={null}><MiniGame id={route.id} onExit={home} onAuth={auth} /></Suspense>
+            <Suspense fallback={null}><MiniGame id={route.id} onExit={toGames} onAuth={auth} /></Suspense>
           </motion.div>
         )}
         {route.name === 'daily' && (
@@ -194,6 +199,8 @@ function Shell() {
         {overlay === 'quests' && <QuestsScreen key="quests" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'achievements' && <AchievementsHall key="ach" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'vault' && <VaultScreen key="vault" onClose={closeOverlay} onAuth={auth} />}
+        {overlay === 'games' && <GamesHub key="games" onClose={closeOverlay} onAuth={auth} onOpenGame={openGame}
+          onPlayBridge={() => go({ name: 'local', resume: null, key: Date.now() })} />}
         {overlay === 'merch' && <MerchScreen key="merch" onClose={closeOverlay} />}
         {overlay === 'god' && <GodPanel key="god" onClose={closeOverlay} />}
         {(overlay === 'privacy' || overlay === 'terms') && (

@@ -12,6 +12,7 @@ import type { CosStrings } from '../../cosmetics/i18n';
 import type { DailyStrings } from '../daily';
 import type { InviteStrings } from '../invite';
 import type { SeasonStrings } from '../season';
+import type { GamesStrings } from '../games';
 
 /**
  * Feature strings for one lazily loaded language — one chunk per language, fetched together with the core
@@ -37,4 +38,6 @@ export interface FeaturePack {
   invite: DeepPartial<InviteStrings>;
   /** Season Pass (src/i18n/season.ts). */
   season: DeepPartial<SeasonStrings>;
+  /** Games hub, game-over sheet and per-game leaderboards (src/i18n/games.ts). */
+  games: DeepPartial<GamesStrings>;
 }

@@ -35,6 +35,8 @@ export interface GameModule {
   homeLangs?: Lang[];
   /** hidden from the hub until ready (still reachable at /g/<id> for testing) */
   hidden?: boolean;
+  /** has a daily puzzle / seeded deal (reported with `day`): the hub shows a "Daily" badge and a "Today" leaderboard */
+  daily?: boolean;
 }
 
 /** One finished game, reported once at game over. Rewards are decided by the server, never by the client. */

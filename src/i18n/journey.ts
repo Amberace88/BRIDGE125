@@ -241,6 +241,7 @@ const qen: QuestStrings = {
     d_rounds10: 'A Long Night', d_out5: 'First Out', d_bounce: 'Mirror, Mirror', d_journey: 'Night Traveller', d_bluff10: 'Poker Face',
     w_win10: 'Ten Victories', w_play20: 'Club Member', w_quick: 'Stranger at the Table', w_queen10: 'The Queen’s Court', w_burn3: 'Fire Walker',
     w_jacks3: 'Jack Multiplier', w_bluff30: 'Master of Masks', w_star3: 'A Perfect Night', w_kings: 'Four Crowns',
+    g_zole2: 'Zole Night', g_durak2: 'Not the Durak', g_solitaire: 'Patience Pays', g_sudoku_day: 'Daily Grid', g_any3: 'Games Room',
   },
   desc: {
     games: n => (n === 1 ? 'Play a game' : `Play ${n} games`),
@@ -256,6 +257,11 @@ const qen: QuestStrings = {
     quick_win: () => 'Win an online quick match',
     journey_win: () => 'Win a Journey match',
     journey_3star: () => 'Win a Journey match with 3 stars',
+    mg_games: n => (n === 1 ? 'Play a mini game' : `Play ${n} mini games`),
+    mg_zole_win: n => (n === 1 ? 'Win a game of Zole' : `Win ${n} games of Zole`),
+    mg_durak_win: n => (n === 1 ? 'Win a game of Durak' : `Win ${n} games of Durak`),
+    mg_solitaire_win: n => (n === 1 ? 'Solve a game of Solitaire' : `Solve ${n} games of Solitaire`),
+    mg_sudoku_daily: () => "Solve today's Sudoku",
   },
   time: { d: 'd', h: 'h', m: 'm' },
 };
@@ -435,6 +441,7 @@ const qlv: QuestStrings = {
     d_rounds10: 'Garā nakts', d_out5: 'Pirmais ārā', d_bounce: 'Spogulīt, spogulīt', d_journey: 'Nakts ceļotājs', d_bluff10: 'Akmens seja',
     w_win10: 'Desmit uzvaras', w_play20: 'Kluba biedrs', w_quick: 'Svešinieks pie galda', w_queen10: 'Dāmas galms', w_burn3: 'Pa oglēm',
     w_jacks3: 'Kalpu reizinātājs', w_bluff30: 'Masku meistars', w_star3: 'Ideālā nakts', w_kings: 'Četri kroņi',
+    g_zole2: 'Zoles vakars', g_durak2: 'Ne muļķis', g_solitaire: 'Pacietība atmaksājas', g_sudoku_day: 'Dienas režģis', g_any3: 'Spēļu zāle',
   },
   desc: {
     games: n => (n === 1 ? 'Nospēlē spēli' : `Nospēlē ${n} ${lvPl(n, 'spēli', 'spēles')}`),
@@ -450,6 +457,11 @@ const qlv: QuestStrings = {
     quick_win: () => 'Uzvari ātro tiešsaistes spēli',
     journey_win: () => 'Uzvari Ceļojuma spēli',
     journey_3star: () => 'Uzvari Ceļojuma spēli ar 3 zvaigznēm',
+    mg_games: n => (n === 1 ? 'Nospēlē mini spēli' : `Nospēlē ${n} ${lvPl(n, 'mini spēli', 'mini spēles')}`),
+    mg_zole_win: n => (n === 1 ? 'Uzvari Zoles partiju' : `Uzvari ${n} ${lvPl(n, 'Zoles partiju', 'Zoles partijas')}`),
+    mg_durak_win: n => (n === 1 ? 'Uzvari Durak partiju' : `Uzvari ${n} ${lvPl(n, 'Durak partiju', 'Durak partijas')}`),
+    mg_solitaire_win: n => (n === 1 ? 'Izliec pasjansu' : `Izliec ${n} ${lvPl(n, 'pasjansu', 'pasjansus')}`),
+    mg_sudoku_daily: () => 'Atrisini šodienas Sudoku',
   },
   time: { d: 'd', h: 'h', m: 'min' },
 };
@@ -629,6 +641,7 @@ const qru: QuestStrings = {
     d_rounds10: 'Долгая ночь', d_out5: 'Первым на выход', d_bounce: 'Свет мой, зеркальце', d_journey: 'Ночной путник', d_bluff10: 'Покерфейс',
     w_win10: 'Десять побед', w_play20: 'Член клуба', w_quick: 'Незнакомец за столом', w_queen10: 'Двор дамы', w_burn3: 'По углям',
     w_jacks3: 'Множитель вальтов', w_bluff30: 'Мастер масок', w_star3: 'Идеальная ночь', w_kings: 'Четыре короны',
+    g_zole2: 'Вечер Золе', g_durak2: 'Не дурак', g_solitaire: 'Терпение окупается', g_sudoku_day: 'Сетка дня', g_any3: 'Игровой зал',
   },
   desc: {
     games: n => (n === 1 ? 'Сыграйте партию' : `Сыграйте ${n} ${ruPl(n, 'игру', 'игры', 'игр')}`),
@@ -644,6 +657,11 @@ const qru: QuestStrings = {
     quick_win: () => 'Выиграйте быструю онлайн-игру',
     journey_win: () => 'Выиграйте партию Путешествия',
     journey_3star: () => 'Выиграйте партию Путешествия на 3 звезды',
+    mg_games: n => (n === 1 ? 'Сыграйте мини-игру' : `Сыграйте ${n} ${ruPl(n, 'мини-игру', 'мини-игры', 'мини-игр')}`),
+    mg_zole_win: n => (n === 1 ? 'Выиграйте партию в Золе' : `Выиграйте ${n} ${ruPl(n, 'партию', 'партии', 'партий')} в Золе`),
+    mg_durak_win: n => (n === 1 ? 'Выиграйте партию в Дурака' : `Выиграйте ${n} ${ruPl(n, 'партию', 'партии', 'партий')} в Дурака`),
+    mg_solitaire_win: n => (n === 1 ? 'Разложите пасьянс' : `Разложите ${n} ${ruPl(n, 'пасьянс', 'пасьянса', 'пасьянсов')}`),
+    mg_sudoku_daily: () => 'Решите сегодняшнее судоку',
   },
   time: { d: 'д', h: 'ч', m: 'мин' },
 };
@@ -823,6 +841,7 @@ const quk: QuestStrings = {
     d_rounds10: 'Довга ніч', d_out5: 'Першим на вихід', d_bounce: 'Дзеркальце', d_journey: 'Нічний мандрівник', d_bluff10: 'Покерфейс',
     w_win10: 'Десять перемог', w_play20: 'Член клубу', w_quick: 'Незнайомець за столом', w_queen10: 'Двір дами', w_burn3: 'По вуглинах',
     w_jacks3: 'Множник валетів', w_bluff30: 'Майстер масок', w_star3: 'Ідеальна ніч', w_kings: 'Чотири корони',
+    g_zole2: 'Вечір Золе', g_durak2: 'Не дурень', g_solitaire: 'Терпіння окупається', g_sudoku_day: 'Сітка дня', g_any3: 'Ігровий зал',
   },
   desc: {
     games: n => (n === 1 ? 'Зіграйте партію' : `Зіграйте ${n} ${ruPl(n, 'гру', 'гри', 'ігор')}`),
@@ -838,6 +857,11 @@ const quk: QuestStrings = {
     quick_win: () => 'Виграйте швидку онлайн-гру',
     journey_win: () => 'Виграйте партію Подорожі',
     journey_3star: () => 'Виграйте партію Подорожі на 3 зірки',
+    mg_games: n => (n === 1 ? 'Зіграйте міні-гру' : `Зіграйте ${n} ${ruPl(n, 'міні-гру', 'міні-гри', 'міні-ігор')}`),
+    mg_zole_win: n => (n === 1 ? 'Виграйте партію в Золе' : `Виграйте ${n} ${ruPl(n, 'партію', 'партії', 'партій')} у Золе`),
+    mg_durak_win: n => (n === 1 ? 'Виграйте партію в Дурня' : `Виграйте ${n} ${ruPl(n, 'партію', 'партії', 'партій')} у Дурня`),
+    mg_solitaire_win: n => (n === 1 ? 'Розкладіть пасьянс' : `Розкладіть ${n} ${ruPl(n, 'пасьянс', 'пасьянси', 'пасьянсів')}`),
+    mg_sudoku_daily: () => 'Розв’яжіть сьогоднішнє судоку',
   },
   time: { d: 'д', h: 'год', m: 'хв' },
 };

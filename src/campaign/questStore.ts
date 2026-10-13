@@ -147,6 +147,21 @@ async function flush(): Promise<void> {
   }
 }
 
+/**
+ * After the server moved quests on its own (a mini game: record_minigame, migration 019): reload the board and toast
+ * what progressed — including a game quest that was only just assigned by that game.
+ */
+export async function refreshQuests(uid: string | null): Promise<void> {
+  const before = state.uid === uid ? state.board : null;
+  await loadQuests(uid, true);
+  const after = state.board;
+  if (!before || !after || after.local || state.uid !== uid) return;
+  const old = [...before.daily, ...before.weekly];
+  const fresh = [...after.daily, ...after.weekly].filter(a => !old.some(b => b.id === a.id && b.kind === a.kind) && a.progress > 0)
+    .map(a => ({ id: a.id, from: 0, to: a.progress, goal: a.goal, kind: a.kind }));
+  toast([...diffRows(old, [...after.daily, ...after.weekly]), ...fresh]);
+}
+
 /* ------------------------------------------------------------------ actions */
 
 function afterAction(r: QuestActionResult | null, what: string): QuestActionResult {

@@ -4,7 +4,7 @@ import { useStrings } from '../i18n/pick';
 import { QUEST_STRINGS, type QuestStrings } from '../i18n/journey';
 import { sfx } from '../sound';
 import { useQuests } from './questStore';
-import { isReady, type Metric } from './quests';
+import { isGameMetric, isReady, type Metric } from './quests';
 import './quests-mini.css';
 
 /** "5h 12m" / "2d 4h" until the given epoch ms; ticks every 30 s. */
@@ -22,11 +22,13 @@ export function useCountdown(target: number | undefined, s: QuestStrings) {
 const GLYPH: Record<Metric, string> = {
   games: '♣', wins: '♛', queen: 'Q♠', burn125: '125', jacks: 'J', rounds: '↻', rounds_won: '⇥', bluff_rounds: '?', bounce: '6♠',
   kings: 'K⁴', quick_win: 'ϟ', journey_win: '✦', journey_3star: '★',
+  // mini games (migration 019)
+  mg_games: '◈', mg_zole_win: 'Z', mg_durak_win: 'D', mg_solitaire_win: 'K♥', mg_sudoku_daily: '9',
 };
 
 /** Engraved brass medallion with the quest's glyph. */
 export function QuestGlyph({ metric, size = 46 }: { metric: Metric; size?: number }) {
-  const g = GLYPH[metric];
+  const g = GLYPH[metric] ?? '◈';
   return (
     <span className={`qglyph m-${metric}`} style={{ width: size, height: size, fontSize: size * (g.length > 2 ? 0.27 : g.length > 1 ? 0.33 : 0.42) }} aria-hidden>
       <span className="in serif">{g}</span>
@@ -54,7 +56,9 @@ export function QuestTracker({ onOpen, className = '' }: { onOpen: () => void; c
   const b = q.board;
   const t = useCountdown(b?.nextDaily, s);
   if (!b) return null;
-  const done = b.daily.every(r => r.claimed);
+  // Home keeps to Bridge: the extra mini-game quest lives in the quest log and the games hub
+  const rows = b.daily.filter(r => !isGameMetric(r.metric));
+  const done = rows.every(r => r.claimed);
   return (
     <button className={`qtrack ${q.ready ? 'hot' : ''} ${className}`} onClick={() => { sfx.tap(); onOpen(); }}>
       <span className="qtrack-head">
@@ -64,7 +68,7 @@ export function QuestTracker({ onOpen, className = '' }: { onOpen: () => void; c
         <span className="go" aria-hidden>›</span>
       </span>
       <span className="qtrack-rows">
-        {b.daily.map(r => (
+        {rows.map(r => (
           <span key={r.id} className={`qtr ${isReady(r) ? 'ready' : ''} ${r.claimed ? 'claimed' : ''}`}>
             <QuestGlyph metric={r.metric} size={26} />
             <span className="qtr-tx"><span className="nm">{s.desc[r.metric](r.goal)}</span><QuestBar v={r.progress} max={r.goal} /></span>

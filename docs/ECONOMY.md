@@ -153,3 +153,30 @@ Premium celiņa 250 💎 atdod ~26 % cenas (motivē nākamo sezonu, bet neatmaks
 
 **Nākamā sezona**: jauns `seasons` ieraksts (`s2`, datumi), 80 `season_rewards` rindas, jauni `s2_*` stili `shop_items` (price_bm null) un
 `src/season/cosmetics.ts`. Balvas var saņemt vēl 14 dienas pēc sezonas beigām (`grace_days`).
+
+---
+
+## 7. Mini spēles (`supabase/migration_019_minigames.sql`, `/games`)
+
+Bridge 125 paliek galvenā — un vislabāk apmaksātā — spēle. Mini spēles (Zole, Durak, Pasjanss, Sudoku …) ir “vairāk spēļu” slānis
+ar to pašu kontu, BM, XP, uzdevumiem, sezonas zvaigznēm un medaļām. Klienta spoguļkopija: `src/games/rewards.ts` (tests salīdzina ar SQL).
+
+| Spēle | Uzvara (normāls) | Līmenis: viegls ×0,75 · normāls ×1 · grūts ×1,25 · eksperts ×1,5 | Zaudējums | Dienas mīklas bonuss |
+|---|---|---|---|---|
+| Zole | 40 BM · 30 XP | 30 / 40 / 50 / 60 BM · 23 / 30 / 38 / 45 XP | 5 BM · 8 XP | — |
+| Durak | 35 BM · 25 XP | 26 / 35 / 44 / 53 BM · 19 / 25 / 31 / 38 XP | 5 BM · 8 XP | — |
+| Pasjanss | 30 BM · 20 XP | 23 / 30 / 38 / 45 BM · 15 / 20 / 25 / 30 XP | 0 BM · 5 XP | — |
+| Sudoku | 30 BM · 20 XP | 23 / 30 / 38 / 45 BM · 15 / 20 / 25 / 30 XP | 0 BM · 5 XP | +50 BM · +25 XP (1× par dienas mīklu) |
+
+- **Griesti**: SQL `CHECK` neļauj nevienai mini spēlei (arī admina pievienotai) maksāt eksperta līmenī ≥ 100 BM / 85 XP (Bridge uzvara).
+- **Limiti**: 30 apmaksātas spēles dienā katrā spēlē un 60 kopā; spēle īsāka par `min_seconds` netiek skaitīta (`fast`);
+  starp diviem vienas spēles rezultātiem jāpaiet `min_seconds` (`slow`). Pēc limita spēle skaitās statistikā, uzdevumos un tabulās, bet nemaksā.
+- **Sezona**: apmaksāta mini spēle +3 ★ (uzvara) / +1 ★ (zaudējums) no tās pašas dienas ‘game’ kvotas (300 ★) kā Bridge.
+- **Uzdevumi**: spēlētājs, kas pēdējās 14 dienās spēlējis kādu mini spēli, saņem **vienu papildu** dienas spēļu uzdevumu (120–150 BM);
+  Bridge 3 dienas + 5 nedēļas uzdevumi un nedēļas lāde nemainās.
+- **Medaļas**: kategorija “Spēles” — 9 medaļas (100–1 500 BM), piem., “Zoles meistars” (25 Zoles uzvaras), “Nekad muļķis” (5 Durak uzvaras pēc kārtas),
+  “Kā pulkstenis” (dienas mīkla 7 dienas pēc kārtas).
+- **Admin**: `select minigame_set('zole', '{"win_bm": 45, "daily_cap": 20}')` (admin/god) — maina vai pievieno spēli; `active = false` to paslēpj no balvām.
+
+Pat 60 apmaksātas mini spēles dienā, visas uzvarētas eksperta līmenī, dod ≤ ~3 600 BM (+ dienas mīkla un uzdevums) — mazāk nekā 60 Bridge uzvaras
+(6 000 BM), un parastam spēlētājam tās ir dažas spēles starp partijām, tāpēc inflāciju tas būtiski nemaina.

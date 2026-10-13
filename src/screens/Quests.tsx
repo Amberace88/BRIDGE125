@@ -50,7 +50,7 @@ function QuestCard({ r, s, i, canSwap, busy, local, onClaim, onSwap }: {
       <QuestGlyph metric={r.metric} />
       <span className="qtx">
         <b className="serif">{s.names[r.id] ?? r.id}</b>
-        <span className="qdesc">{s.desc[r.metric](r.goal)}</span>
+        <span className="qdesc">{s.desc[r.metric]?.(r.goal) ?? ''}</span>
         <span className="qprog"><QuestBar v={r.progress} max={r.goal} /><span className="qn">{r.progress}<small>/{r.goal}</small></span></span>
         <span className="qrw"><span><i className="coin" />{fmtBm(r.bm)}</span><span className="xp">{r.xp} XP</span></span>
       </span>
