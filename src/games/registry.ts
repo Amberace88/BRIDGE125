@@ -1,6 +1,7 @@
 import type { GameId, GameModule } from './types';
 import { zole } from './zole';
 import { durak } from './durak';
+import { thousand } from './thousand';
 import { solitaire } from './solitaire';
 import { sudoku } from './sudoku';
 
@@ -8,6 +9,7 @@ import { sudoku } from './sudoku';
 const MODULES: GameModule[] = [
   zole,
   durak,
+  thousand,
   solitaire,
   sudoku,
 ];
