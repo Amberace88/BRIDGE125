@@ -13,6 +13,8 @@
  * This file has no Workers-only imports so the signature check is unit-tested in Node (src/social/social.test.ts).
  */
 import { diamondPack } from '../src/social/gifts';
+import { isMerchObject, merchStripeEvent, type WaitUntil } from './merchStripe';
+import { markRefunded } from './merchStore';
 
 export interface PayEnv {
   SUPABASE_URL?: string;
@@ -191,7 +193,7 @@ async function checkout(req: Request, env: PayEnv): Promise<Response> {
 
 interface StripeEvent { id: string; type: string; data: { object: Record<string, unknown> } }
 
-async function webhook(req: Request, env: PayEnv): Promise<Response> {
+async function webhook(req: Request, env: PayEnv, ctx?: WaitUntil): Promise<Response> {
   if (!paymentsEnabled(env)) return json({ error: 'unavailable' }, 503);
   const raw = await req.text();
   const sig = await verifyStripeSignature(raw, req.headers.get('Stripe-Signature'), env.STRIPE_WEBHOOK_SECRET!);
@@ -200,6 +202,9 @@ async function webhook(req: Request, env: PayEnv): Promise<Response> {
   try { ev = JSON.parse(raw); } catch { return json({ error: 'bad' }, 400); }
   const o = ev.data?.object ?? {};
   const meta = (o.metadata ?? {}) as Record<string, string>;
+
+  // merch orders (metadata.kind = "merch") share this endpoint → worker/merchStripe.ts
+  if (isMerchObject(o)) return merchStripeEvent(ev, env, ctx);
 
   if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') {
     if (o.payment_status !== 'paid') return json({ received: true, pending: true });   // async methods: wait for *_succeeded
@@ -216,16 +221,18 @@ async function webhook(req: Request, env: PayEnv): Promise<Response> {
   if (ev.type === 'charge.refunded' && o.refunded === true && typeof o.payment_intent === 'string') {
     const r = await supaRpc(env, 'refund_payment', { p_intent: o.payment_intent, p_event: ev.id }, { service: true });
     if (!r.ok) return json({ error: 'refund', status: r.status }, 500);
+    const m = await markRefunded(env, o.payment_intent, ev.id);      // merch order (no-op when the intent is not one)
+    if (!m.ok && m.status !== 404) return json({ error: 'refund', status: m.status }, 500);
     return json({ received: true });
   }
   return json({ received: true, ignored: ev.type });
 }
 
 /** Routes /api/pay/*. Returns null for other paths. */
-export async function handlePay(req: Request, env: PayEnv): Promise<Response | null> {
+export async function handlePay(req: Request, env: PayEnv, ctx?: WaitUntil): Promise<Response | null> {
   const path = new URL(req.url).pathname;
   if (path === '/api/pay/status') return json({ enabled: paymentsEnabled(env) });
   if (path === '/api/pay/checkout') return req.method === 'POST' ? checkout(req, env) : json({ error: 'method' }, 405);
-  if (path === '/api/pay/webhook') return req.method === 'POST' ? webhook(req, env) : json({ error: 'method' }, 405);
+  if (path === '/api/pay/webhook') return req.method === 'POST' ? webhook(req, env, ctx) : json({ error: 'method' }, 405);
   return null;
 }

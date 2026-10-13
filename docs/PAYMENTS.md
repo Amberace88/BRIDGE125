@@ -50,6 +50,7 @@ A *restricted* key also works: grant **Checkout Sessions: Write** only.
 - Endpoint URL: `https://bridge125.com/api/pay/webhook`
 - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`
 - After saving, reveal the **Signing secret** (`whsec_…`).
+- Merch orders (docs/MERCH.md) use this same endpoint and events — nothing extra to add.
 
 ### 4. Supabase service-role key
 Supabase dashboard → **Project Settings → API Keys** → copy the **secret** key (`sb_secret_…`) or the legacy

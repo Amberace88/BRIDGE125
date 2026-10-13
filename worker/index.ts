@@ -1,5 +1,7 @@
 import type { Env } from './room';
 import { handlePay } from './pay';
+import { handleMerch, merchCron, servePrint } from './merch';
+import type { MerchEnv } from './merchTypes';
 export { Room } from './room';
 export { Lobby } from './lobby';
 
@@ -28,7 +30,7 @@ async function iceServers(env: IceEnv): Promise<Response> {
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env & MerchEnv, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
     const m = url.pathname.match(CODE);
     if (m) {
@@ -41,8 +43,14 @@ export default {
     }
     if (url.pathname === '/api/ice') return iceServers(env);
     if (url.pathname === '/api/health') return Response.json({ ok: true, ts: Date.now() });
-    if (url.pathname.startsWith('/api/pay/')) { const r = await handlePay(req, env); if (r) return r; }
+    if (url.pathname.startsWith('/api/pay/')) { const r = await handlePay(req, env, ctx); if (r) return r; }
+    if (url.pathname.startsWith('/api/merch/')) { const r = await handleMerch(req, env, ctx); if (r) return r; }
+    if (url.pathname.startsWith('/print/')) return servePrint(req, env);
     if (url.pathname.startsWith('/api/')) return new Response('not found', { status: 404 });
     return env.ASSETS.fetch(req);
   },
-} satisfies ExportedHandler<Env>;
+  /** Cron (wrangler.jsonc → triggers.crons): merch provider-order retries + status polling. */
+  async scheduled(_c: ScheduledController, env: Env & MerchEnv, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(merchCron(env).then(r => { if (r.submitted.length || r.polled) console.log('merch cron', JSON.stringify(r)); }).catch(e => console.error('merch cron', e)));
+  },
+} satisfies ExportedHandler<Env & MerchEnv>;

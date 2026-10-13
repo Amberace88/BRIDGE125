@@ -28,6 +28,8 @@ initMusic();
 
 /** The wardrobe (previews, victory effects, all item art) loads on first visit to the Style tab. */
 const Wardrobe = lazy(() => import('../cosmetics/Wardrobe').then(m => ({ default: m.Wardrobe })));
+/** Merch orders (status timeline + tracking) — renders nothing for players without orders. */
+const MyOrders = lazy(() => import('../merch/MyOrders').then(m => ({ default: m.MyOrders })));
 
 const AVATARS = ['', '♠', '♥', '♦', '♣', '👑', '🃏', '🎩', '🦊', '🐺', '🦉', '🐻', '🌙', '⭐', '🔥', '💎'];
 type Tab = 'me' | 'look' | 'account';
@@ -199,6 +201,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
                   <div className="prow"><span>{p.email}</span><b className="mute" style={{ fontWeight: 600 }}>{app.session?.user.email}</b></div>
                   <InviteCard />
                   <WalletPanel onDiamonds={onDiamonds} />
+                  <Suspense fallback={null}><MyOrders /></Suspense>
                   <ChangePassword />
                   {app.isAdmin && <button className="btn acc" style={{ width: '100%', marginTop: 14 }} onClick={onAdmin}>📊 {p.adminPanel}</button>}
                   {ins.available && <button className="btn ghost" style={{ width: '100%', marginTop: 10 }} onClick={onInstall}>⬇ {t.install.button}</button>}

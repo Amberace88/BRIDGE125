@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { getSupabase } from '../supabase';
 import { RoleBadge } from '../components/RoleBadge';
@@ -28,7 +28,8 @@ interface UserRow {
 }
 interface EventRow { at: string; name: string; who: string; props: Record<string, unknown> }
 
-type Tab = 'overview' | 'users' | 'shop' | 'merch' | 'events';
+type Tab = 'overview' | 'users' | 'shop' | 'merch' | 'orders' | 'events';
+const OrdersAdmin = lazy(() => import('../merch/OrdersAdmin').then(m => ({ default: m.OrdersAdmin })));
 const nf = (n: number) => (n ?? 0).toLocaleString('lv-LV');
 const ago = (iso: string | null) => {
   if (!iso) return '—';
@@ -195,7 +196,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
       <header className="adhead">
         <div className="adbrand"><img src="/logo-mark.svg" alt="" width={34} height={34} /><div><b>BRIDGE 125</b><span>Admina panelis</span></div></div>
         <nav className="adtabs" role="tablist">
-          {([['overview', 'Pārskats'], ['users', 'Spēlētāji'], ['shop', 'Veikals'], ['merch', 'Merch'], ['events', 'Notikumi']] as const).map(([k, l]) => (
+          {([['overview', 'Pārskats'], ['users', 'Spēlētāji'], ['shop', 'Veikals'], ['merch', 'Merch'], ['orders', 'Pasūtījumi'], ['events', 'Notikumi']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
               {tab === k && <motion.span layoutId="adtab" className="adpill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
               <b>{l}</b>
@@ -243,6 +244,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
             {tab === 'users' && <Users />}
             {tab === 'shop' && <ShopStats />}
             {tab === 'merch' && <MerchInterest />}
+            {tab === 'orders' && <Suspense fallback={<div className="adskel"><div className="shimmerbar" style={{ height: 96 }} /></div>}><OrdersAdmin /></Suspense>}
             {tab === 'events' && <Events />}
           </motion.div>
         </AnimatePresence>

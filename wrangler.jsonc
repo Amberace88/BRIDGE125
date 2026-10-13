@@ -7,7 +7,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/print/*"]
   },
   "durable_objects": {
     "bindings": [
@@ -20,12 +20,19 @@
     { "tag": "v2", "new_sqlite_classes": ["Lobby"] }
   ],
   "observability": { "enabled": true },
+  // Merch fulfilment: every 10 min submit due provider orders (retries with backoff) and refresh order statuses.
+  "triggers": { "crons": ["*/10 * * * *"] },
   // Public values only. Secrets (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY) are set with
   // `wrangler secret put` — see docs/PAYMENTS.md. Without them /api/pay/* answers 503 ("Payments coming soon").
+  // Merch print providers (PRINTFUL_TOKEN, PRINTFUL_STORE_ID, GELATO_API_KEY, PRODIGI_API_KEY, PRINTIFY_TOKEN,
+  // PRINTIFY_SHOP_ID …) are secrets too — see docs/MERCH.md. Without them /api/merch/* answers 503.
   "vars": {
     "SUPABASE_URL": "https://iclxvshtxwukkhljetik.supabase.co",
     "SUPABASE_ANON_KEY": "sb_publishable_nMYB6ax0FmIitlK-vuK9Gw_7-zfEN03",
     "PUBLIC_ORIGIN": "https://bridge125.com",
-    "STRIPE_AUTOMATIC_TAX": "0"
+    "STRIPE_AUTOMATIC_TAX": "0",
+    "MERCH_DRAFT_ORDERS": "0",
+    "MERCH_LIVE_SHIPPING": "0",
+    "MERCH_CONTACT_EMAIL": "hello@bridge125.com"
   }
 }
