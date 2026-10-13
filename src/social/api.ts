@@ -14,10 +14,11 @@ export function paymentsEnabled(): Promise<boolean> {
 export type CheckoutResult = { url: string } | { error: 'unavailable' | 'auth' | 'network' | 'generic' };
 
 /** Ask the Worker for a Stripe Checkout session and return its URL (the caller redirects). */
-export async function startCheckout(pack: string, token: string, lang: string): Promise<CheckoutResult> {
+/** `consent`: the player ticked the EU withdrawal-right waiver (immediate delivery) — the Worker refuses checkout without it. */
+export async function startCheckout(pack: string, token: string, lang: string, consent: boolean): Promise<CheckoutResult> {
   try {
     const r = await fetch('/api/pay/checkout', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ pack, lang }),
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ pack, lang, consent }),
     });
     const j = await r.json().catch(() => ({})) as { url?: string; error?: string };
     if (r.ok && j.url && /^https:\/\/checkout\.stripe\.com\//.test(j.url)) return { url: j.url };

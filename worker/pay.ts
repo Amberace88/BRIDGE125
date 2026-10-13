@@ -2,7 +2,7 @@
  * Payments (Diamonds via Stripe Checkout) + small Supabase REST helpers shared with the Room.
  *
  *   GET  /api/pay/status    → { enabled }                       (UI shows "Payments coming soon" when false)
- *   POST /api/pay/checkout  → { url }  (Authorization: Bearer <Supabase access token>, body { pack })
+ *   POST /api/pay/checkout  → { url }  (Authorization: Bearer <Supabase access token>, body { pack, lang, consent: true })
  *   POST /api/pay/webhook   ← Stripe   (signature verified, credits Diamonds idempotently)
  *
  * No secret lives in the repo. Secrets (set with `wrangler secret put` — see docs/PAYMENTS.md):
@@ -141,10 +141,14 @@ async function checkout(req: Request, env: PayEnv): Promise<Response> {
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   const user = await userFromToken(env, token);
   if (!user) return json({ error: 'auth' }, 401);
-  let body: { pack?: unknown; lang?: unknown };
+  let body: { pack?: unknown; lang?: unknown; consent?: unknown };
   try { body = await req.json(); } catch { return json({ error: 'bad' }, 400); }
   const pack = typeof body.pack === 'string' ? diamondPack(body.pack) : undefined;
   if (!pack) return json({ error: 'unknown' }, 400);
+  // EU digital content: no delivery without the express waiver of the 14-day withdrawal right (Directive 2011/83/EU art. 16(m))
+  if (body.consent !== true) return json({ error: 'consent' }, 400);
+  const waiver = new Date().toISOString();
+  const waiverText = 'Delivered immediately: you asked for immediate delivery and acknowledged that your 14-day right of withdrawal ends once delivery starts. Terms: ';
   const reqOrigin = new URL(req.url);
   const local = reqOrigin.hostname === 'localhost' || reqOrigin.hostname === '127.0.0.1';
   const origin = (!local && env.PUBLIC_ORIGIN) || reqOrigin.origin;
@@ -165,6 +169,11 @@ async function checkout(req: Request, env: PayEnv): Promise<Response> {
     'metadata[pack]': pack.id,
     'payment_intent_data[metadata][uid]': user.id,
     'payment_intent_data[metadata][pack]': pack.id,
+    // consent record, kept with the order and repeated on the payment (receipt description + checkout page)
+    'metadata[withdrawal_waiver]': waiver,
+    'payment_intent_data[metadata][withdrawal_waiver]': waiver,
+    'payment_intent_data[description]': `Bridge 125 — ${name}. ${waiverText}${origin}/terms`,
+    'custom_text[submit][message]': `${waiverText}${origin}/terms`,
     success_url: `${origin}/?pay=ok&sid={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/?pay=cancel`,
     locale: lang,

@@ -20,6 +20,32 @@ function load(): Prefs {
   if (!isLang(p.lang)) p.lang = 'en';
   return p;
 }
+/** True when this page load took its language from the URL (/de/…, ?lang=de) — the profile's saved language must not override it. */
+let urlLang = false;
+
+/**
+ * Language links: /de/play, /de/r/ABCD, /de/privacy or ?lang=de open the app in that language. Call before the first
+ * render: an explicit language link wins over the stored and the browser language and is remembered (all other
+ * prefs are kept), and the prefix is stripped so the app's router sees the plain path (/de/play → /, /de/r/X → /r/X).
+ */
+export function adoptUrlLang(): void {
+  try {
+    const m = location.pathname.match(/^\/([a-z]{2})(\/.*)?$/);
+    const q = new URLSearchParams(location.search);
+    const fromPath = m && isLang(m[1]) ? m[1] : null;
+    const fromQuery = q.get('lang');
+    const lang = fromPath ?? (isLang(fromQuery) ? fromQuery : null);
+    if (!lang) return;
+    urlLang = true;
+    persist({ ...load(), lang });
+    q.delete('lang');
+    let path = fromPath ? (m![2] ?? '/') : location.pathname;
+    if (/^\/play\/?$/.test(path)) path = '/';
+    const search = q.toString();
+    history.replaceState(history.state, '', path + (search ? '?' + search : '') + location.hash);
+  } catch { /* storage or history unavailable: keep the detected language */ }
+}
+
 /** Resolves once the starting language's strings are in memory — main.tsx waits for it before the first render. */
 export const localeReady = () => loadLocale(load().lang);
 function persist(p: Prefs) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* */ } }
@@ -114,7 +140,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.username) patch.name = data.username;
       if (data.accent) patch.accent = data.accent;
       if (data.background) patch.table = data.background;
-      if (data.lang) patch.lang = data.lang as Lang;
+      if (data.lang && !urlLang) patch.lang = data.lang as Lang;
+      // a language link was followed: it becomes the account's language too (otherwise the next visit would flip back)
+      else if (urlLang && data.lang !== load().lang) void sb.from('profiles').update({ lang: load().lang }).eq('id', session.user.id).then(() => {}, () => {});
       if (data.card_back) patch.cardBack = data.card_back;
       if (data.avatar) patch.avatar = data.avatar;
       set(patch);

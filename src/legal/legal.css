@@ -1,0 +1,22 @@
+/* Legal screen extras (privacy + terms) and the withdrawal-consent line shown before checkout. */
+.legal { user-select: text; -webkit-user-select: text; }
+.legalbind { display: inline-block; margin: 0 0 14px; padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: var(--acc-hi); background: color-mix(in srgb, var(--acc) 12%, transparent); border: 1px solid var(--line); }
+.legalsec ul { list-style: none; margin: 10px 0 0 40px; display: grid; gap: 8px; }
+.legalsec li { position: relative; padding-left: 18px; font-size: 15px; line-height: 1.65; color: rgba(238,243,239,.82); }
+.legalsec li::before { content: ''; position: absolute; left: 2px; top: .68em; width: 6px; height: 6px; border-radius: 50%; background: var(--acc); }
+.legalsec li b { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.legal mark.ph { background: rgba(255, 196, 0, .2); color: #FFE08A; border-radius: 4px; padding: 0 3px; font-weight: 600; }
+@media (max-width: 560px) { .legalsec ul { margin-left: 0; } }
+
+.wconsent { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: rgba(5, 18, 16, .55); border: 1px solid var(--line); cursor: pointer; text-align: left; transition: border-color .2s, box-shadow .2s; }
+.wconsent input { appearance: none; -webkit-appearance: none; flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 7px; border: 2px solid var(--acc); background: transparent; display: grid; place-items: center; cursor: pointer; }
+.wconsent input:checked { background: linear-gradient(180deg, var(--acc-hi), var(--acc)); }
+.wconsent input:checked::after { content: '✓'; color: var(--acc-ink); font-weight: 800; font-size: 14px; line-height: 1; }
+.wconsent input:focus-visible { outline: 2px solid var(--acc-hi); outline-offset: 2px; }
+.wconsent span { font-size: 12.5px; line-height: 1.5; color: rgba(238,243,239,.86); }
+.wconsent a, .wconsent button.lnk { color: var(--acc-hi); text-decoration: underline; text-underline-offset: 2px; font-size: inherit; }
+.wconsent.need { border-color: var(--claret-hi); box-shadow: 0 0 0 3px color-mix(in srgb, var(--claret-hi) 25%, transparent); animation: wshake .4s; }
+.wneed { margin-top: 6px; font-size: 12px; color: #FF9DAE; }
+@keyframes wshake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .wconsent.need { animation: none; } }
+.dmconsent { margin: 2px 0 12px; }

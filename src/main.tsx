@@ -4,8 +4,9 @@ import './styles.css';
 import App from './App';
 import { captureInstallPrompt } from './install';
 import { initMusic } from './media/music';
-import { localeReady } from './store';
+import { adoptUrlLang, localeReady } from './store';
 
+adoptUrlLang();   // /de/… landing-page links → German UI, plain path for the router
 captureInstallPrompt();
 initMusic();
 
