@@ -1,0 +1,55 @@
+/* ================================================================
+   FreeCell — rides on Solitaire's felt, cards and brass (solitaire.css); only what FreeCell adds lives here.
+   Only transform / opacity animate.
+   ================================================================ */
+
+/* free cells: engraved brass recesses, a little deeper than the foundations */
+.fc .sol-slot.fc-cell { border-color: color-mix(in srgb, var(--acc) 40%, transparent);
+  background:
+    radial-gradient(110% 80% at 50% 20%, color-mix(in srgb, var(--acc-hi) 7%, transparent), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.34), rgba(0,0,0,.16));
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 10px 18px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.05); }
+.fc .fc-cellmark { width: 34%; aspect-ratio: 1; border-radius: 22%; transform: rotate(45deg);
+  border: 1.5px solid color-mix(in srgb, var(--acc-hi) 26%, transparent); }
+.fc .sol-slot.m-king { border-color: color-mix(in srgb, var(--acc) 18%, transparent); }
+
+/* a run that fits by rank but is too long right now: a muted red edge, no snap */
+.fc .sol-slot.nodrop { border-color: rgba(224, 64, 92, .7); box-shadow: 0 0 0 1px rgba(224, 64, 92, .5), 0 0 18px rgba(224, 64, 92, .25); }
+
+/* the brass divider between the cells and the foundations */
+.fc-divider { position: absolute; left: -1px; top: 0; width: 2px; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--acc-hi) 55%, transparent), transparent);
+  opacity: .55; }
+
+/* HUD: cards home out of 52 */
+.fc .fc-home small { letter-spacing: .08em; }
+.fc .fc-home b i { font-style: normal; font-size: .58em; color: var(--mute); margin-left: 1px; }
+
+/* the menu (a grid item sized by its content: pin the width so long lines wrap instead of widening it) */
+.fc-sheet { width: min(420px, calc(100vw - 24px)); }
+.fc-rules { display: flex; align-items: center; gap: 12px; margin: 2px 0 2px; padding: 10px 12px; border-radius: 16px;
+  background: rgba(0,0,0,.24); border: 1px solid rgba(255,255,255,.05); }
+.fc-rules p { flex: 1; font-size: 12.5px; line-height: 1.4; color: var(--mute); }
+.fc-art { width: 96px; flex-shrink: 0; height: auto; }
+.fc-art rect.up { fill: #F3EBD8; stroke: rgba(0,0,0,.35); stroke-width: .3; }
+.fc-art rect.up.r { fill: #F6E3E0; }
+.fc-art rect.cell { fill: rgba(0,0,0,.25); stroke: color-mix(in srgb, var(--acc-hi) 55%, transparent); stroke-width: .4; stroke-dasharray: 1.2 .8; }
+.fc-art rect.home { fill: color-mix(in srgb, var(--acc) 22%, transparent); stroke: color-mix(in srgb, var(--acc-hi) 60%, transparent); stroke-width: .4; }
+
+.fc-deal { display: flex; align-items: flex-end; gap: 10px; margin-top: 12px; }
+.fc-deal label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.fc-deal small { font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); font-weight: 600; padding-left: 4px; }
+.fc-dealin { display: flex; align-items: center; height: 40px; border-radius: 12px; padding: 0 12px; background: rgba(0,0,0,.3);
+  border: 1px solid rgba(255,255,255,.07); transition: border-color .2s, box-shadow .2s; }
+.fc-dealin:focus-within { border-color: var(--acc-hi); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc-hi) 18%, transparent); }
+.fc-dealin i { font-style: normal; font-family: var(--serif); font-size: 20px; color: var(--acc-hi); margin-right: 6px; }
+.fc-dealin input { flex: 1; min-width: 0; width: 100%; height: 100%; background: none; border: 0; outline: 0; color: #F7F1E3;
+  font-family: var(--serif); font-size: 20px; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; }
+.fc-dealin input::placeholder { color: color-mix(in srgb, var(--mute) 70%, transparent); font-weight: 500; font-size: 15px; font-family: inherit; }
+.fc-deal .btn { height: 40px; flex-shrink: 0; min-width: 88px; }
+
+/* the narrowest phones: keep the HUD on one line */
+@media (max-width: 360px) {
+  .fc .sol-nums { gap: 14px; }
+  .fc-art { width: 76px; }
+}
