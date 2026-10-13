@@ -16,6 +16,10 @@ export const MINIGAME_DEFS: MiniGameDef[] = [
   { id: 'durak', kind: 'cards', hasDaily: false, winBm: 35, winXp: 25, lossBm: 5, lossXp: 8, dailyBm: 0, dailyXp: 0, minSeconds: 30, dailyCap: 30, maxScore: 1000000 },
   { id: 'solitaire', kind: 'cards', hasDaily: false, winBm: 30, winXp: 20, lossBm: 0, lossXp: 5, dailyBm: 0, dailyXp: 0, minSeconds: 45, dailyCap: 30, maxScore: 1000000 },
   { id: 'sudoku', kind: 'puzzle', hasDaily: true, winBm: 30, winXp: 20, lossBm: 0, lossXp: 5, dailyBm: 50, dailyXp: 25, minSeconds: 30, dailyCap: 30, maxScore: 1000000 },
+  // 022a/b/c
+  { id: 'thousand', kind: 'cards', hasDaily: false, winBm: 40, winXp: 30, lossBm: 5, lossXp: 8, dailyBm: 0, dailyXp: 0, minSeconds: 90, dailyCap: 30, maxScore: 1000000 },
+  { id: 'mahjong', kind: 'puzzle', hasDaily: true, winBm: 30, winXp: 20, lossBm: 0, lossXp: 5, dailyBm: 50, dailyXp: 25, minSeconds: 45, dailyCap: 30, maxScore: 1000000 },
+  { id: 'freecell', kind: 'cards', hasDaily: true, winBm: 30, winXp: 20, lossBm: 0, lossXp: 5, dailyBm: 50, dailyXp: 25, minSeconds: 40, dailyCap: 30, maxScore: 1000000 },
 ];
 
 /** Win multipliers by bots' level / puzzle difficulty; anything else counts as normal. */

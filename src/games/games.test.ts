@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { lazy } from 'react';
 import sql from '../../supabase/migration_019_minigames.sql?raw';
+import sql22a from '../../supabase/migration_022a_thousand.sql?raw';
+import sql22b from '../../supabase/migration_022b_mahjong.sql?raw';
+import sql22c from '../../supabase/migration_022c_freecell.sql?raw';
 import { BRIDGE_WIN, LEVEL_MULT, MINIGAME_DEFS, rewardFor } from './rewards';
 import { GAME_QUEST_DEFS, QUEST_DEFS, isGameMetric } from '../campaign/quests';
 import { QUEST_STRINGS } from '../i18n/journey';
@@ -27,7 +30,13 @@ describe('migration 019 ↔ client mirrors', () => {
       id: m[1], kind: m[2], hasDaily: m[4] === 'true', winBm: +m[5], winXp: +m[6], lossBm: +m[7], lossXp: +m[8],
       dailyBm: +m[9], dailyXp: +m[10], minSeconds: +m[11], dailyCap: +m[12], maxScore: +m[13],
     }));
-    expect(rows).toEqual(MINIGAME_DEFS);
+    const later = [sql22a, sql22b, sql22c].flatMap(src => [...src.matchAll(
+      /\('([a-z0-9-]+)',\s*'(\w+)',\s*(true|false),\s*(true|false),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*\d+\)/g,
+    )].map(m => ({
+      id: m[1], kind: m[2], hasDaily: m[4] === 'true', winBm: +m[5], winXp: +m[6], lossBm: +m[7], lossXp: +m[8],
+      dailyBm: +m[9], dailyXp: +m[10], minSeconds: +m[11], dailyCap: +m[12], maxScore: +m[13],
+    })));
+    expect([...rows, ...later]).toEqual(MINIGAME_DEFS);
   });
 
   it('game quest defs equal GAME_QUEST_DEFS and stay out of the Bridge pool', () => {
