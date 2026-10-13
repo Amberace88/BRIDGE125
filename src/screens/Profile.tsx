@@ -102,7 +102,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
   const since = prof?.created_at ? new Date(prof.created_at).toLocaleDateString(app.lang === 'uk' ? 'uk-UA' : app.lang, { month: 'long', year: 'numeric' }) : null;
 
   return (
-    <Sheet onClose={onClose}>
+    <Sheet onClose={onClose} closeLabel={t.close}>
       {/* ---------- header ---------- */}
       <div className="phead pcos">
         <span className="pbanner" style={{ background: bannerCss(cos.equipped.banner) }} aria-hidden />
@@ -229,7 +229,13 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
           <motion.div className="ptoast" role="status" initial={{ y: 30, opacity: 0, x: '-50%' }} animate={{ y: 0, opacity: 1, x: '-50%' }} exit={{ y: 30, opacity: 0, x: '-50%' }}>{toast}</motion.div>
         )}
       </AnimatePresence>
-      <button className="btn ghost" style={{ width: '100%', marginTop: 16 }} onClick={onClose}>{t.close}</button>
+      {/* sticky footer: close + sign out are always one tap away */}
+      <div className="pfoot">
+        {signedIn && <button className="btn ghost pfoot-out" onClick={() => { void app.signOut(); onClose(); }}>
+          <svg viewBox="0 0 24 24" aria-hidden><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10" /></svg>{t.signOut}
+        </button>}
+        <button className="btn acc pfoot-close" onClick={onClose}>{t.close}</button>
+      </div>
     </Sheet>
   );
 }
