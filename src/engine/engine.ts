@@ -52,7 +52,17 @@ export type GameEvent =
   | { t: 'bluffWrong'; p: number };                              // bluff mode: p challenged a legal play
 
 /** Optional table rules. Missing on old saved games → treat as `{ bluff: false }`. */
-export interface GameRules { bluff: boolean; /** default true: a player may draw any number of cards on their turn */ multiDraw?: boolean }
+export interface GameRules {
+  bluff: boolean;
+  /** default true: a player may draw any number of cards on their turn */
+  multiDraw?: boolean;
+  /** Journey twist: cards the Q♠ makes the next player draw (default 5). The 6♠ transfer stays 6. */
+  queenDraw?: number;
+  /** Journey twist: the game ends when someone reaches this many points (default 130). */
+  gameOverAt?: number;
+  /** Journey twist: when a player burns on exactly 125, every other player takes this many points (default 0). */
+  burnSplash?: number;
+}
 
 /**
  * Bluff mode: the most recent play, kept only while the next player may still challenge it.
@@ -99,6 +109,10 @@ export interface GameState {
 
 export interface NewGameOpts { bluff?: boolean }
 export const isBluff = (st: GameState) => !!st.rules?.bluff;
+/** Cards a Q♠ costs (table rule, default 5). */
+export const queenDraw = (st: GameState) => st.rules?.queenDraw ?? 5;
+/** Score that ends the game (table rule, default 130). */
+export const gameOverAt = (st: GameState) => st.rules?.gameOverAt ?? GAME_OVER_AT;
 
 export type Rng = () => number;
 
@@ -457,9 +471,9 @@ export function apply(prev: GameState, p: number, a: Action, rng: Rng = Math.ran
     }
     case 'Q': {
       const hasQS = cards.some(isQS);
-      if (!me.hand.length) return goOut(st, p, cards, rng, hasQS ? { kind: 'queen', amount: 5 } : null);
+      if (!me.hand.length) return goOut(st, p, cards, rng, hasQS ? { kind: 'queen', amount: queenDraw(st) } : null);
       if (hasQS) {
-        st.pending = { kind: 'queen', amount: 5 };
+        st.pending = { kind: 'queen', amount: queenDraw(st) };
         st.events.push({ t: 'queen', target: next });
       }
       endTurn(st);
@@ -565,9 +579,22 @@ function roundEnd(st: GameState, winner: number, finalCards: Card[], _rng: Rng, 
     pl.score = after;
     rows.push({ p: i, handPoints: i === winner ? 0 : handPoints, added, before, after, reset });
   });
+  // Journey twist: an exact-125 burn splashes points onto everyone else (no chain reaction)
+  const splash = st.rules?.burnSplash ?? 0;
+  const burners = rows.filter(r => r.reset).length;
+  if (splash > 0 && burners > 0) {
+    for (const row of rows) {
+      if (row.reset) continue;
+      const pl = st.players[row.p];
+      row.added += splash * burners;
+      row.after += splash * burners;
+      if (row.after === RESET_AT) { row.after = 0; row.reset = true; st.events.push({ t: 'reset125', p: row.p }); }
+      pl.score = row.after;
+    }
+  }
   st.lastResult = { winner, mult, jacks, rows };
   st.events.push({ t: 'roundEnd', winner, mult });
-  if (st.players.some(pl => pl.score >= GAME_OVER_AT)) {
+  if (st.players.some(pl => pl.score >= gameOverAt(st))) {
     const min = Math.min(...st.players.map(pl => pl.score));
     st.winners = st.players.map((pl, i) => (pl.score === min ? i : -1)).filter(i => i >= 0);
     st.phase = 'gameOver';

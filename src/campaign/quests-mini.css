@@ -1,0 +1,54 @@
+/* End-of-game quest progress toasts — small on purpose: this file ships with the game screen. */
+.qtoasts { position: fixed; left: 50%; bottom: calc(18px + var(--safe-b)); transform: translateX(-50%); z-index: 160; display: grid; gap: 8px; justify-items: center;
+  width: min(380px, calc(100vw - 24px)); pointer-events: none; font-variant-numeric: lining-nums tabular-nums; }
+.qtoast { pointer-events: auto; position: relative; overflow: hidden; width: 100%; display: grid; gap: 7px; padding: 11px 14px 12px; border-radius: 18px; text-align: left; color: var(--text);
+  background: linear-gradient(180deg, rgba(16,30,26,.96), rgba(6,14,12,.97)); border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent);
+  box-shadow: 0 22px 46px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07); backdrop-filter: blur(10px); }
+.qtoast.ready { border-color: color-mix(in srgb, var(--acc-hi) 75%, transparent); box-shadow: 0 22px 46px rgba(0,0,0,.55), 0 0 34px color-mix(in srgb, var(--acc) 30%, transparent), inset 0 1px 0 rgba(255,255,255,.08); }
+.qt-kick { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--acc-hi); }
+.qt-seal { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 11px; color: #ffd9d9;
+  background: radial-gradient(circle at 35% 30%, #e0566b, #9b1c31 60%, #5c0d1b); box-shadow: inset 0 0 0 2px rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.4); }
+.qt-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px 44px; align-items: center; gap: 10px; font-size: 13px; }
+.qt-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qt-bar { position: relative; height: 7px; border-radius: 99px; background: rgba(0,0,0,.45); box-shadow: inset 0 1px 2px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05); overflow: hidden; }
+.qt-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; }
+.qt-bar .from { background: color-mix(in srgb, var(--acc) 45%, transparent); }
+.qt-bar .to { background: linear-gradient(90deg, var(--acc-lo), var(--acc) 50%, var(--acc-hi)); box-shadow: 0 0 10px color-mix(in srgb, var(--acc-hi) 60%, transparent); }
+.qt-n { justify-self: end; font-size: 12px; font-weight: 700; color: var(--mute); }
+.qt-row.done .qt-n { color: var(--acc-hi); }
+.qt-sheen { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.13) 50%, transparent 65%); transform: translateX(-120%); animation: qtsheen 2.6s ease-out .3s 1 forwards; }
+@keyframes qtsheen { to { transform: translateX(120%); } }
+
+/* quest medallion + brass bar (shared by the quest log and the Home tracker) */
+.qglyph { position: relative; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #fff5d2 0 7%, #e9c977 24%, #a8812f 58%, #5b4212);
+  box-shadow: 0 6px 14px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,240,200,.35), inset 0 -3px 5px rgba(0,0,0,.35); }
+.qglyph .in { position: absolute; inset: 12%; border-radius: 50%; display: grid; place-items: center; font-weight: 700; line-height: 1; letter-spacing: -.02em; color: var(--acc-hi);
+  background: radial-gradient(circle at 50% 35%, #183a30, #07140f 75%); box-shadow: inset 0 2px 4px rgba(0,0,0,.7), 0 0 0 1px rgba(60,40,8,.6); text-shadow: 0 0 8px color-mix(in srgb, var(--acc-hi) 45%, transparent); }
+.qglyph.m-queen .in, .qglyph.m-bounce .in { color: #f3f0e8; }
+.qglyph.m-burn125 .in { color: #ffcf7a; text-shadow: 0 0 10px rgba(255,150,60,.7); }
+.qbar { position: relative; display: block; height: 7px; border-radius: 99px; background: rgba(0,0,0,.5); box-shadow: inset 0 1px 3px rgba(0,0,0,.75), 0 0 0 1px rgba(235,211,142,.12); overflow: hidden; }
+.qbar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, var(--acc-lo), var(--acc) 45%, var(--acc-hi) 90%, #fff4cf); box-shadow: 0 0 10px color-mix(in srgb, var(--acc-hi) 55%, transparent); }
+.qbar b { position: absolute; top: 1px; bottom: 1px; width: 1px; background: rgba(0,0,0,.55); }
+
+/* compact tracker (Home) */
+.qtrack { display: grid; gap: 8px; width: 100%; padding: 12px 14px; border-radius: 18px; text-align: left; color: var(--text); font-variant-numeric: lining-nums tabular-nums;
+  background: linear-gradient(180deg, rgba(14,30,26,.8), rgba(6,14,12,.86)); border: 1px solid rgba(255,255,255,.07); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); transition: border-color .2s, transform .2s; }
+.qtrack:hover { border-color: var(--line); transform: translateY(-1px); }
+.qtrack.hot { border-color: color-mix(in srgb, var(--acc-hi) 60%, transparent); box-shadow: 0 0 26px -6px color-mix(in srgb, var(--acc) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.06); }
+.qtrack-head { display: flex; align-items: center; gap: 8px; }
+.qtrack-head b { font-size: 14px; }
+.qtrack-head small { margin-left: auto; font-size: 11.5px; color: var(--mute); white-space: nowrap; }
+.qtrack-head .qready { margin-left: auto; font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; color: var(--acc-ink); background: linear-gradient(180deg, var(--acc-hi), var(--acc)); }
+.qtrack-head .go { color: var(--acc-hi); font-size: 20px; line-height: 1; }
+.qtrack-rows { display: grid; gap: 6px; }
+.qtr { display: grid; grid-template-columns: 26px minmax(0, 1fr) 36px; align-items: center; gap: 9px; }
+.qtr-tx { display: grid; gap: 4px; min-width: 0; }
+.qtr-tx .nm { font-size: 12px; color: rgba(238,243,239,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qtr-tx .qbar { height: 5px; }
+.qtr-n { justify-self: end; font-size: 11.5px; font-weight: 700; color: var(--mute); }
+.qtr.ready .qtr-n { color: var(--acc-hi); }
+.qtr.claimed { opacity: .5; }
+
+
+.qtoasts, .qtrack { font-feature-settings: "lnum" 1, "tnum" 1; }
