@@ -30,7 +30,9 @@ export const SWATCH: Record<ColourId, string> = {
 };
 const c = (id: ColourId, ...images: string[]): Colour => ({ id, swatch: SWATCH[id], images: images.map(M) });
 
-export const PRODUCTS: Product[] = [
+import { DECK_PRODUCTS } from './decks';
+
+const BASE_PRODUCTS: Product[] = [
   { id: 'deck', category: 'cards', price: 19, design: 'deck/QS', hero: true, badge: 'new',
     colours: [c('felt', 'deck-hero', 'deck-fan', 'deck-backs')] },
   { id: 'tee-queen', category: 'apparel', price: 32, design: 'queen-of-spades', badge: 'bestseller', sizes: APPAREL,
@@ -58,6 +60,9 @@ export const PRODUCTS: Product[] = [
   { id: 'stickers', category: 'accessories', price: 6, design: 'logo-mark',
     colours: [c('white', 'stickers')] },
 ];
+
+/** Decks first: playing cards are the flagship. */
+export const PRODUCTS: Product[] = [...DECK_PRODUCTS, ...BASE_PRODUCTS];
 
 export const productById = (id: string) => PRODUCTS.find(p => p.id === id);
 
