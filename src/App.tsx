@@ -2,18 +2,12 @@ import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { AppProvider, useApp } from './store';
 import { Home } from './screens/Home';
-import { LocalGame, loadSavedGame } from './screens/LocalGame';
-import { OnlineRoom } from './screens/OnlineRoom';
-import { ProfileSheet } from './screens/Profile';
-import { AuthSheet } from './screens/AuthSheet';
+import { loadSavedGame, savedStakeIdOf } from './screens/savedGame';
 import type { LegalKind } from './screens/Legal';
-import { RewardsLayer } from './screens/Rewards';
 import { CosmeticsSync } from './cosmetics/useCosmetics';
-import { SocialRoot } from './social/SocialRoot';
-import { QuestToasts } from './campaign/QuestToasts';
 import type { ActiveStake } from './economy/api';
-import { StakePicker } from './economy/StakePicker';
 import { Sheet } from './screens/Sheets';
+import { Deferred, lazyNamed, whenIdle } from './lazy';
 import type { ShopTab } from './screens/Shop';
 
 const Guide = lazy(() => import('./screens/Guide').then(m => ({ default: m.Guide })));
@@ -28,7 +22,16 @@ const Journey = lazy(() => import('./screens/Journey').then(m => ({ default: m.J
 const QuestsScreen = lazy(() => import('./screens/Quests').then(m => ({ default: m.QuestsScreen })));
 const AchievementsHall = lazy(() => import('./screens/Achievements').then(m => ({ default: m.AchievementsHall })));
 const VaultScreen = lazy(() => import('./screens/Wheel').then(m => ({ default: m.VaultScreen })));
-import { findQuickMatch, newRoomCode } from './online/useRoom';
+// everything below loads after the first Home paint (tables are prefetched on idle; sheets / layers on demand)
+const LocalGame = lazyNamed(() => import('./screens/LocalGame'), 'LocalGame');
+const OnlineRoom = lazyNamed(() => import('./screens/OnlineRoom'), 'OnlineRoom');
+const ProfileSheet = lazyNamed(() => import('./screens/Profile'), 'ProfileSheet');
+const AuthSheet = lazyNamed(() => import('./screens/AuthSheet'), 'AuthSheet');
+const StakePicker = lazyNamed(() => import('./economy/StakePicker'), 'StakePicker');
+const RewardsLayer = lazyNamed(() => import('./screens/Rewards'), 'RewardsLayer');
+const SocialRoot = lazyNamed(() => import('./social/SocialRoot'), 'SocialRoot');
+const QuestToasts = lazyNamed(() => import('./campaign/QuestToasts'), 'QuestToasts');
+import { findQuickMatch, newRoomCode } from './online/ids';
 import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
 import type { GameState } from './engine/engine';
@@ -56,18 +59,21 @@ function Shell() {
   const [sheet, setSheet] = useState<'profile' | 'auth' | 'leaders' | 'install' | 'stakes' | null>(null);
   const [shopTab, setShopTab] = useState<ShopTab | undefined>(undefined);
   const app = useApp();
+  // the very first screen appears without the route cross-fade (it would only hold back the first paint)
+  const [navs, setNavs] = useState(0);
+  useEffect(() => { whenIdle(() => LocalGame.preload(), 4000, 4000); }, []);
   // arriving from a password-reset email → open the sheet on the "new password" step
   useEffect(() => { if (app.recovery) setSheet('auth'); }, [app.recovery]);
 
   useEffect(() => {
-    const f = () => { const p = parse(); setRoute(r => (r.name === 'local' && p.route.name === 'home' ? r : p.route)); setOverlay(p.overlay); };
+    const f = () => { const p = parse(); setNavs(n => n + 1); setRoute(r => (r.name === 'local' && p.route.name === 'home' ? r : p.route)); setOverlay(p.overlay); };
     window.addEventListener('popstate', f);
     return () => window.removeEventListener('popstate', f);
   }, []);
 
   const go = (r: Route, path = '/', replace = false) => {
     if (location.pathname !== path) history[replace ? 'replaceState' : 'pushState'](null, '', path);
-    setRoute(r); setOverlay(null);
+    setNavs(n => n + 1); setRoute(r); setOverlay(null);
   };
   const home = () => go({ name: 'home' }, '/');
   const openOverlay = (o: Exclude<Overlay, null>) => { history.pushState(null, '', '/' + o); setOverlay(o); };
@@ -77,7 +83,7 @@ function Shell() {
   const openShop = (tab?: ShopTab) => { setShopTab(tab); openOverlay('shop'); };
   /** a stake table: the entry is already paid (StakePicker) → a hard 4-seat bot table that carries the stake id */
   const playStake = (stake: ActiveStake) => go({ name: 'local', resume: null, key: Date.now(), stake });
-  const savedStake = saved && (saved as GameState & { stakeId?: number }).stakeId != null ? saved : null;
+  const savedStake = savedStakeIdOf(saved) != null ? saved : null;
 
   // app-icon shortcuts and deep links: /?play=bots, /?play=online, /?install=1
   useEffect(() => {
@@ -102,7 +108,7 @@ function Shell() {
     <div className={`app ${route.name === 'home' ? 'is-home' : ''}`}>
       <AnimatePresence mode="wait">
         {route.name === 'home' && (
-          <motion.div key="home" style={{ position: 'absolute', inset: 0 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.03 }} transition={{ duration: 0.3 }}>
+          <motion.div key="home" style={{ position: 'absolute', inset: 0 }} initial={navs === 0 ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.03 }} transition={{ duration: 0.3 }}>
             <Home
               onPlay={() => go({ name: 'local', resume: null, key: Date.now() })}
               onResume={saved ? () => go({ name: 'local', resume: saved, key: Date.now() }) : null}
@@ -128,13 +134,13 @@ function Shell() {
         {route.name === 'local' && (
           <motion.div key={'local' + route.key} style={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center' }}
             initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-            <LocalGame resume={route.resume} stake={route.stake} onExit={home} />
+            <Suspense fallback={null}><LocalGame resume={route.resume} stake={route.stake} onExit={home} /></Suspense>
           </motion.div>
         )}
         {route.name === 'room' && (
           <motion.div key={'room' + route.code} style={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center' }}
             initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-            <OnlineRoom code={route.code} onExit={home} onQuickAgain={skip => quick(skip).catch(home)} onAuth={auth} />
+            <Suspense fallback={null}><OnlineRoom code={route.code} onExit={home} onQuickAgain={skip => quick(skip).catch(home)} onAuth={auth} /></Suspense>
           </motion.div>
         )}
         {route.name === 'journey' && (
@@ -168,15 +174,18 @@ function Shell() {
           <Sheet key="st" onClose={() => setSheet(null)}>
             <StakePicker onAuth={() => setSheet('auth')}
               onStart={st => { setSheet(null); playStake(st); }}
+              resumeStakeId={savedStakeIdOf(savedStake)}
               onResume={savedStake ? () => { setSheet(null); go({ name: 'local', resume: savedStake, key: Date.now() }); } : undefined} />
           </Sheet>
         )}
       </AnimatePresence>
       </Suspense>
       <CosmeticsSync />
-      <SocialRoot />
-      <QuestToasts />
-      <RewardsLayer autoDaily={route.name === 'home' && !overlay && !sheet} onAuth={() => setSheet('auth')} />
+      <Deferred delay={2500}>
+        <SocialRoot />
+        <QuestToasts />
+        <RewardsLayer autoDaily={route.name === 'home' && !overlay && !sheet} onAuth={() => setSheet('auth')} />
+      </Deferred>
     </div>
   );
 }

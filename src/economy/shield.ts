@@ -11,6 +11,8 @@ import type { ActiveStake } from './api';
 export type StakeGame = GameState & { stakeId?: number; stakeTier?: number; shielded?: boolean };
 
 export const markStakeGame = (g: GameState, s: Pick<ActiveStake, 'id' | 'tier'>): GameState => ({ ...g, stakeId: s.id, stakeTier: s.tier } as StakeGame);
+/** The same game without its stake marker (a casual bot game from here on). */
+export const stripStake = (g: GameState): GameState => { const { stakeId: _i, stakeTier: _t, ...rest } = g as StakeGame; return rest as GameState; };
 export const stakeIdOf = (g: GameState | null | undefined): number | null => (g as StakeGame | null | undefined)?.stakeId ?? null;
 export const isShielded = (g: GameState | null | undefined) => !!(g as StakeGame | null | undefined)?.shielded;
 

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { type GameState, apply, newGame, nextRound } from '../engine/engine';
 import { botAction } from '../engine/bot';
 import { useApp } from '../store';
 import { Table } from './Table';
+import { botLook } from '../cosmetics/seatLooks';
 import { track } from '../analytics';
 import { useGodFlags } from '../god/flags';
 import { useGameAchievements } from '../progress/useProgress';
@@ -13,15 +14,13 @@ import { reportGame, useGameTally } from '../campaign/useGameQuests';
 import type { CampaignRun } from '../campaign/session';
 import type { ActiveStake } from '../economy/api';
 import { STAKE_TABLE } from '../economy/config';
-import { markStakeGame } from '../economy/shield';
+import { markStakeGame, stripStake } from '../economy/shield';
 import { StakeHud } from '../economy/StakePicker';
 import { finishStakeGame, recordGamePlus, useStakeGame } from '../economy/useEconomy';
 
-const SAVE_KEY = 'b125.game.v1';
-export function loadSavedGame(): GameState | null {
-  try { const raw = localStorage.getItem(SAVE_KEY); if (!raw) return null; const g = JSON.parse(raw) as GameState; return g.phase === 'gameOver' ? null : g; } catch { return null; }
-}
-export function clearSavedGame() { try { localStorage.removeItem(SAVE_KEY); } catch { /* */ } }
+import { clearSavedGame, saveGame } from './savedGame';
+
+export { loadSavedGame, clearSavedGame } from './savedGame';
 
 /** A fresh deal: nothing has happened yet in this round. */
 const freshDeal = (g: GameState) => g.events.length === 0 && g.pile.length === 1;
@@ -49,6 +48,8 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
   const [g, setG] = useState<GameState>(() => resume ?? fresh());
   const st = useStakeGame(g, 0);
   const isStake = st.isStake && !campaign;
+  // resumed ("continue") game of a stake the server no longer has open → finish it as a casual game
+  useEffect(() => { if (st.stale && !campaign) setG(cur => stripStake(cur)); }, [st.stale]); // eslint-disable-line react-hooks/exhaustive-deps
   useGameAchievements(g, 0, { mode: isStake ? 'stake' : 'bots' });
   const { tally, reset: resetTally } = useGameTally(g, 0);
   const god = useGodFlags();
@@ -56,8 +57,11 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
   const level = campaign?.match.level ?? (isStake ? STAKE_TABLE.level : app.level);
   const turnMs = campaign ? twistInfo(campaign.match.twist).turnMs : undefined;
   const mode = campaign ? 'journey' : isStake ? 'stake' : 'bots';
+  // bots dress by difficulty (expert tables look premium); fixed per seat for the whole game
+  const botsKey = g.players.map(p => (p.bot ? 1 : 0)).join('');
+  const looks = useMemo(() => g.players.map((p, i) => (p.bot ? botLook(level, i) : null)), [botsKey, level]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (campaign) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(g)); } catch { /* */ } }, [g, campaign]);
+  useEffect(() => { if (!campaign) saveGame(g); }, [g, campaign]);
   useEffect(() => {
     if (!resume) track('game_start', { mode, players: g.players.length, level, ...(campaign ? { match: campaign.match.id } : {}) });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -67,7 +71,7 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
       recorded.current = true;
       const won = g.winners.includes(0);
       // stake tables record the game AND settle the pot; everything else goes through record_game_plus (boosts)
-      if (isStake) void finishStakeGame(app, won);
+      if (isStake) void finishStakeGame(app, won, st.stakeId);
       else void recordGamePlus(app, won, 'bots');
       track('game_end', { mode, won, rounds: g.round, players: g.players.length, ...(campaign ? { match: campaign.match.id } : {}) });
       if (campaign) {
@@ -125,7 +129,7 @@ export function LocalGame({ resume, onExit, campaign, stake }: { resume: GameSta
 
   return (
     <>
-    <Table g={g} me={0} xray={god.xray}
+    <Table g={g} me={0} xray={god.xray} looks={looks}
       deadline={turnMs ? deadline : undefined} turnMs={turnMs}
       onAct={a => setG(cur => (isStake ? st.step(cur, apply(cur, 0, a)) : apply(cur, 0, a)))}
       onNextRound={() => setG(cur => advance(cur))}

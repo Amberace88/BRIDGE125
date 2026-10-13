@@ -4,15 +4,13 @@ import { useApp } from '../store';
 import { HeroCards } from '../components/HeroCards';
 import { Backdrop } from '../components/Backdrop';
 import { Intro, shouldShowIntro } from '../components/Intro';
-import { RulesPanel } from '../components/RulesPanel';
 import { LangPicker } from '../components/LangPicker';
-import { DailyRewardButton, LevelBadge } from './Rewards';
+import { DailyRewardButton, LevelBadge, QuestTracker, RulesPanel } from './homeLazy';
 import { UserAvatar } from '../media/UserAvatar';
 import { useInstall } from '../install';
 import { useStrings } from '../i18n/pick';
 import { HOME } from '../i18n/home';
 import type { BotLevel } from '../engine/bot';
-import { QuestTracker } from '../campaign/QuestTracker';
 import { useJourney } from '../campaign/journeyStore';
 import { TOTAL_STARS, totalStars } from '../campaign/data';
 import { sfx } from '../sound';
@@ -139,7 +137,7 @@ export function Home({ onPlay, onResume, onRules, onProfile, onAuth, onCreateRoo
       <AnimatePresence>{intro && <Intro key="intro" onDone={() => setIntro(false)} />}</AnimatePresence>
 
       <header className="topnav">
-        <a className="logo" href="/" aria-label="Bridge 125" onClick={e => e.preventDefault()}><img className="mark" src="/logo-mark.svg" alt="" width="40" height="40" /><span className="word">BRIDGE <b>125</b></span></a>
+        <a className="logo" href="/" aria-label="Bridge 125" onClick={e => e.preventDefault()}><img className="mark" src="/logo-mark.svg" alt="" width="40" height="40" fetchPriority="high" /><span className="word">BRIDGE <b>125</b></span></a>
         <nav>
           {wide && <button className="navlink" onClick={onRules}>{t.nav.howToPlay}</button>}
           {wide && <button className="navlink" onClick={onLeaders}>{t.lb.open}</button>}

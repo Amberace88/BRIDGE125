@@ -276,3 +276,7 @@
 @keyframes dockglow { 0%, 100% { filter: drop-shadow(0 3px 8px rgba(0,0,0,.45)); } 50% { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--acc-hi) 60%, transparent)) drop-shadow(0 3px 8px rgba(0,0,0,.45)); } }
 @media (prefers-reduced-motion: reduce) { .h5-dockbtn.hot .di { animation: none; } }
 .qtrack.h5-quests { margin-top: 10px; }
+
+/* placeholders while a lazily loaded Home piece arrives (src/screens/homeLazy.tsx) — same box, nothing shifts */
+.qtrack.qtrack-ph { display: block; min-height: 144px; border-radius: 18px; pointer-events: none; }
+.rp-ph { min-height: 60vh; }

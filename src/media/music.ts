@@ -348,7 +348,7 @@ function stopNow() {
 
 export const music = {
   /** Start playing (call from a user gesture) and remember the choice. */
-  start() { savePref({ on: true }); startNow(); },
+  start() { initMusic(); savePref({ on: true }); startNow(); },
   stop() { savePref({ on: false }); stopNow(); },
   setVolume(v: number) {
     savePref({ vol: Math.min(1, Math.max(0, v)) });

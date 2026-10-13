@@ -172,9 +172,19 @@ export function useStakes() {
 
 type AppLike = { patchProfile: (p: Partial<Profile>) => void; recordGame: (won: boolean, mode?: 'bots' | 'room' | 'quick') => void; session: unknown };
 
-/** Game over at a stake table: records the game AND settles the stake (stake_finish). Returns the settled stake. */
-export async function finishStakeGame(app: AppLike, won: boolean): Promise<StakeSettle | null> {
+/**
+ * Game over at a stake table: records the game AND settles the stake (stake_finish). Returns the settled stake.
+ * With `stakeId` (the id the game carries) it first checks that this stake is still the open one on the server:
+ * stake_finish settles whatever stake is active, so a resumed game of an older stake must never settle a newer one —
+ * such a game is recorded as a normal bot game instead.
+ */
+export async function finishStakeGame(app: AppLike, won: boolean, stakeId?: number | null): Promise<StakeSettle | null> {
   if (!app.session) return null;
+  if (stakeId != null) {
+    const uid = (app.session as { user?: { id?: string } }).user?.id ?? store.uid;
+    await loadEconomy(uid ?? null, true);
+    if (store.status === 'ready' && store.s?.stake?.id !== stakeId) { await recordGamePlus(app, won, 'bots'); return null; }
+  }
   const r = await stakeFinishRpc(won);
   if (!r) { app.recordGame(won, 'bots'); return null; }
   app.patchProfile(r as unknown as Partial<Profile>);       // same merge as store.recordGame → XP/level/achievement toasts
@@ -204,7 +214,9 @@ export function useStakeGame(g: GameState | null | undefined, me = 0) {
   const eco = useEconomy();
   const active = eco.state?.stake ?? null;
   const id = stakeIdOf(g);
-  const isStake = id !== null;
+  /** the game carries a stake that is no longer the open one (settled, forfeited, replaced) — it is not a stake match */
+  const stale = id !== null && eco.ready && active?.id !== id;
+  const isStake = id !== null && !stale;
   const armed = isStake && !!active && active.id === id && !active.shield_used && eco.shields > 0;
   const shielded = isShielded(g);
   useEffect(() => {
@@ -214,7 +226,7 @@ export function useStakeGame(g: GameState | null | undefined, me = 0) {
     track('shield_used', { stake: active.id });
   }, [shielded]); // eslint-disable-line react-hooks/exhaustive-deps
   const step = useCallback((prev: GameState, next: GameState) => shieldStep(prev, next, me, armed), [armed, me]);
-  return { isStake, stakeId: id, active, armed, shielded, step };
+  return { isStake, stale, stakeId: id, active, armed, shielded, step };
 }
 
 /** Push BM / owned changes into the app profile (re-exported for screens that do their own RPCs). */

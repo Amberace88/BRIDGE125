@@ -1,6 +1,8 @@
 import { AvatarFrame } from '../cosmetics/AvatarFrame';
 import { PlayerName, TitleBadge } from '../cosmetics/Badges';
 import { useCosmetics } from '../cosmetics/useCosmetics';
+import type { SeatLook } from '../cosmetics/seatLooks';
+import { PrestigeStar } from '../economy/PrestigeStar';
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
@@ -46,6 +48,11 @@ export interface TableProps {
   onSeatTap?: (seat: number) => void;
   /** Extra frameless controls next to the emote glyph in my row (e.g. the chat glyph). */
   myRowExtra?: ReactNode;
+  /**
+   * Opponents' looks, indexed by seat (src/cosmetics/seatLooks.ts): frame, name colour, title, prestige star, avatar and
+   * the card back their hand shows. Missing / null → the default look. My own seat always uses my equipped cosmetics.
+   */
+  looks?: readonly (SeatLook | null | undefined)[];
 }
 
 /** Stage-space geometry handed to `overlay` (px, relative to the table stage). */
@@ -93,11 +100,12 @@ const IconTap = () => (
 
 /* ---------- seat badge ---------- */
 interface SeatProps {
-  frame?: string; nameColor?: string; title?: string;
+  frame?: string; nameColor?: string; title?: string; prestige?: number; photo?: string; avSize: number;
   name: string; face: string; score: number; turn: boolean; thinking?: boolean; offline?: boolean; mine?: boolean;
   ring?: ReactNode; emote?: ReactNode; burned?: boolean; count: number; ptsLabel: string;
 }
-function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emote, burned, count, ptsLabel, frame, nameColor, title }: SeatProps) {
+function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emote, burned, count, ptsLabel, frame, nameColor, title, prestige, photo, avSize }: SeatProps) {
+  const [broken, setBroken] = useState('');
   const prev = useRef(score);
   const [delta, setDelta] = useState<{ id: number; d: number; burn: boolean } | null>(null);
   useEffect(() => {
@@ -113,13 +121,18 @@ function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emo
   return (
     <div className={`sbadge ${mine ? 'mine' : ''} ${turn ? 'turn' : ''} ${offline ? 'off' : ''} t-${tone}`}>
       <div className="avwrap">
-        {frame && frame !== 'fr_none' ? <AvatarFrame id={frame} size={44}><div className="av">{face}</div></AvatarFrame> : <div className="av">{face}</div>}
+        {(() => {
+          const av = photo && broken !== photo
+            ? <div className="av photo"><img src={photo} alt="" width={avSize} height={avSize} decoding="async" draggable={false} onError={() => setBroken(photo)} /></div>
+            : <div className="av">{face}</div>;
+          return frame && frame !== 'fr_none' ? <AvatarFrame id={frame} size={avSize}>{av}</AvatarFrame> : av;
+        })()}
         {ring}
         {emote}
         {!mine && count > 0 && <span className="cnt" aria-label={`${count}`}>{count}</span>}
       </div>
       <div className="meta">
-        <div className="nm">{thinking ? <span className="dots"><i /><i /><i /></span> : nameColor ? <PlayerName name={name} color={nameColor} /> : name}{!thinking && title && title !== 't_none' && <TitleBadge id={title} size="sm" />}</div>
+        <div className="nm">{thinking ? <span className="dots"><i /><i /><i /></span> : nameColor ? <PlayerName name={name} color={nameColor} /> : name}{!thinking && <PrestigeStar n={prestige} size={10} />}{!thinking && title && title !== 't_none' && <TitleBadge id={title} size="sm" />}</div>
         <div className="scrow">
           <span className="num serif"><CountUp value={score} /></span>
           <span className="unit">{ptsLabel}</span>
@@ -141,7 +154,7 @@ function SeatBadge({ name, face, score, turn, thinking, offline, mine, ring, emo
 
 /* =================================================================================== */
 
-export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false, overlay, onSeatTap, myRowExtra }: TableProps) {
+export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, turnMs = 30000, topCenter, emotes = [], onEmote, offline = [], dealAnimation = true, resultsDelayMs = 1500, xray = false, overlay, onSeatTap, myRowExtra, looks }: TableProps) {
   const app = useApp();
   const cos = useCosmetics();
   const EMOTES = cos.emotes;
@@ -488,6 +501,9 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
     }
   }
   const allCards: Card[] = [...vg.deck.slice(0, 3), ...pileShown, ...vg.players.flatMap(p => p.hand)];
+  /** card id → the opponent holding it (their hand shows their own card back) */
+  const handOwner = new Map<string, number>();
+  if (looks) vg.players.forEach((p, pi) => { if (pi !== me && looks[pi]?.back) p.hand.forEach(c => handOwner.set(c.id, pi)); });
   useLayoutEffect(() => { seen.current = new Set(allCards.map(keyOf)); ready.current = true; });
 
   // deal timeline: sounds, end, skip
@@ -620,7 +636,8 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
         {vg.players.map((p, pi) => pi === me ? null : (
           <div key={p.id} className={`seatpos ${onSeatTap ? 'tappable' : ''}`} style={{ left: seatOf(pi).x, top: seatOf(pi).y - 6 }}
             {...(onSeatTap ? { role: 'button', tabIndex: 0, 'aria-label': p.name, onClick: () => onSeatTap(pi), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSeatTap(pi); } } } : {})}>
-            <SeatBadge name={p.name} face={p.bot ? '🤖' : p.name.slice(0, 1).toUpperCase()} score={p.score} count={p.hand.length}
+            <SeatBadge name={p.name} face={looks?.[pi]?.avatar ?? (p.bot ? '🤖' : p.name.slice(0, 1).toUpperCase())} score={p.score} count={p.hand.length}
+              frame={looks?.[pi]?.frame} nameColor={looks?.[pi]?.nameColor} title={looks?.[pi]?.title} prestige={looks?.[pi]?.prestige} photo={looks?.[pi]?.avatarUrl} avSize={avSize}
               turn={vg.current === pi && playing && !dealing} thinking={vg.current === pi && playing && !dealing} offline={offline.includes(pi)}
               ring={vg.current === pi && !dealing ? ring(avSize) : null} emote={emoteBubble(pi)} burned={burnedSet.has(pi)} ptsLabel={s.pts} />
           </div>
@@ -644,6 +661,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
         {allCards.map(c => {
           const pose = poses.get(c.id)!;
           const isMine = mine.hand.some(h => h.id === c.id);
+          const owner = isMine ? -1 : handOwner.get(c.id) ?? -1;
           const legal = isMine && canAct && !bluff && !sel.length && legalSet.has(c.id);
           const selected = sel.includes(c.id);
           const addable = isMine && sel.length > 0 && !selected && !!selFirst && (c.r === selFirst.r || (isQS(selFirst) && is6S(c) && sel.length === 1));
@@ -653,7 +671,8 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
               legal={legal || addable} sel={selected}
               dim={isMine && canAct && !bluff && !legal && !selected && !addable && !o.forcedDraw && !sel.length}
               onTap={isMine && canAct ? () => onTapCard(c) : undefined}
-              draggable={canDrag} onDrop={canDrag ? dropOnPile(c) : undefined} onDragMove={canDrag ? setDragPt : undefined} />
+              draggable={canDrag} onDrop={canDrag ? dropOnPile(c) : undefined} onDragMove={canDrag ? setDragPt : undefined}
+              back={owner >= 0 ? looks?.[owner]?.back : undefined} />
           );
         })}
 
@@ -739,7 +758,7 @@ export function Table({ g, me, onAct, onNextRound, onRematch, onExit, deadline, 
 
       {/* my seat */}
       <div className="myrow" style={{ top: myRowY - 24, left: myLeft, right: myLeft }}>
-        <SeatBadge mine frame={cos.equipped.frame} nameColor={cos.equipped.namecolor} title={cos.equipped.title} name={app.name || t.you} face={app.avatar || (mine.name || t.you).slice(0, 1).toUpperCase()} score={mine.score} count={hn}
+        <SeatBadge mine avSize={avSize} frame={cos.equipped.frame} nameColor={cos.equipped.namecolor} title={cos.equipped.title} name={app.name || t.you} face={app.avatar || (mine.name || t.you).slice(0, 1).toUpperCase()} score={mine.score} count={hn}
           turn={o.mine && !dealing} offline={false} ring={vg.current === me && !dealing ? ring(avSize) : null} emote={emoteBubble(me)}
           burned={burnedSet.has(me)} ptsLabel={s.pts} />
         {(() => { const emoteEl = onEmote && (

@@ -1,7 +1,7 @@
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Card, Rank, Suit } from '../engine/engine';
-import { CardFace } from './CardView';
+import { CardFace } from './CardFace';
 import { useApp } from '../store';
 import { useStrings } from '../i18n/pick';
 import { HOME } from '../i18n/home';

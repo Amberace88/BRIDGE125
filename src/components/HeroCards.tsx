@@ -2,7 +2,7 @@ import { motion, useMotionTemplate, useTransform, type MotionValue } from 'motio
 import { useState } from 'react';
 import type { Card } from '../engine/engine';
 import type { Lang } from '../i18n';
-import { CardFace } from './CardView';
+import { CardFace } from './CardFace';
 
 const FAN: { c: Card; x: number; r: number; y: number; z: number; spreadX: number; spreadR: number; d: number }[] = [
   { c: { id: 'AD', r: 'A', s: 'D' }, x: -1.05, r: -22, y: 0.16, z: -40, spreadX: -1.55, spreadR: -30, d: 0.1 },

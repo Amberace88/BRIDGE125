@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import App from './App';
 import { captureInstallPrompt } from './install';
-import { initMusic } from './media/music';
 import { localeReady } from './store';
+import { whenIdle } from './lazy';
 
 captureInstallPrompt();
-initMusic();
+// background music is opt-in: its synth engine is only fetched for players who switched it on (it then starts on the
+// first tap, as before); everyone else loads it when they open the audio controls
+try { if ((JSON.parse(localStorage.getItem('b125.music') ?? '{}') as { on?: unknown }).on === true) whenIdle(() => { void import('./media/music').then(m => m.initMusic()); }, 1500); } catch { /* */ }
 
 // A lazily loaded language (one small chunk) is fetched before the first paint so the UI never flashes English;
 // bundled languages resolve immediately, and a slow network falls back to rendering after 2.5 s.

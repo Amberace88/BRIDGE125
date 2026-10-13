@@ -1,28 +1,10 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform, type AnimationPlaybackControls } from 'motion/react';
-import { memo, useEffect, useLayoutEffect, useRef, type KeyboardEvent } from 'react';
-import { type Card, SUIT_GLYPH, isQS, isRed } from '../engine/engine';
-import { rankLabel, type Lang } from '../i18n';
+import { useEffect, useLayoutEffect, useRef, type KeyboardEvent } from 'react';
+import { type Card, SUIT_GLYPH } from '../engine/engine';
+import type { Lang } from '../i18n';
 
-const Crown = () => (
-  <svg viewBox="0 0 34 18" aria-hidden="true"><path d="M2 16 L4 4 L11 10 L17 2 L23 10 L30 4 L32 16 Z" fill="currentColor" /><rect x="2" y="15" width="30" height="3" rx="1" fill="currentColor" /></svg>
-);
-
-export const CardFace = memo(function CardFace({ card, lang }: { card: Card; lang: Lang }) {
-  const g = SUIT_GLYPH[card.s];
-  const lab = rankLabel(card.r, lang);
-  const court = card.r === 'J' || card.r === 'Q' || card.r === 'K';
-  return (
-    <div className={`face ${isRed(card.s) ? 'red' : ''} ${isQS(card) ? 'qs' : ''}`}>
-      <div className="ix"><span className="rk">{lab}</span><span className="st">{g}</span></div>
-      <div className="ix b"><span className="rk">{lab}</span><span className="st">{g}</span></div>
-      {court ? (
-        <div className="court"><Crown /><span className="mono">{lab}</span><span className="s2">{g}</span></div>
-      ) : (
-        <div className={`ctr ${card.r === 'A' ? 'ace' : ''}`}>{g}</div>
-      )}
-    </div>
-  );
-});
+export { CardFace } from './CardFace';
+import { CardFace } from './CardFace';
 
 /** Where a card rests. x/y are the card centre in stage pixels; rx tilts it back into the table plane. */
 export interface Pose { x: number; y: number; rot: number; scale: number; z: number; up: boolean; rx?: number }
@@ -49,12 +31,14 @@ interface Props {
   legal?: boolean; dim?: boolean; sel?: boolean; onTap?: () => void;
   /** Allow dragging (desktop + touch). `onDrop` gets the page point and returns true when the drop was accepted. */
   draggable?: boolean; onDrop?: (pt: { x: number; y: number }) => boolean; onDragMove?: (pt: { x: number; y: number } | null) => void;
+  /** Another player's card back (their equipped design) instead of the viewer's own `--back`. */
+  back?: { css: string; fx?: string };
 }
 
 const EASE_FLY = [0.32, 0.06, 0.24, 1] as const;
 const norm = (r: number) => ((((r + 180) % 360) + 360) % 360) - 180;
 
-export function CardView({ card, lang, pose, w, flight, legal, dim, sel, onTap, draggable, onDrop, onDragMove }: Props) {
+export function CardView({ card, lang, pose, w, flight, legal, dim, sel, onTap, draggable, onDrop, onDragMove, back }: Props) {
   const h = Math.round(w * 1.43);
   const reduce = useReducedMotion();
   const start = flight?.from ?? pose;
@@ -217,7 +201,8 @@ export function CardView({ card, lang, pose, w, flight, legal, dim, sel, onTap, 
   return (
     <motion.div
       className={`card ${legal ? 'legal' : ''} ${dim ? 'dim' : ''} ${sel ? 'sel' : ''} ${tappable ? 'can' : ''}`}
-      style={{ x, y, rotate: rot, scale: sc, zIndex: z, width: w, height: h, ['--cw' as string]: `${w}px`, pointerEvents: tappable || draggable ? 'auto' : 'none' }}
+      style={{ x, y, rotate: rot, scale: sc, zIndex: z, width: w, height: h, ['--cw' as string]: `${w}px`, pointerEvents: tappable || draggable ? 'auto' : 'none', ...(back ? { ['--back' as string]: back.css } : {}) }}
+      data-backfx={back ? back.fx ?? 'none' : undefined}
       onTap={onTap}
       drag={!!draggable}
       dragMomentum={false}

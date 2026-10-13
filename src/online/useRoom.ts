@@ -3,9 +3,14 @@ import type { Action, GameState } from '../engine/engine';
 import type { Emote } from '../screens/Table';
 import type { ChatMsg, QuickKey } from '../social/sanitize';
 import type { GiftEvent, SeatGift, SocialError, TipEvent } from '../social/gifts';
+import { playerId } from './ids';
 
-/** `acct` = the seat is signed in to an account (can receive tips / gifted styles). Ids and emails never reach clients. */
-export interface RoomSeat { name: string; bot: boolean; online: boolean; host: boolean; acct?: boolean }
+/**
+ * `acct` = the seat is signed in to an account (can receive tips / gifted styles).
+ * `uid` = that account's user id, verified by the room from the seat's own Supabase token (`hello`) — never a value a
+ * client claimed. Used only to show the seat's public cosmetics (public_cosmetics RPC); emails never reach clients.
+ */
+export interface RoomSeat { name: string; bot: boolean; online: boolean; host: boolean; acct?: boolean; uid?: string }
 export interface RoomInfo { code: string; status: 'lobby' | 'playing'; maxSeats: number; seats: RoomSeat[]; quick?: boolean }
 
 /** Media/WebRTC traffic is handed to subscribers instead of React state (see src/media/mesh.ts). */
@@ -15,30 +20,7 @@ const MEDIA_T = new Set(['rtc', 'media', 'mediaAll']);
 /** Result of a server-checked social action (gift / tip / report). */
 export interface SocialResult { ok: boolean; error?: SocialError; bm?: number; diamonds?: number; need?: number; cur?: 'bm' | 'dm'; left?: number }
 
-export const isQuickCode = (code: string) => code.length === 6 && code[0] === 'Q';
-
-/** Ask the matchmaker for a public table. `skip` avoids being sent back to a table that just turned us away. */
-export async function findQuickMatch(skip = ''): Promise<string> {
-  const r = await fetch(`/api/quick?pid=${encodeURIComponent(playerId())}&skip=${encodeURIComponent(skip)}`, { cache: 'no-store' });
-  if (!r.ok) throw new Error('quick ' + r.status);
-  const j = await r.json() as { code?: string };
-  if (!j.code) throw new Error('quick: no code');
-  return j.code;
-}
-
-export function playerId(): string {
-  try {
-    let id = localStorage.getItem('b125.pid');
-    if (!id) { id = crypto.randomUUID(); localStorage.setItem('b125.pid', id); }
-    return id;
-  } catch { return 'anon-' + Math.random().toString(36).slice(2); }
-}
-
-const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-export function newRoomCode(): string {
-  const a = new Uint32Array(5); crypto.getRandomValues(a);
-  return [...a].map(n => ALPHA[n % ALPHA.length]).join('');
-}
+export { findQuickMatch, isQuickCode, newRoomCode, playerId } from './ids';
 
 /**
  * @param token the player's Supabase access token (optional). Sent as `{t:'hello'}` so the room knows the seat has an

@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import { useApp } from '../store';
 import { getSupabase } from '../supabase';
-import { safeAvatar } from './mesh';
+import { safeAvatar } from './safeAvatar';
 
 export const AVATAR_PX = 256;
 const BUCKET = 'avatars';

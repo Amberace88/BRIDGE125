@@ -16,6 +16,7 @@ import { initMusic } from '../media/music';
 import { SocialGlyph, SocialOverlay, SocialSheets, useTableSocial } from '../social/TableSocial';
 import { useQuestTracker } from '../campaign/useGameQuests';
 import { recordGamePlus } from '../economy/useEconomy';
+import { botLook, useSeatLooks } from '../cosmetics/seatLooks';
 
 initMusic();
 
@@ -32,6 +33,9 @@ export function OnlineRoom({ code, onExit, onQuickAgain, onAuth }: { code: strin
   const media = useMesh(r, myAvatar);
   const seatName = (seat: number) => r.room?.seats[seat]?.name ?? '?';
   const peerAv = (seat: number) => media.snap.peers.find(p => p.seat === seat)?.av ?? '';
+  // opponents' public cosmetics (token-verified account ids from the room; bots: the server bots play 'hard')
+  const accountLooks = useSeatLooks(r.room?.seats, r.you);
+  const looks = useMemo(() => (r.room?.seats ?? []).map((s, i) => (s.bot ? botLook('hard', i) : accountLooks[i] ?? null)), [r.room?.seats, accountLooks]);
 
   const leave = () => { r.leave(); onExit(); };
   const quick = isQuickCode(code);
@@ -97,7 +101,7 @@ export function OnlineRoom({ code, onExit, onQuickAgain, onAuth }: { code: strin
           topCenter={<div className="roomchip">{code}</div>}
           onSeatTap={seat => social.setSheet(seat)}
           myRowExtra={<SocialGlyph s={social} />}
-          overlay={geo => <SocialOverlay geo={geo} r={r} s={social} />} />
+          overlay={geo => <SocialOverlay geo={geo} r={r} s={social} />} looks={looks} />
         <SocialSheets r={r} s={social} onAuth={onAuth} />
         <VideoDock api={media} nameOf={seatName} myAvatar={myAvatar} />
         <ConnBadge status={r.status} t={t} />

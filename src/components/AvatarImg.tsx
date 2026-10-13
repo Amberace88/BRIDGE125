@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { safeAvatar } from '../media/mesh';
+import { safeAvatar } from '../media/safeAvatar';
 import '../styles/role.css';
 
 /**

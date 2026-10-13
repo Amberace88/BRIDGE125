@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStrings } from '../i18n/pick';
 import { ECO_STRINGS } from '../i18n/economy';
 import { fmtBm } from '../shop/catalog';
@@ -7,19 +7,27 @@ import { sfx, buzz } from '../sound';
 import { STAKE_DAILY_GAMES } from './config';
 import type { ActiveStake } from './api';
 import { useStakes } from './useEconomy';
+import { clearSavedStakeGame } from '../screens/savedGame';
 import '../styles/economy.css';
 
 /**
  * High-stakes picker for the home quick-start.
  *   <StakePicker onStart={stake => startStakeGame(stake)} onResume={…} onAuth={…} />
  * `onStart` gets the server's stake row once the entry is paid — start a LocalGame with STAKE_TABLE settings and
- * `markStakeGame(newGame(...), stake)`. `onResume` (optional) is offered while a stake is open.
+ * `markStakeGame(newGame(...), stake)`. `onResume` (optional) resumes the saved stake game `resumeStakeId`: it is only
+ * offered while that very stake is the open one on the server. A saved game of a stake that was settled, forfeited,
+ * abandoned or has expired is dropped instead (it must never settle — or show the pot of — another stake).
  */
-export function StakePicker({ onStart, onResume, onAuth, compact = false }: {
-  onStart: (stake: ActiveStake) => void; onResume?: () => void; onAuth?: () => void; compact?: boolean;
+export function StakePicker({ onStart, onResume, resumeStakeId = null, onAuth, compact = false }: {
+  onStart: (stake: ActiveStake) => void; onResume?: () => void; resumeStakeId?: number | null; onAuth?: () => void; compact?: boolean;
 }) {
   const E = useStrings(ECO_STRINGS);
   const st = useStakes();
+  const live = st.active && !st.active.expired ? st.active : null;
+  const canResume = !!onResume && resumeStakeId != null && live?.id === resumeStakeId;
+  useEffect(() => {
+    if (st.ready && resumeStakeId != null && live?.id !== resumeStakeId) clearSavedStakeGame(resumeStakeId);
+  }, [st.ready, resumeStakeId, live?.id]);
   // until the player picks: the Private Room once it is unlocked, otherwise the Salon (never preselect a locked tier)
   const [picked, setSel] = useState<1 | 2 | 3 | null>(null);
   const sel: 1 | 2 | 3 = picked ?? (st.tiers.some(t => t.tier === 2 && !t.locked) ? 2 : 1);
@@ -51,11 +59,11 @@ export function StakePicker({ onStart, onResume, onAuth, compact = false }: {
       </div>
 
       <AnimatePresence initial={false}>
-        {st.active && !st.active.expired && (
+        {live && (
           <motion.div className="spactive" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
             <span className="spdot" />
-            <span className="sptxt"><b>{E.stakes.active}</b><em>{E.stakes.tiers[st.active.tier - 1]} · {E.stakes.pot} {fmtBm(st.active.pot)} BM</em></span>
-            {onResume && <button className="btn acc sm" onClick={onResume}>{E.stakes.resume}</button>}
+            <span className="sptxt"><b>{E.stakes.active}</b><em>{E.stakes.tiers[live.tier - 1]} · {E.stakes.pot} {fmtBm(live.pot)} BM</em></span>
+            {canResume && <button className="btn acc sm" onClick={onResume}>{E.stakes.resume}</button>}
             {!askForfeit
               ? <button className="btn ghost sm" onClick={() => setAskForfeit(true)}>{E.stakes.forfeit}</button>
               : <button className="btn danger sm" onClick={() => { setAskForfeit(false); void st.forfeit(); }}>{E.stakes.forfeitConfirm}</button>}

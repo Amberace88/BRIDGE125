@@ -1,5 +1,5 @@
 import { getSupabase } from './supabase';
-import { playerId } from './online/useRoom';
+import { playerId } from './online/ids';
 
 /** Fire-and-forget product analytics stored in Supabase (no third-party trackers, no cookies). */
 export function track(name: string, props: Record<string, string | number | boolean | null> = {}) {

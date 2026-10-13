@@ -1,6 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { useApp } from '../store';
-import { patchData, pushToast } from '../progress/store';
+// the progress store (and its achievement tables) only matters once the server grants something — loaded on demand,
+// so Home's star badge doesn't pull it into the first paint
+const progressStore = () => import('../progress/store');
 import { track } from '../analytics';
 import { MATCHES, type StarMap } from './data';
 import { journeyCompleteRpc, journeyImportRpc, journeyProgressRpc, type JourneyCompleteResult } from './api';
@@ -57,7 +59,7 @@ export async function loadJourney(uid: string | null) {
       clear(GUEST_KEY);
       track('journey_import', { matches: r.imported ?? 0 });
       if (r.stars) server = { stars: r.stars, total: 0 };
-      if (typeof r.bm === 'number') patchData({ bm: r.bm, ...(r.owned ? { owned: r.owned } : {}) });
+      if (typeof r.bm === 'number') (await progressStore()).patchData({ bm: r.bm, ...(r.owned ? { owned: r.owned } : {}) });
     }
   }
   if (state.uid !== uid) return;
@@ -85,6 +87,7 @@ export async function completeMatch(matchId: string, stars: number): Promise<Com
   }
   if (!r) return { ok: true, offline: true, stars: Math.max(prev, stars), prev, new_stars: Math.max(0, stars - prev), first: prev === 0 };
   if (r.ok) {
+    const { patchData, pushToast } = await progressStore();
     patchData({
       ...(typeof r.bm === 'number' ? { bm: r.bm } : {}), ...(r.owned ? { owned: r.owned } : {}),
       ...(typeof r.xp === 'number' && typeof r.level === 'number' ? { xp: r.xp, level: r.level } : {}),

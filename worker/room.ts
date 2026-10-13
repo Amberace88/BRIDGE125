@@ -8,7 +8,12 @@ import { TIP_MAX_PER_RECIPIENT_DAY, TIP_MIN, isGiftId, type SeatGift, type Socia
 
 export interface Env extends PayEnv { ROOMS: DurableObjectNamespace<Room>; LOBBY: DurableObjectNamespace<Lobby>; ASSETS: Fetcher }
 
-/** `uid` = the seat's verified Supabase user id (from a `hello` token). Server-side only: clients just see `acct`. */
+/**
+ * `uid` = the seat's Supabase user id, verified by this room from the seat's own access token (`hello` → /auth/v1/user);
+ * a client can never claim one. Clients see it as `seats[i].uid` only to look up that account's public cosmetics
+ * (public_cosmetics RPC, migration 015) — everything that moves money (gifts, tips, reports) still re-checks the
+ * sender's token server-side and only ever uses the stored uid.
+ */
 interface Seat { pid: string | null; name: string; bot: boolean; uid?: string | null }
 interface RoomState {
   code: string;
@@ -443,7 +448,10 @@ export class Room extends DurableObject<Env> {
     const on = this.online();
     return {
       code: s.code, status: s.status, maxSeats: MAX_SEATS, quick: !!s.quick,
-      seats: s.seats.map(x => ({ name: x.name, bot: x.bot, online: x.bot || on.has(x.pid ?? ''), host: x.pid === s.hostPid, acct: !x.bot && !!x.uid })),
+      seats: s.seats.map(x => ({
+        name: x.name, bot: x.bot, online: x.bot || on.has(x.pid ?? ''), host: x.pid === s.hostPid, acct: !x.bot && !!x.uid,
+        ...(!x.bot && x.uid ? { uid: x.uid } : {}),
+      })),
     };
   }
 

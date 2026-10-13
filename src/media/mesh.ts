@@ -63,8 +63,8 @@ const VIDEO: MediaTrackConstraints = { facingMode: 'user', width: { ideal: 320 }
 const AUDIO: MediaTrackConstraints = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
 const VIDEO_KBPS = 280;
 
-const AV_OK = /^https:\/\/[a-z0-9.-]+\/storage\/v1\/object\/public\/avatars\/[0-9a-f-]{36}\/[\w.-]{1,80}$/i;
-export const safeAvatar = (u: string | null | undefined) => (u && AV_OK.test(u) ? u : '');
+export { safeAvatar } from './safeAvatar';
+import { safeAvatar } from './safeAvatar';
 
 const rid = () => {
   try { return crypto.randomUUID().replace(/-/g, '').slice(0, 16); } catch { return Math.random().toString(36).slice(2, 14); }
