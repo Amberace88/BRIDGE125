@@ -287,3 +287,42 @@
 .tbl .passglyph { position: absolute; z-index: 60; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 0; background: none;
   color: var(--acc-hi); font-weight: 800; font-size: 13px; letter-spacing: .04em; text-shadow: 0 2px 8px rgba(0,0,0,.6); cursor: pointer; }
 .tbl .passglyph svg { filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+
+/* ---------- » fast mode (games against bots): tap = fast, hold = skip to my turn ---------- */
+/* the top bar is a 3-column grid so the round title stays on the table's axis with one glyph left and two right */
+.tbl .tbar { display: grid; grid-template-columns: 1fr auto 1fr; }
+.tbl .tbar > :first-child { justify-self: start; }
+.tbl .tright { justify-self: end; display: flex; align-items: flex-start; }
+.tbl .tbar.has-pace .tcenter { max-width: calc(100vw - 12px - 2 * 88px); }
+.tbl .tbar.has-pace .rules { flex-wrap: wrap; row-gap: 0; column-gap: 10px; }
+@media (max-width: 559px) {
+  .tbl .tbar.has-pace .tcenter { padding-top: 3px; }
+  .tbl .tbar.has-pace .rules { margin-top: 1px; font-size: 10px; line-height: 12px; }
+}
+.tbl .pacewrap { position: relative; }
+.tbl .glyph.pace { position: relative; color: color-mix(in srgb, var(--acc-hi) 62%, rgba(238,243,239,.5)); -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.tbl .glyph.pace svg { width: 24px; height: 24px; stroke-width: 2; transition: filter .25s; }
+.tbl .glyph.pace::after { content: ''; position: absolute; left: 50%; bottom: 6px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%;
+  background: var(--acc-hi); box-shadow: 0 0 6px var(--acc-hi); opacity: 0; transform: scale(.4); transition: opacity .25s, transform .25s; }
+.tbl .glyph.pace.on { color: #ffe2a0; }
+.tbl .glyph.pace.on svg { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--acc-hi) 85%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, var(--acc-hi) 45%, transparent)); }
+.tbl .glyph.pace.on::after { opacity: 1; transform: scale(1); }
+.tbl .glyph.pace.rush .ch1 { animation: pacerun .5s ease-in-out infinite; }
+.tbl .glyph.pace.rush .ch2 { animation: pacerun .5s ease-in-out .14s infinite; }
+@keyframes pacerun { 0%, 100% { opacity: 1; transform: translateX(0); } 50% { opacity: .35; transform: translateX(2px); } }
+.tbl .pacetip { position: absolute; top: 46px; right: -40px; z-index: 45; pointer-events: none; white-space: nowrap;
+  padding: 7px 11px; border-radius: 12px; font-size: 12px; font-weight: 600; line-height: 1.3; color: #f6efd9; text-align: center;
+  background: rgba(8,12,10,.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--acc-hi) 38%, transparent); box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+.tbl .pacetip.long { white-space: normal; width: 210px; }
+.tbl .pacetip::before { content: ''; position: absolute; top: -5px; right: 58px; width: 8px; height: 8px; rotate: 45deg; background: rgb(8,12,10);
+  border-left: 1px solid color-mix(in srgb, var(--acc-hi) 38%, transparent); border-top: 1px solid color-mix(in srgb, var(--acc-hi) 38%, transparent); }
+
+/* ---------- the deal: the deck glides to the table centre and back; cards compose on the GPU while it runs ---------- */
+.tbl .deckbody { transition-property: translate; transition-timing-function: cubic-bezier(.2,.7,.25,1); }
+.tbl.is-dealing .card, .tbl.is-dealing .card .hop { will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .tbl .card { animation: cardfade .22s ease-out both; }
+  .tbl .deckbody { transition: none; }
+}
+@keyframes cardfade { from { opacity: 0; } to { opacity: 1; } }
