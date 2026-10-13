@@ -7,6 +7,7 @@ import { TAGLINE, TITLE } from './meta';
 export const solitaire: GameModule = {
   id: 'solitaire',
   kind: 'cards',
+  daily: true,
   players: { min: 1, max: 1 },
   title: TITLE,
   tagline: TAGLINE,

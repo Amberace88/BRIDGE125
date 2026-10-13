@@ -7,6 +7,7 @@ import { TAGLINE, TITLE } from './meta';
 export const sudoku: GameModule = {
   id: 'sudoku',
   kind: 'puzzle',
+  daily: true,
   players: { min: 1, max: 1 },
   title: TITLE,
   tagline: TAGLINE,

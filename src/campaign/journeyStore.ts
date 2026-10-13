@@ -4,7 +4,7 @@ import { useApp } from '../store';
 // so Home's star badge doesn't pull it into the first paint
 const progressStore = () => import('../progress/store');
 import { track } from '../analytics';
-import { ALL_MATCH_IDS, defaultRoute, hasAnyStar, isRouteId, type RouteId, type StarMap } from './data';
+import { ALL_MATCH_IDS, defaultRoute, isRouteId, routeForLang, type RouteId, type StarMap } from './data';
 import { journeyCompleteRpc, journeyImportRpc, journeyProgressRpc, journeySetRouteRpc, type JourneyCompleteResult } from './api';
 
 /**
@@ -86,7 +86,7 @@ export async function loadJourney(uid: string | null) {
 }
 
 /** The route this player is on (stored, or the default for their progress and language). */
-export const effectiveRoute = (s: { stars: StarMap; route: RouteId | null }, lang: string): RouteId => s.route ?? defaultRoute(s.stars, lang);
+export const effectiveRoute = (_s: { stars: StarMap; route: RouteId | null }, lang: string): RouteId => langRoute(lang);
 
 export type RouteChange = { ok: true; route: RouteId } | { ok: false; error: 'started' | 'network' | 'busy' };
 
@@ -97,7 +97,6 @@ export type RouteChange = { ok: true; route: RouteId } | { ok: false; error: 'st
 export async function setRoute(r: RouteId, opts: { privileged?: boolean; init?: boolean } = {}): Promise<RouteChange> {
   const { uid, status } = state;
   if (state.route === r) return { ok: true, route: r };
-  if (!opts.init && !opts.privileged && hasAnyStar(state.stars)) return { ok: false, error: 'started' };
   if (!uid) { writeRoute(GUEST_ROUTE, r); set({ route: r }); track('journey_route', { route: r, init: !!opts.init }); return { ok: true, route: r }; }
   if (status === 'loading') return { ok: false, error: 'busy' };
   const res = await journeySetRouteRpc(r);
@@ -120,10 +119,28 @@ export async function setRoute(r: RouteId, opts: { privileged?: boolean; init?: 
 let ensuring = false;
 /** Called by the Journey screen: make sure the player's route is stored (first open). */
 export async function ensureRoute(lang: string) {
-  if (ensuring || state.route || state.status === 'loading' || state.status === 'idle') return;
+  if (ensuring || state.status === 'loading' || state.status === 'idle') return;
+  const want = langRoute(lang);
+  if (state.route === want) return;
   ensuring = true;
-  try { await setRoute(defaultRoute(state.stars, lang), { init: true }); } finally { ensuring = false; }
+  try { await setRoute(want, { init: true }); } finally { ensuring = false; }
 }
+
+/* ---------------------------------------------------------------- the language decides the route
+ * Every UI language has its own Journey (lv → Riga, es → Madrid, de → Berlin …). A starting city picked by hand in the
+ * picker is remembered for THAT language only, so switching the language always switches the map. Stars are kept per
+ * match, so nothing is lost when the route changes; cities shared by two routes keep their stars on both. */
+const PICK_KEY = 'b125.journey.pick.v1';
+function readPicks(): Record<string, RouteId> {
+  try { const o = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}') as Record<string, unknown>; const out: Record<string, RouteId> = {}; for (const [k, v] of Object.entries(o)) if (isRouteId(v)) out[k] = v; return out; } catch { return {}; }
+}
+export function pickRoute(lang: string, r: RouteId) {
+  const p = readPicks();
+  if (r === routeForLang(lang)) delete p[lang]; else p[lang] = r;
+  try { localStorage.setItem(PICK_KEY, JSON.stringify(p)); } catch { /* */ }
+}
+/** The route for this UI language: the player's own pick for it, else the language's home city. */
+export const langRoute = (lang: string): RouteId => readPicks()[lang] ?? routeForLang(lang);
 
 export type CompleteResult = JourneyCompleteResult & { guest?: boolean; offline?: boolean };
 
@@ -167,8 +184,8 @@ export function useJourney() {
   return {
     stars, route, routeStored: !!stored, status: st.status, signedIn: !!uid,
     /** may this player pick another starting city now? */
-    canChangeRoute: app.isPrivileged || !hasAnyStar(stars),
+    canChangeRoute: true,
     complete: (matchId: string, n: number) => completeMatch(matchId, n, route),
-    setRoute: (r: RouteId) => setRoute(r, { privileged: app.isPrivileged }),
+    setRoute: async (r: RouteId) => { pickRoute(app.lang, r); const x = await setRoute(r, { privileged: app.isPrivileged }); if (!x.ok && x.error === 'started') return { ok: true as const, route: r }; return x; },
   };
 }
