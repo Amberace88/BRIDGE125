@@ -21,6 +21,7 @@
   "shortcuts": [
     { "name": "Play online now", "short_name": "Online", "url": "/?play=online", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
     { "name": "Play vs bots", "short_name": "Bots", "url": "/?play=bots", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Daily challenge", "short_name": "Daily", "url": "/daily?source=shortcut", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
     { "name": "How to play", "short_name": "Rules", "url": "/rules", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
   ],
   "screenshots": [

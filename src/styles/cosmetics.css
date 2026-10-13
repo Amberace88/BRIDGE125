@@ -439,3 +439,16 @@
 
 .afr-ach_fr_prestige .afr-glow { position: absolute; inset: calc(var(--afs) * -.08); border-radius: 50%; z-index: 0; pointer-events: none; box-shadow: 0 0 calc(var(--afs) * .22) rgba(200,180,255,.45), 0 0 calc(var(--afs) * .12) rgba(235,200,120,.5); animation: afrpulse 2.4s ease-in-out infinite; }
 .afr-ach_fr_obsidian .afr-glow { position: absolute; inset: calc(var(--afs) * -.06); border-radius: 50%; z-index: 0; pointer-events: none; box-shadow: 0 0 calc(var(--afs) * .2) rgba(140,120,255,.4); }
+
+/* ---------------------------------------------------------------- invite-only frame (ach_fr_envoy, migration 014) */
+.afr-ach_fr_envoy { --afw: max(3px, calc(var(--afs) * .075)); }
+.afr-ach_fr_envoy .afr-ring { background: conic-gradient(from 30deg, #0f5a45, #f3de9c 18%, #c9a54c 30%, #1d8a66 48%, #fff2c4 66%, #a37a26 80%, #0f5a45);
+  filter: drop-shadow(0 0 5px rgba(80,220,170,.35)) drop-shadow(0 2px 5px rgba(0,0,0,.5)); }
+.afr-ach_fr_envoy .afr-glow { position: absolute; inset: calc(var(--afs) * -.07); border-radius: 50%; z-index: 0; pointer-events: none;
+  box-shadow: 0 0 calc(var(--afs) * .2) rgba(60,210,160,.35), 0 0 calc(var(--afs) * .1) rgba(235,200,120,.45); animation: afrpulse 3s ease-in-out infinite; }
+.afr-ach_fr_envoy .afr-orbit { position: absolute; inset: calc(var(--afs) * -.0375); z-index: 3; pointer-events: none; border-radius: 50%; animation: spin 9s linear infinite; }
+.afr-ach_fr_envoy .afr-orbit i { position: absolute; left: 50%; width: max(5px, calc(var(--afs) * .15)); height: max(5px, calc(var(--afs) * .15)); margin-left: calc(max(5px, calc(var(--afs) * .15)) / -2);
+  border-radius: 50%; box-shadow: 0 0 calc(var(--afs) * .1) rgba(255,240,200,.7), 0 1px 3px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.35); }
+.afr-ach_fr_envoy .afr-orbit i:first-child { top: calc(max(5px, calc(var(--afs) * .15)) / -2); background: radial-gradient(circle at 35% 30%, #ffd0d8, #e0566b 40%, #8e1529); }
+.afr-ach_fr_envoy .afr-orbit i:last-child { bottom: calc(max(5px, calc(var(--afs) * .15)) / -2); background: radial-gradient(circle at 35% 30%, #d4ffe9, #3fd896 40%, #13724c); }
+@media (prefers-reduced-motion: reduce) { .afr-ach_fr_envoy .afr-orbit, .afr-ach_fr_envoy .afr-glow { animation: none; } }

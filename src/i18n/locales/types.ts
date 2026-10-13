@@ -8,6 +8,8 @@ import type { SocialStrings } from '../social';
 import type { JourneyStrings, QuestStrings } from '../journey';
 import type { AchStrings } from '../achievements';
 import type { EcoStrings } from '../economy';
+import type { DailyStrings } from '../daily';
+import type { InviteStrings } from '../invite';
 
 /**
  * Feature strings for one lazily loaded language — one chunk per language, fetched together with the core
@@ -25,4 +27,7 @@ export interface FeaturePack {
   quests: DeepPartial<QuestStrings>;
   achievements: DeepPartial<AchStrings>;
   economy: DeepPartial<EcoStrings>;
+  /** Daily challenge + invite friends: optional — a pack without them shows English until translated. */
+  daily?: DeepPartial<DailyStrings>;
+  invite?: DeepPartial<InviteStrings>;
 }

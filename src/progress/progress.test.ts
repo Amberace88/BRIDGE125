@@ -3,6 +3,7 @@ import sql from '../../supabase/migration_003_progress.sql?raw';
 import sql8 from '../../supabase/migration_008_cosmetics.sql?raw';
 import sql12 from '../../supabase/migration_012_economy.sql?raw';
 import sql13 from '../../supabase/migration_013_integration.sql?raw';
+import sql14 from '../../supabase/migration_014_daily_referrals.sql?raw';
 import { SHOP_ROWS, COSMETICS, ALL_SLOTS, slotOptions } from '../shop/catalog';
 import { ACHIEVEMENTS, ACH_CATEGORIES, ACH_ITEMS, CLIENT_CODES, COLUMN_STATS, COUNTER_STATS, achProgress, detectAchievements } from './achievements';
 import { GAME_STAT_CAPS, GameTracker } from './tracker';
@@ -112,7 +113,7 @@ describe('catalogue is in sync with the SQL seed', () => {
       expect(slot, id).toBeTruthy();
       expect(slotOptions(slot!).find(o => o.id === id)?.premium, id).toBe(true);
       expect(COSMETICS.some(c => c.id === id), id).toBe(false);
-      expect(sql12 + sql13, id).toMatch(new RegExp(`\\('${id}',\\s*'\\w+',\\s*null`));
+      expect(sql12 + sql13 + sql14, id).toMatch(new RegExp(`\\('${id}',\\s*'\\w+',\\s*null`));
     }
     for (const id of ACH_COSMETIC_IDS) expect(EARNED_IDS.has(id), id).toBe(true);
   });

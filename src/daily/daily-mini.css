@@ -1,0 +1,120 @@
+/* =====================================================================================
+   Daily challenge Home card · Invite friends card · invitation pop-up
+   Small on purpose: ships with Home / Profile. Uses the theme tokens from src/styles.css.
+   ===================================================================================== */
+
+.dcard, .inv, .refpop { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
+
+/* ------------------------------------------------------------------ Home card */
+.dcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 10px; padding: 10px 12px 10px 10px;
+  border-radius: 18px; text-align: left; color: var(--text); isolation: isolate;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 55%),
+    linear-gradient(180deg, rgba(14,30,26,.84), rgba(6,14,12,.9));
+  border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+  box-shadow: 0 10px 26px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06); }
+.dcard.hot { border-color: color-mix(in srgb, var(--acc-hi) 62%, transparent);
+  box-shadow: 0 0 28px -8px color-mix(in srgb, var(--acc) 50%, transparent), 0 12px 26px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07); }
+.dc-seal { position: relative; flex-shrink: 0; width: 50px; height: 50px; border-radius: 50%; display: grid; place-content: center; text-align: center; line-height: 1;
+  background: radial-gradient(circle at 35% 28%, #fff5d2 0 6%, #e9c977 24%, #a8812f 60%, #5b4212);
+  box-shadow: 0 6px 14px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,240,200,.35), inset 0 -3px 5px rgba(0,0,0,.35); }
+.dc-seal::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #183a30, #07140f 75%);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.7), 0 0 0 1px rgba(60,40,8,.6); }
+.dc-seal > * { position: relative; }
+.dc-seal small { font-size: 8.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--acc-hi); opacity: .85; }
+.dc-seal b { font-size: 21px; font-weight: 700; color: #fff4d6; text-shadow: 0 0 10px color-mix(in srgb, var(--acc-hi) 45%, transparent); margin-top: 1px; }
+.dc-seal .ok { position: absolute; right: -3px; bottom: -3px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 10px; font-weight: 900;
+  color: var(--acc-ink); background: linear-gradient(180deg, var(--acc-hi), var(--acc)); box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+.dc-tx { flex: 1; min-width: 0; display: grid; gap: 1px; line-height: 1.2; }
+.dc-tx .kick { font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--acc-hi); }
+.dc-tx b { font-size: 14px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dc-tx em { font-style: normal; font-size: 11.5px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-go { color: var(--acc-hi); font-size: 22px; line-height: 1; padding-right: 2px; }
+.dc-play { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; color: var(--acc-ink);
+  background: linear-gradient(180deg, var(--acc-hi), var(--acc) 50%, var(--acc-lo)); box-shadow: 0 6px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.45); }
+.dc-sheen { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255,240,200,.09) 50%, transparent 65%);
+  transform: translateX(-120%); animation: dcsheen 5.5s ease-in-out 1.2s infinite; }
+@keyframes dcsheen { 0%, 55% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+
+/* ------------------------------------------------------------------ Invite friends */
+.inv { position: relative; display: grid; gap: 10px; margin-top: 14px; padding: 16px; border-radius: 22px; color: var(--text); overflow: hidden; isolation: isolate;
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgba(60,210,160,.12), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 60%),
+    linear-gradient(180deg, rgba(14,30,26,.92), rgba(5,12,10,.95));
+  border: 1px solid color-mix(in srgb, var(--acc) 34%, transparent);
+  box-shadow: 0 18px 40px -18px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.06); }
+.inv-head { display: flex; gap: 12px; align-items: flex-start; }
+.inv-ico { flex-shrink: 0; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; color: var(--acc-hi);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.25)); border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.inv-ico svg { width: 24px; height: 24px; }
+.inv-tt { display: grid; gap: 3px; min-width: 0; }
+.inv-tt b { font-size: 23px; line-height: 1.05; background: linear-gradient(100deg, var(--acc-hi), #fff6d8 45%, var(--acc) 85%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.inv-tt small { font-size: 12.5px; line-height: 1.4; color: var(--mute); }
+.inv-prize { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-radius: 16px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.06); }
+.inv-prize .inv-pv { width: 54px; height: 54px; display: grid; place-items: center; flex-shrink: 0; }
+.inv-prize .tx { flex: 1; min-width: 0; display: grid; line-height: 1.25; }
+.inv-prize .tx b { font-size: 14px; }
+.inv-prize .tx small { font-size: 11.5px; color: var(--mute); }
+.inv-prize .bm { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 15px; color: var(--acc-hi); white-space: nowrap; }
+.inv-label { font-size: 10.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--acc-hi); opacity: .85; margin-top: 2px; }
+.inv-link { display: flex; align-items: center; gap: 6px; padding: 5px 5px 5px 14px; border-radius: 14px; background: rgba(0,0,0,.4); border: 1px dashed color-mix(in srgb, var(--acc) 45%, transparent); }
+.inv-link .url { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: all; -webkit-user-select: all; }
+.inv-link .url .shimmerbar { display: block; height: 14px; width: 70%; border-radius: 6px; }
+.inv-copy { flex-shrink: 0; min-width: 92px; height: 38px; padding: 0 12px; border-radius: 10px; font-size: 13px; font-weight: 800; color: var(--acc-hi); overflow: hidden;
+  background: color-mix(in srgb, var(--acc) 18%, transparent); border: 1px solid var(--line); }
+.inv-copy:disabled { opacity: .5; }
+.inv-share { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; font-size: 15px; }
+.inv-retry { justify-self: start; }
+.inv-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 14px; background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.05); }
+.inv-stats span { display: grid; justify-items: center; gap: 1px; padding: 9px 4px; text-align: center; }
+.inv-stats span + span { border-left: 1px solid rgba(255,255,255,.06); }
+.inv-stats b { display: inline-flex; align-items: center; gap: 4px; font-size: 18px; font-weight: 800; }
+.inv-stats small { font-size: 10.5px; color: var(--mute); }
+.inv-by { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--mute); padding: 0 2px; }
+.inv-by b { color: var(--acc-hi); font-size: 12px; white-space: nowrap; }
+.inv-friends { display: grid; gap: 6px; }
+.inv-f { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 12px; background: rgba(255,255,255,.03); }
+.inv-f .nm { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-f .ok, .inv-by .ok { color: #7fe0b5; font-size: 11.5px; font-weight: 800; }
+.inv-f .pg { position: relative; width: 104px; height: 18px; border-radius: 99px; background: rgba(0,0,0,.45); overflow: hidden; display: grid; place-items: center; }
+.inv-f .pg i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, var(--acc-lo), var(--acc)); }
+.inv-f .pg small { position: relative; font-size: 10.5px; font-weight: 800; }
+.inv.compact { margin-top: 18px; }
+
+/* one-line invite (Daily result) */
+.inv-mini { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 4px; padding: 9px 12px 9px 9px; border-radius: 16px; text-align: left; color: var(--text);
+  background: linear-gradient(90deg, rgba(60,210,160,.10), rgba(0,0,0,.25)); border: 1px dashed color-mix(in srgb, var(--acc) 45%, transparent); }
+.inv-mini .tx { flex: 1; min-width: 0; display: grid; line-height: 1.25; }
+.inv-mini .tx b { font-size: 14px; }
+.inv-mini .tx small { font-size: 11.5px; color: var(--acc-hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-mini .go { color: var(--acc-hi); font-size: 20px; }
+.inv-ico.sm { width: 34px; height: 34px; border-radius: 11px; }
+.inv-ico.sm svg { width: 20px; height: 20px; }
+
+/* ------------------------------------------------------------------ invitation / reward pop-up */
+.refpop { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); z-index: 170; width: min(400px, calc(100vw - 24px)); display: flex; gap: 12px; padding: 16px 16px 14px;
+  border-radius: 22px; overflow: hidden; color: var(--text);
+  background:
+    radial-gradient(90% 90% at 0% 0%, rgba(60,210,160,.16), transparent 60%),
+    linear-gradient(180deg, rgba(16,32,28,.97), rgba(5,12,10,.98));
+  border: 1px solid color-mix(in srgb, var(--acc-hi) 55%, transparent);
+  box-shadow: 0 26px 60px rgba(0,0,0,.65), 0 0 40px -10px color-mix(in srgb, var(--acc) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.refpop .sheen { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255,240,200,.12) 50%, transparent 65%); transform: translateX(-120%); animation: qtsheen 2.6s ease-out .6s 1 forwards; }
+@keyframes qtsheen { to { transform: translateX(120%); } }
+.refpop .ref-pv { flex-shrink: 0; width: 56px; height: 56px; display: grid; place-items: center; }
+.refpop .seal { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; color: #ffd0d8;
+  background: radial-gradient(circle at 35% 30%, #23574a, #0a221c 70%); box-shadow: inset 0 2px 5px rgba(0,0,0,.6); }
+.refpop.reward .seal { color: var(--acc-hi); }
+.refpop .tx { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.refpop .tx small { font-size: 10.5px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--acc-hi); }
+.refpop .tx b { font-size: 21px; line-height: 1.1; }
+.refpop .tx > span { font-size: 13px; line-height: 1.4; color: rgba(238,243,239,.82); }
+.refpop .pg { position: relative; display: grid; place-items: center; height: 20px; margin-top: 2px; border-radius: 99px; background: rgba(0,0,0,.45); overflow: hidden; }
+.refpop .pg i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, var(--acc-lo), var(--acc), var(--acc-hi)); }
+.refpop .pg em { position: relative; font-style: normal; font-size: 11px; font-weight: 800; }
+.refpop .acts { display: flex; gap: 8px; margin-top: 6px; }
+.refpop .x { position: absolute; top: 8px; right: 10px; width: 28px; height: 28px; border-radius: 50%; font-size: 20px; line-height: 1; color: var(--mute); }
+.refpop .x:hover { color: var(--text); background: rgba(255,255,255,.06); }
+@media (prefers-reduced-motion: reduce) { .dc-sheen, .refpop .sheen { animation: none; } }

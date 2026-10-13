@@ -28,6 +28,8 @@ const Journey = lazy(() => import('./screens/Journey').then(m => ({ default: m.J
 const QuestsScreen = lazy(() => import('./screens/Quests').then(m => ({ default: m.QuestsScreen })));
 const AchievementsHall = lazy(() => import('./screens/Achievements').then(m => ({ default: m.AchievementsHall })));
 const VaultScreen = lazy(() => import('./screens/Wheel').then(m => ({ default: m.VaultScreen })));
+const Daily = lazy(() => import('./daily/Daily').then(m => ({ default: m.Daily })));
+import { ReferralRoot } from './referral/ReferralRoot';
 import { findQuickMatch, newRoomCode } from './online/useRoom';
 import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
@@ -38,7 +40,9 @@ type Route =
   | { name: 'local'; resume: GameState | null; key: number; stake?: ActiveStake }
   | { name: 'room'; code: string }
   /** the Journey campaign: map → city → match (it runs LocalGame in campaign mode itself) */
-  | { name: 'journey' };
+  | { name: 'journey' }
+  /** the Daily challenge: same seeded deal for everyone (it runs LocalGame in daily mode itself) */
+  | { name: 'daily' };
 type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | LegalKind | null;
 
 function parse(): { route: Route; overlay: Overlay } {
@@ -46,6 +50,7 @@ function parse(): { route: Route; overlay: Overlay } {
   const m = p.match(/^\/r\/([A-Za-z0-9]{4,6})\/?$/);
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
   if (/^\/journey\/?$/.test(p)) return { route: { name: 'journey' }, overlay: null };
+  if (/^\/daily\/?$/.test(p)) return { route: { name: 'daily' }, overlay: null };
   const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
@@ -115,6 +120,7 @@ function Shell() {
               onShop={() => openShop()}
               onMerch={() => openOverlay('merch')}
               onJourney={() => go({ name: 'journey' }, '/journey')}
+              onDaily={() => go({ name: 'daily' }, '/daily')}
               onQuests={() => openOverlay('quests')}
               onAchievements={() => openOverlay('achievements')}
               onVault={() => openOverlay('vault')}
@@ -141,6 +147,12 @@ function Shell() {
           <motion.div key="journey" style={{ position: 'absolute', inset: 0 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
             <Suspense fallback={null}><Journey onExit={home} onAuth={auth} /></Suspense>
+          </motion.div>
+        )}
+        {route.name === 'daily' && (
+          <motion.div key="daily" style={{ position: 'absolute', inset: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+            <Suspense fallback={null}><Daily onExit={home} onAuth={auth} /></Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -176,6 +188,7 @@ function Shell() {
       <CosmeticsSync />
       <SocialRoot />
       <QuestToasts />
+      <ReferralRoot onAuth={auth} />
       <RewardsLayer autoDaily={route.name === 'home' && !overlay && !sheet} onAuth={() => setSheet('auth')} />
     </div>
   );
