@@ -23,6 +23,8 @@ const QuestsScreen = lazy(() => import('./screens/Quests').then(m => ({ default:
 const AchievementsHall = lazy(() => import('./screens/Achievements').then(m => ({ default: m.AchievementsHall })));
 const VaultScreen = lazy(() => import('./screens/Wheel').then(m => ({ default: m.VaultScreen })));
 const GamesHub = lazy(() => import('./games/hub/GamesHub').then(m => ({ default: m.GamesHub })));
+const GameSession = lazyNamed(() => import('./games/challenge/GameSession'), 'GameSession');
+const ChallengeLanding = lazyNamed(() => import('./games/challenge/Landing'), 'ChallengeLanding');
 // everything below loads after the first Home paint (tables are prefetched on idle; sheets / layers on demand)
 const LocalGame = lazyNamed(() => import('./screens/LocalGame'), 'LocalGame');
 const OnlineRoom = lazyNamed(() => import('./screens/OnlineRoom'), 'OnlineRoom');
@@ -53,17 +55,18 @@ type Route =
   | { name: 'journey' }
   /** the Daily challenge: same seeded deal for everyone (it runs LocalGame in daily mode itself) */
   | { name: 'daily' }
-  /** a mini game from src/games/registry.ts (/g/<id>) */
-  | { name: 'game'; id: string };
+  /** a mini game from src/games/registry.ts (/g/<id>); seed/level/mode: a challenge started from the hub (migration 022) */
+  | { name: 'game'; id: string; seed?: string; level?: string; mode?: 'create' }
+  /** a friend's challenge link (/c/<code>, migration 022) */
+  | { name: 'challenge'; code: string };
 type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | 'games' | LegalKind | null;
 
-/** /g/<id>: the registered mini game, or back home for an unknown id. */
-function MiniGame({ id, onExit, onAuth }: { id: string; onExit: () => void; onAuth: () => void }) {
+/** /g/<id>: the registered mini game (inside the challenge-aware GameSession), or back home for an unknown id. */
+function MiniGame({ id, seed, level, mode, onExit, onAuth }: { id: string; seed?: string; level?: string; mode?: 'create'; onExit: () => void; onAuth: () => void }) {
   const m = gameById(id);
   useEffect(() => { if (!m) onExit(); }, [m]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!m) return null;
-  const S = m.Screen;
-  return <S onExit={onExit} onAuth={onAuth} />;
+  return <GameSession m={m} seed={seed} level={level} mode={mode ?? 'play'} onExit={onExit} onAuth={onAuth} />;
 }
 
 function parse(): { route: Route; overlay: Overlay } {
@@ -74,6 +77,8 @@ function parse(): { route: Route; overlay: Overlay } {
   if (/^\/daily\/?$/.test(p)) return { route: { name: 'daily' }, overlay: null };
   const gm = p.match(/^\/g\/([a-z0-9-]{2,24})\/?$/);
   if (gm) return { route: { name: 'game', id: gm[1] }, overlay: null };
+  const cm = p.match(/^\/c\/([A-Za-z0-9]{4,12})\/?$/);
+  if (cm) return { route: { name: 'challenge', code: cm[1] }, overlay: null };
   const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault|season|games)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
@@ -106,7 +111,7 @@ function Shell() {
   const home = () => go({ name: 'home' }, '/');
   /** leave a mini game: back to the games room it was opened from */
   const toGames = () => { go({ name: 'home' }, '/games'); setOverlay('games'); };
-  const openGame = (id: string) => go({ name: 'game', id }, `/g/${id}`);
+  const openGame = (id: string, o?: { seed?: string; level?: string; mode?: 'create' }) => go({ name: 'game', id, ...o }, `/g/${id}`);
   const openOverlay = (o: Exclude<Overlay, null>) => { history.pushState(null, '', '/' + o); setOverlay(o); };
   const closeOverlay = () => { if (route.name === 'home' && location.pathname !== '/') history.pushState(null, '', '/'); setOverlay(null); };
   const saved = route.name === 'home' ? loadSavedGame() : null;
@@ -187,7 +192,13 @@ function Shell() {
         {route.name === 'game' && (
           <motion.div key={'game' + route.id} style={{ position: 'absolute', inset: 0 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
-            <Suspense fallback={null}><MiniGame id={route.id} onExit={toGames} onAuth={auth} /></Suspense>
+            <Suspense fallback={null}><MiniGame id={route.id} seed={route.seed} level={route.level} mode={route.mode} onExit={toGames} onAuth={auth} /></Suspense>
+          </motion.div>
+        )}
+        {route.name === 'challenge' && (
+          <motion.div key={'ch' + route.code} style={{ position: 'absolute', inset: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+            <Suspense fallback={null}><ChallengeLanding code={route.code} onExit={home} onGames={toGames} onAuth={auth} /></Suspense>
           </motion.div>
         )}
         {route.name === 'daily' && (

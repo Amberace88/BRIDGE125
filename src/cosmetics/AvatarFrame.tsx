@@ -134,7 +134,9 @@ const DECOR: Record<string, { back?: ReactNode; front?: ReactNode }> = {
   ach_fr_envoy: { back: <span className="afr-glow" aria-hidden />, front: <span className="afr-orbit" aria-hidden><i /><i /></span> },
   // Season Pass frames (migration 016): ring CSS in styles/season-cosmetics.css
   s1_fr_gilded: { back: <><span className="afr-glow" aria-hidden /><DecoRays /></>, front: <><DecoGem />{glint('62%', '84%', '.8s')}</> },
+  // weekly-tournament podium (migration 022): ring CSS in src/games/tournament/cosmetics.css
+  tg_fr_podium: { back: <span className="afr-glow" aria-hidden />, front: <><Laurel />{glint('-4%', '72%', '.3s')}{glint('74%', '-4%', '1.5s')}</> },
 };
 
 /** Frame ids with decor: 'fr_<k>' for the shop frames, the earned 'ach_fr_*' / season 's1_fr_*' ids as they are. */
-export const FRAME_IDS = Object.keys(DECOR).map(k => (/^(ach|s\d+)_/.test(k) ? k : `fr_${k}`));
+export const FRAME_IDS = Object.keys(DECOR).map(k => (/^(ach|s\d+|tg)_/.test(k) ? k : `fr_${k}`));

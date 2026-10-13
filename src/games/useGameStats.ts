@@ -75,6 +75,17 @@ export function recordLocal(r: GameResult) {
   const local = { ...state.local, [r.game]: foldResult(state.local[r.game], r) };
   try { localStorage.setItem(LOCAL_KEY, JSON.stringify(local)); } catch { /* */ }
   set({ local });
+  // challenges / the hub's game session (src/games/challenge/GameSession.tsx) listen for finished games
+  try { window.dispatchEvent(new CustomEvent<GameResult>(GAME_RECORDED, { detail: r })); } catch { /* SSR / tests */ }
+}
+
+/** window event fired once per finished mini game (detail: the GameResult), for every game in the registry. */
+export const GAME_RECORDED = 'b125:minigame';
+/** Listen for finished mini games; returns the unsubscribe function. */
+export function onGameRecorded(fn: (r: GameResult) => void): () => void {
+  const h = (e: Event) => { const r = (e as CustomEvent<GameResult>).detail; if (r && typeof r.game === 'string') fn(r); };
+  window.addEventListener(GAME_RECORDED, h);
+  return () => window.removeEventListener(GAME_RECORDED, h);
 }
 
 /** The server's fresh record for one game (from record_minigame). */

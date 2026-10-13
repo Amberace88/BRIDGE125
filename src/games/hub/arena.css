@@ -1,0 +1,287 @@
+/* ============================================================================ GAMES ROOM · social layer (migration 022)
+   Tournament banner (claret felt + brass), game of the day + marathon, card-room level + showcase strip, the
+   "Challenge a friend" card and its picker, the standings sheet and the prize ceremony. Mobile first (390 px). */
+
+.ga-ic { width: 1em; height: 1em; flex-shrink: 0; }
+.ga-kick { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--acc-hi) 88%, transparent); white-space: nowrap; }
+.ga-kick .ga-ic { width: 15px; height: 15px; }
+.ga-kick.sm { font-size: 9.5px; letter-spacing: .12em; }
+.ga-kick.sm .ga-ic { width: 13px; height: 13px; }
+.ga-chip { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 99px; font-size: 11px; font-weight: 700; color: rgba(247,241,227,.85);
+  background: rgba(0,0,0,.34); border: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+.ga-chip b { color: var(--acc-hi); }
+.ga-chip.free { color: #bff0d8; border-color: rgba(47,155,116,.45); background: rgba(27,107,79,.28); }
+
+/* ---------------------------------------------------------------- tournament banner */
+.ga-tour { position: relative; overflow: hidden; isolation: isolate; border-radius: 26px; padding: 16px 16px 14px; display: grid; gap: 12px;
+  transform-style: preserve-3d;
+  box-shadow: 0 34px 60px -32px rgba(0,0,0,.95), 0 0 0 1px color-mix(in srgb, var(--acc) 42%, transparent), inset 0 1px 0 rgba(255,255,255,.1),
+    inset 0 0 0 5px rgba(0,0,0,.22), inset 0 0 0 6px color-mix(in srgb, var(--acc) 18%, transparent); }
+.ga-tour-felt { position: absolute; inset: 0; z-index: -1; overflow: hidden;
+  background:
+    radial-gradient(90% 70% at 12% 0%, rgba(255,214,140,.16), transparent 60%),
+    radial-gradient(120% 90% at 85% 120%, rgba(20,110,86,.35), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,.014) 0 2px, transparent 2px 7px),
+    linear-gradient(160deg, #5c1222 0%, #3a0b16 46%, #1a060b 100%); }
+.ga-tour-felt .rays { position: absolute; left: -30%; top: -60%; width: 120%; height: 180%;
+  background: repeating-conic-gradient(from 0deg at 30% 40%, rgba(243,222,156,.07) 0 4deg, transparent 4deg 14deg);
+  animation: garays 40s linear infinite; mask: radial-gradient(closest-side, #000, transparent); -webkit-mask: radial-gradient(closest-side, #000, transparent); }
+.ga-tour-felt .sheen { position: absolute; inset: -40% -60%; background: linear-gradient(105deg, transparent 42%, rgba(255,240,200,.09) 50%, transparent 58%); animation: gasheen 7s ease-in-out infinite; }
+@keyframes garays { to { transform: rotate(360deg); } }
+@keyframes gasheen { 0%, 60% { transform: translateX(-40%); } 100% { transform: translateX(40%); } }
+.ga-tour.prize { box-shadow: 0 34px 60px -32px rgba(0,0,0,.95), 0 0 0 1.5px var(--acc-hi), 0 0 40px -8px color-mix(in srgb, var(--acc) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.12); }
+
+.ga-tour-top { display: flex; align-items: center; gap: 14px; }
+.ga-tour-medal { position: relative; width: 84px; height: 84px; flex-shrink: 0; display: grid; place-items: center; color: var(--acc-hi); transform: translateZ(30px); }
+.ga-laurel { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); color: #d9b25c; filter: drop-shadow(0 3px 4px rgba(0,0,0,.6)); }
+.ga-tour-coin { width: 58px; height: 58px; border-radius: 50%; padding: 3px; display: grid; place-items: center;
+  background: conic-gradient(from 210deg, #fff2c4, #d9b25c 22%, #8a6420 45%, #e9c977 68%, #8a6420 86%, #fff2c4);
+  box-shadow: 0 12px 20px -8px rgba(0,0,0,.8), 0 0 0 1px rgba(0,0,0,.45); position: relative; }
+.ga-tour-coin::before { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #6b1a2c, #2a0710 72%); box-shadow: inset 0 2px 6px rgba(0,0,0,.6); }
+.ga-tour-coin > * { position: relative; max-width: 66%; max-height: 66%; }
+.ga-tour-coin .ga-ic { width: 26px; height: 26px; }
+.ga-tour-head { min-width: 0; display: grid; gap: 3px; }
+.ga-tour-head h2 { font-size: 32px; line-height: .95; font-weight: 700; color: #f7f1e3; text-shadow: 0 3px 16px rgba(0,0,0,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ga-tour-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
+
+.ga-count { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px 8px 12px; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,.42), rgba(0,0,0,.25)); border: 1px solid rgba(255,255,255,.07); }
+.ga-count-l { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); white-space: nowrap; }
+.ga-count-tiles { display: flex; gap: 5px; }
+.ga-tile { position: relative; display: flex; align-items: baseline; gap: 2px; min-width: 46px; height: 36px; padding: 0 7px; justify-content: center; overflow: hidden; border-radius: 10px;
+  background: linear-gradient(180deg, #2a1d0c 0%, #140d05 49%, #0d0904 51%, #1f160a 100%); box-shadow: inset 0 1px 0 rgba(255,236,180,.18), 0 3px 6px rgba(0,0,0,.5); align-items: center; }
+.ga-tile::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0,0,0,.65); }
+.ga-tile b { font: 700 19px/1 var(--sans); color: var(--acc-hi); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in srgb, var(--acc) 45%, transparent); }
+.ga-tile small { font-size: 10px; font-weight: 700; color: color-mix(in srgb, var(--acc-hi) 60%, transparent); }
+.ga-count.compact { margin: 2px 0 12px; }
+.ga-count.compact .ga-tile { min-width: 40px; height: 30px; }
+.ga-count.compact .ga-tile b { font-size: 16px; }
+
+.ga-tour-mid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: stretch; }
+.ga-tour-me, .ga-tour-prize { display: grid; gap: 2px; align-content: center; padding: 8px 12px; border-radius: 14px; background: rgba(0,0,0,.26); border: 1px solid rgba(255,255,255,.06); min-width: 0; }
+.ga-tour-me small, .ga-tour-prize small { font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+.ga-tour-me .rank { display: flex; align-items: baseline; gap: 2px; font: 700 28px/1 var(--sans); color: #fff6d8; }
+.ga-tour-me .rank i { font-style: normal; font-size: 16px; color: var(--acc-hi); }
+.ga-tour-me .rank em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--mute); margin-left: 8px; }
+.ga-tour-me .none { font-size: 13px; font-weight: 600; color: rgba(247,241,227,.82); line-height: 1.3; }
+.ga-tour-prize { text-align: right; background: linear-gradient(160deg, color-mix(in srgb, var(--acc) 22%, transparent), rgba(0,0,0,.25)); border-color: color-mix(in srgb, var(--acc) 35%, transparent); }
+.ga-tour-prize b { display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; font: 700 19px/1 var(--sans); color: var(--acc-hi); }
+.ga-tour-prize em { font-style: normal; font-size: 11px; color: rgba(247,241,227,.75); white-space: nowrap; }
+
+.ga-tour-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.ga-tour-cta { height: 52px; border-radius: 15px; font-size: 16px; gap: 10px; width: 100%; }
+.ga-tour-cta .arr { margin-left: auto; font-size: 19px; transition: transform .25s; }
+.ga-tour-cta:hover .arr { transform: translateX(4px); }
+.ga-tour-cta .ga-ic { width: 20px; height: 20px; }
+.ga-tour-cta.claim { animation: gaglow 1.8s ease-in-out infinite; }
+@keyframes gaglow { 0%, 100% { box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--acc) 70%, transparent); } 50% { box-shadow: 0 8px 34px -4px color-mix(in srgb, var(--acc-hi) 90%, transparent); } }
+.ga-tour-board { height: 52px; border-radius: 15px; padding: 0 16px; }
+.ga-tour-soon { align-self: center; font-size: 13px; font-style: italic; color: var(--mute); }
+.ga-tour-sign { justify-self: center; font-size: 12.5px; font-weight: 700; color: var(--acc-hi); padding: 2px 8px; }
+
+/* ---------------------------------------------------------------- today: game of the day + marathon */
+.ga-today { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ga-gotd, .ga-mara { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px; border-radius: 20px; text-align: left;
+  border: 1px solid rgba(255,255,255,.07); box-shadow: 0 22px 34px -24px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.07); }
+.ga-gotd { color: inherit; cursor: pointer;
+  background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--acc) 30%, transparent), transparent 60%), linear-gradient(180deg, rgba(24,44,36,.96), rgba(8,18,14,.97));
+  border-color: color-mix(in srgb, var(--acc) 38%, transparent); }
+.ga-gotd-burst { position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; z-index: -1; border-radius: 50%;
+  background: repeating-conic-gradient(rgba(243,222,156,.12) 0 6deg, transparent 6deg 18deg); animation: garays 26s linear infinite;
+  mask: radial-gradient(closest-side, #000 30%, transparent); -webkit-mask: radial-gradient(closest-side, #000 30%, transparent); }
+.ga-gotd-body { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.ga-gotd-medal { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; color: var(--acc-hi);
+  background: radial-gradient(circle at 35% 30%, #1d5444, #0a2620 70%); box-shadow: 0 0 0 2px color-mix(in srgb, var(--acc) 70%, transparent), 0 8px 14px -6px rgba(0,0,0,.7); }
+.ga-gotd-tx { display: grid; min-width: 0; }
+.ga-gotd-tx b { font-size: 21px; line-height: 1; color: #f7f1e3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ga-gotd-tx em { font-style: normal; font-size: 11.5px; font-weight: 800; color: var(--acc-hi); margin-top: 3px; }
+.ga-gotd-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; }
+.ga-x15 { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; }
+.ga-x15 .coin { width: 12px; height: 12px; }
+.ga-x15 s { color: var(--mute); text-decoration-thickness: 1.5px; }
+.ga-x15 b { color: var(--acc-hi); font-size: 14px; }
+.ga-play, .ga-earned { font-size: 11.5px; font-weight: 700; color: rgba(247,241,227,.75); white-space: nowrap; }
+.ga-earned { color: #9fe3c4; }
+
+.ga-mara { background: radial-gradient(110% 80% at 0% 0%, rgba(163,29,53,.22), transparent 60%), linear-gradient(180deg, rgba(20,34,30,.96), rgba(8,16,13,.97)); }
+.ga-mara p { font-size: 12px; line-height: 1.3; color: rgba(238,243,239,.72); }
+.ga-pips { display: flex; align-items: center; gap: 5px; }
+.ga-pip { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--mute); font-size: 11px; font-weight: 800;
+  background: rgba(0,0,0,.35); border: 1.5px dashed rgba(255,255,255,.16); }
+.ga-pip i { font-style: normal; }
+.ga-pip.on { color: var(--acc-hi); border: 1.5px solid color-mix(in srgb, var(--acc) 80%, transparent); background: radial-gradient(circle at 35% 30%, #1d5444, #0a2620 72%); box-shadow: 0 0 12px -3px color-mix(in srgb, var(--acc) 70%, transparent); }
+.ga-pip svg { max-width: 64%; max-height: 64%; }
+.ga-chest { margin-left: auto; width: 30px; height: 30px; display: grid; place-items: center; color: var(--acc-hi); }
+.ga-chest .ga-ic { width: 26px; height: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)); }
+.ga-mara.ready .ga-chest { animation: gawiggle 1.4s ease-in-out infinite; }
+@keyframes gawiggle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-10deg) scale(1.1); } 40% { transform: rotate(9deg) scale(1.1); } 60% { transform: rotate(0) scale(1); } }
+.ga-mara.ready { border-color: color-mix(in srgb, var(--acc-hi) 55%, transparent); box-shadow: 0 0 28px -10px color-mix(in srgb, var(--acc) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.08); }
+.ga-mara.claimed { opacity: .78; }
+.ga-mara-rw { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; margin-top: auto; }
+.ga-mara-rw b { font: 700 15px/1 var(--sans); color: #f7f1e3; }
+.ga-mara-rw span { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--acc-hi); white-space: nowrap; }
+.ga-mara-rw .coin { width: 12px; height: 12px; }
+.ga-mara-rw small { color: var(--mute); font-weight: 600; }
+.ga-mara-btn { margin-top: auto; width: 100%; }
+.ga-mara-done { margin-top: auto; font-size: 11.5px; font-weight: 700; color: #9fe3c4; line-height: 1.3; }
+
+/* tiles: game of the day / featured in the tournament */
+.gh-tile.gotd { border-color: color-mix(in srgb, var(--acc) 55%, transparent); box-shadow: 0 26px 40px -26px rgba(0,0,0,.95), 0 0 28px -14px color-mix(in srgb, var(--acc) 80%, transparent), inset 0 1px 0 rgba(255,255,255,.09); }
+.gh-chip.ga-x15chip { color: var(--acc-ink); background: linear-gradient(180deg, var(--acc-hi), var(--acc)); border: 0; }
+.gh-chip.ga-tourchip { color: #ffd9e0; background: linear-gradient(180deg, #7a1a2e, #4a0e1b); border-color: rgba(255,255,255,.1); padding: 0 6px; }
+.gh-chip.ga-tourchip .ga-ic { width: 13px; height: 13px; }
+
+/* ---------------------------------------------------------------- card-room level + showcase */
+.ga-pair { display: grid; gap: 12px; }
+.ga-hall { position: relative; overflow: hidden; display: grid; gap: 10px; padding: 14px; border-radius: 22px; min-width: 0;
+  background: radial-gradient(100% 80% at 0% 0%, color-mix(in srgb, var(--acc) 16%, transparent), transparent 60%), linear-gradient(180deg, rgba(16,32,27,.95), rgba(6,14,11,.97));
+  border: 1px solid rgba(255,255,255,.07); box-shadow: 0 26px 40px -28px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.07); }
+.ga-hall-head { display: flex; align-items: center; gap: 13px; }
+.ga-ring { position: relative; width: 68px; height: 68px; flex-shrink: 0; display: grid; place-items: center; }
+.ga-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,.6)); }
+.ga-ring b { font: 700 24px/1 var(--sans); color: #fff6d8; text-shadow: 0 0 12px color-mix(in srgb, var(--acc) 60%, transparent); }
+.ga-hall-tx { display: grid; gap: 2px; min-width: 0; }
+.ga-hall-tx h2 { font-size: 25px; line-height: 1; font-weight: 700; color: #f7f1e3; }
+.ga-hall-xp { font-size: 12px; color: var(--mute); }
+.ga-hall-xp b { color: var(--acc-hi); }
+.ga-show-h { margin-top: 2px; }
+.ga-strip { display: flex; gap: 9px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 2px 2px 6px; margin: 0 -14px; padding-inline: 14px; perspective: 700px;
+  scrollbar-width: none; scroll-padding-inline: 14px; }
+.ga-strip::-webkit-scrollbar { display: none; }
+.ga-case { flex: 0 0 auto; width: 132px; scroll-snap-align: start; display: grid; gap: 6px; padding: 10px; border-radius: 16px; text-align: left; color: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25)); border: 1px solid rgba(255,255,255,.08); transform-style: preserve-3d;
+  box-shadow: 0 14px 20px -14px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.06); }
+.ga-case-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ga-case-medal { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; color: var(--acc-hi);
+  background: radial-gradient(circle at 35% 30%, #1d5444, #0a2620 70%); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--acc) 65%, transparent); }
+.ga-case-top b { font-size: 16px; line-height: 1; color: #f7f1e3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ga-case-best { display: grid; }
+.ga-case-best small { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+.ga-case-best b { font: 700 22px/1.05 var(--sans); color: var(--acc-hi); }
+.ga-case-foot { display: flex; justify-content: space-between; gap: 4px; font-size: 12px; font-weight: 700; color: #f7f1e3; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.06); }
+.ga-case-foot small { font-size: 9.5px; font-weight: 600; color: var(--mute); }
+.ga-case-foot .hot { color: var(--acc-hi); }
+.ga-show-empty { font-size: 12.5px; color: var(--mute); font-style: italic; }
+
+/* ---------------------------------------------------------------- challenge a friend (hub card + picker) */
+.ga-duelcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 22px; text-align: left; color: inherit; min-width: 0;
+  background: radial-gradient(120% 120% at 0% 50%, rgba(163,29,53,.38), transparent 62%), radial-gradient(90% 90% at 100% 0%, color-mix(in srgb, var(--acc) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, rgba(26,20,18,.96), rgba(10,8,8,.97));
+  border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent); box-shadow: 0 26px 40px -28px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.07); }
+.ga-duel-art { position: relative; width: 74px; height: 64px; flex-shrink: 0; }
+.ga-duel-art i { position: absolute; top: 6px; width: 36px; height: 52px; border-radius: 6px; transform-origin: 50% 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.45) 0 7px, transparent 8px), repeating-linear-gradient(45deg, rgba(201,165,76,.14) 0 2px, transparent 2px 6px), linear-gradient(160deg, #135a46, #0a3a2f);
+  border: 1.5px solid var(--acc); box-shadow: 0 8px 14px rgba(0,0,0,.55), inset 0 0 0 3px rgba(0,0,0,.25); }
+.ga-duel-art i.c1 { left: 4px; } .ga-duel-art i.c2 { right: 4px; background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.45) 0 7px, transparent 8px), repeating-linear-gradient(-45deg, rgba(201,165,76,.14) 0 2px, transparent 2px 6px), linear-gradient(160deg, #7a1a2e, #3a0b16); }
+.ga-duel-art .sw { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -15px 0 0 -17px; display: grid; place-items: center; border-radius: 50%; color: var(--acc-ink);
+  background: linear-gradient(180deg, var(--acc-hi), var(--acc)); box-shadow: 0 6px 14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5); }
+.ga-duel-art .sw .ga-ic { width: 20px; height: 20px; }
+.ga-duel-tx { flex: 1; min-width: 0; display: grid; gap: 3px; align-content: center; }
+.ga-duel-tx b { font-size: 23px; line-height: 1; color: #f7f1e3; }
+.ga-duel-tx small { font-size: 12.5px; line-height: 1.35; color: rgba(238,243,239,.72); }
+.ga-duelcard .arr { font-size: 20px; color: var(--acc-hi); transition: transform .25s; }
+.ga-duelcard:hover .arr { transform: translateX(4px); }
+
+.ga-pick { display: grid; gap: 6px; padding-bottom: 6px; }
+.ga-pick h2 { font-size: 28px; line-height: 1; color: #f7f1e3; }
+.ga-pick > p { font-size: 13px; color: var(--mute); line-height: 1.45; margin-bottom: 8px; }
+.ga-pick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ga-pick-g { display: grid; justify-items: center; gap: 6px; padding: 14px 8px 12px; border-radius: 18px; color: inherit; text-align: center;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(30,98,78,.5), transparent 62%), linear-gradient(180deg, rgba(14,34,28,.94), rgba(6,15,12,.96));
+  border: 1px solid rgba(255,255,255,.08); }
+.ga-pick-g:hover { border-color: color-mix(in srgb, var(--acc) 55%, transparent); }
+.ga-pick-g .gh-medal { width: 50px; height: 50px; }
+.ga-pick-g b { font-size: 20px; line-height: 1; color: #f7f1e3; }
+.ga-pick-g small { font-size: 11px; font-weight: 700; color: var(--acc-hi); }
+.ga-mine { display: grid; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.07); }
+.ga-mine ul { list-style: none; display: grid; gap: 6px; }
+.ga-mine a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 9px 12px; border-radius: 12px; background: rgba(0,0,0,.26); border: 1px solid rgba(255,255,255,.06); color: inherit; text-decoration: none; }
+.ga-mine a .g { font-weight: 700; font-size: 13.5px; }
+.ga-mine a b { color: var(--acc-hi); font-size: 14px; }
+.ga-mine a .n { grid-column: 1 / -1; font-size: 11.5px; color: var(--mute); }
+.ga-mine li.old { opacity: .55; }
+.ga-mine-empty { font-size: 12.5px; color: var(--mute); font-style: italic; }
+
+/* ---------------------------------------------------------------- standings sheet + prize ceremony */
+.ga-ts-emblem { background: radial-gradient(circle at 35% 30%, #6b1a2c, #2a0710 72%); }
+.ga-prizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+.ga-prize { position: relative; display: grid; justify-items: center; gap: 1px; padding: 9px 4px 8px; border-radius: 14px; text-align: center;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25)); border: 1px solid rgba(255,255,255,.07); }
+.ga-prize .g { font-size: 16px; line-height: 1; }
+.ga-prize.gold { border-color: rgba(243,222,156,.5); } .ga-prize.gold .g { color: #f3de9c; }
+.ga-prize.silver .g { color: #d9dee6; } .ga-prize.bronze .g { color: #e0a878; } .ga-prize.top10 .g { color: #9fe3c4; }
+.ga-prize small { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.ga-prize b { display: inline-flex; align-items: center; gap: 3px; font: 700 14px/1.1 var(--sans); color: var(--acc-hi); }
+.ga-prize b .coin { width: 11px; height: 11px; }
+.ga-prize em { font-style: normal; font-size: 9.5px; color: rgba(247,241,227,.7); line-height: 1.15; }
+.ga-rules { font-size: 12px; line-height: 1.45; color: var(--mute); margin: 2px 2px 12px; }
+.ga-rules b { color: rgba(247,241,227,.85); font-weight: 700; }
+.lb2row.ga-dim { opacity: .62; }
+.ga-last { display: grid; gap: 8px; margin-top: 14px; padding: 12px; border-radius: 16px; background: rgba(0,0,0,.24); border: 1px solid rgba(255,255,255,.06); }
+.ga-last-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ga-last-p { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 99px; background: rgba(255,255,255,.05); font-size: 12.5px; }
+.ga-last-p i { font-style: normal; } .ga-last-p.gold i { color: #f3de9c; } .ga-last-p.silver i { color: #d9dee6; } .ga-last-p.bronze i { color: #e0a878; }
+.ga-ts-cta { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14px; }
+.ga-ts-cta .btn { width: 100%; }
+
+.ga-claim { position: relative; pointer-events: auto; max-height: calc(100% - 8px); overflow-y: auto; overflow-x: hidden; isolation: isolate; width: min(380px, calc(100vw - 32px)); display: grid; justify-items: center; gap: 8px; padding: 26px 20px 20px; border-radius: 28px; text-align: center;
+  background: radial-gradient(100% 70% at 50% 0%, rgba(255,214,140,.22), transparent 60%), linear-gradient(170deg, #5c1222, #2a0710 60%, #12040a);
+  box-shadow: 0 40px 80px -30px rgba(0,0,0,.95), 0 0 0 1.5px color-mix(in srgb, var(--acc-hi) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.14); }
+.ga-claim-rays { position: absolute; left: 50%; top: 70px; width: 520px; height: 520px; margin: -260px 0 0 -260px; z-index: -1;
+  background: repeating-conic-gradient(rgba(243,222,156,.12) 0 5deg, transparent 5deg 15deg); animation: garays 30s linear infinite;
+  mask: radial-gradient(closest-side, #000 20%, transparent 70%); -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 70%); }
+.ga-claim-cup { position: relative; width: 96px; height: 96px; display: grid; place-items: center; border-radius: 50%; color: var(--acc-ink);
+  background: conic-gradient(from 210deg, #fff2c4, #d9b25c 22%, #8a6420 45%, #e9c977 68%, #8a6420 86%, #fff2c4); box-shadow: 0 18px 30px -10px rgba(0,0,0,.8), 0 0 40px rgba(243,222,156,.4); }
+.ga-claim.silver .ga-claim-cup { background: conic-gradient(from 210deg, #ffffff, #c7ced8 22%, #7d8794 45%, #e3e7ee 68%, #7d8794 86%, #fff); }
+.ga-claim.bronze .ga-claim-cup { background: conic-gradient(from 210deg, #ffe2c8, #c98a5a 22%, #7a4a26 45%, #e0a878 68%, #7a4a26 86%, #ffe2c8); }
+.ga-claim-cup .ga-ic { width: 50px; height: 50px; }
+.ga-claim-cup em { position: absolute; bottom: -6px; right: -6px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 800 16px/1 var(--sans); font-style: normal;
+  color: #fff6d8; background: linear-gradient(180deg, #c2203a, #6a0f20); box-shadow: 0 4px 10px rgba(0,0,0,.5), 0 0 0 2px #f3de9c; }
+.ga-claim h2 { font-size: 40px; line-height: 1; color: #fff6d8; }
+.ga-claim p { font-size: 13px; color: rgba(247,241,227,.75); }
+.ga-claim-loot { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 8px 0 6px; }
+.ga-loot { display: grid; justify-items: center; gap: 6px; min-width: 96px; padding: 12px 10px 10px; border-radius: 16px; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.08); }
+.ga-loot.bm b { font: 700 24px/1 var(--sans); color: var(--acc-hi); }
+.ga-loot.bm { grid-template-columns: auto auto; align-items: center; column-gap: 6px; }
+.ga-loot.bm small { grid-column: 1 / -1; }
+.ga-loot small { font-size: 10.5px; color: rgba(247,241,227,.75); max-width: 110px; line-height: 1.2; }
+.ga-loot-av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #0a2620; color: var(--acc-hi); }
+.ga-badge10 { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font: 800 12px/1 var(--sans); color: #08261b; background: linear-gradient(180deg, #bff0d8, #2f9b74); box-shadow: 0 0 0 2px rgba(255,255,255,.3); }
+.ga-claim-btn { width: 100%; height: 54px; font-size: 17px; }
+.ga-claim-ok { color: #9fe3c4; font-weight: 700; font-size: 13px; }
+.ga-claim .btn.ghost { width: 100%; }
+
+/* ---------------------------------------------------------------- wide screens */
+@media (min-width: 640px) {
+  .ga-today { gap: 14px; }
+  .ga-pick-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+  .ga-tour { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "top count" "top mid" "row row"; padding: 22px 26px 20px; column-gap: 26px; }
+  .ga-tour-top { grid-area: top; }
+  .ga-count { grid-area: count; align-self: end; }
+  .ga-tour-mid { grid-area: mid; }
+  .ga-tour > .ga-tour-row, .ga-tour > .ga-tour-cta { grid-area: row; }
+  .ga-tour-sign { grid-column: 1 / -1; }
+  .ga-tour-medal { width: 120px; height: 120px; }
+  .ga-tour-coin { width: 82px; height: 82px; }
+  .ga-tour-head h2 { font-size: 46px; }
+  .ga-tour-row { grid-template-columns: minmax(0, 280px) auto; justify-content: start; }
+  .ga-today { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ga-gotd, .ga-mara { padding: 16px; }
+  .ga-gotd-medal { width: 54px; height: 54px; }
+  .ga-gotd-tx b { font-size: 26px; }
+  .ga-pair { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: stretch; }
+  .ga-duelcard { flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; padding: 22px; }
+  .ga-duelcard .ga-duel-tx { flex: 0 0 auto; }
+  .ga-duel-tx b { font-size: 30px; }
+  .ga-duelcard .arr { position: absolute; right: 18px; bottom: 16px; }
+  .ga-duel-art { width: 100px; height: 80px; }
+  .ga-duel-art i { width: 46px; height: 66px; }
+  .ga-case { width: 150px; }
+  .ga-pick-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ga-tour-felt .rays, .ga-tour-felt .sheen, .ga-gotd-burst, .ga-claim-rays, .ga-tour-cta.claim, .ga-mara.ready .ga-chest { animation: none; }
+}

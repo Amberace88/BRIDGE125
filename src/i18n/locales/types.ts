@@ -13,6 +13,7 @@ import type { DailyStrings } from '../daily';
 import type { InviteStrings } from '../invite';
 import type { SeasonStrings } from '../season';
 import type { GamesStrings } from '../games';
+import type { ArenaStrings } from '../arena';
 
 /**
  * Feature strings for one lazily loaded language — one chunk per language, fetched together with the core
@@ -40,4 +41,6 @@ export interface FeaturePack {
   season: DeepPartial<SeasonStrings>;
   /** Games hub, game-over sheet and per-game leaderboards (src/i18n/games.ts). */
   games: DeepPartial<GamesStrings>;
+  /** Games hub social layer: tournaments, challenges, game of the day, marathon, card-room level (src/i18n/arena.ts). */
+  arena: DeepPartial<ArenaStrings>;
 }

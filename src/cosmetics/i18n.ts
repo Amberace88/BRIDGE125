@@ -50,6 +50,8 @@ const en: CosStrings = {
     // Season Pass, Season 1 (migration 016)
     s1_table: 'Jazz Club', s1_bk_gilded: 'Gilded Deco', s1_bk_ticket: 'Jazz Ticket', s1_fr_gilded: 'Jazz Age Halo', s1_t_debut: 'Debutant', s1_t_maestro: 'Maestro',
     s1_nc_champagne: 'Champagne', s1_bn_skyline: 'Jazz Skyline', s1_em_jazz: 'Jazz Band', s1_vx_champagne: 'Champagne Shower',
+    // weekly mini-game tournament (migration 022)
+    tg_fr_podium: 'Podium Laurel', tg_t_champion: 'Champion', tg_t_podium: 'Finalist',
     pk_starter: 'Starter Kit', pk_sakura: 'Sakura Set', pk_racing: 'Pit Lane Set', pk_neon: 'Neon Night Set', pk_aurora: 'Northern Lights Set', pk_montecarlo: 'Monte Carlo Set', pk_riga: 'Old Riga Set', pk_royal: 'Royal Court Set',
   },
 };
@@ -91,6 +93,8 @@ const lv: CosStrings = {
     ach_fr_veteran: 'Veterāna vainags', ach_fr_prestige: 'Prestiža oreols', ach_fr_obsidian: 'Obsidiāna gredzens', ach_nc_ember: 'Ogle', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seifs', ach_fr_envoy: 'Sūtņa gredzens',
     s1_table: 'Džeza klubs', s1_bk_gilded: 'Zeltītais deko', s1_bk_ticket: 'Džeza biļete', s1_fr_gilded: 'Džeza laikmeta oreols', s1_t_debut: 'Debitants', s1_t_maestro: 'Maestro',
     s1_nc_champagne: 'Šampanietis', s1_bn_skyline: 'Džeza pilsēta', s1_em_jazz: 'Džeza orķestris', s1_vx_champagne: 'Šampanieša šalts',
+    // weekly mini-game tournament (migration 022)
+    tg_fr_podium: 'Pjedestāla lauri', tg_t_champion: 'Čempions', tg_t_podium: 'Finālists',
     pk_starter: 'Sākuma komplekts', pk_sakura: 'Sakura komplekts', pk_racing: 'Boksu komplekts', pk_neon: 'Neona nakts komplekts', pk_aurora: 'Ziemeļblāzmas komplekts', pk_montecarlo: 'Montekarlo komplekts', pk_riga: 'Vecrīgas komplekts', pk_royal: 'Karaliskā galma komplekts',
   },
 };
@@ -132,6 +136,8 @@ const ru: CosStrings = {
     ach_fr_veteran: 'Венок ветерана', ach_fr_prestige: 'Ореол престижа', ach_fr_obsidian: 'Обсидиановое кольцо', ach_nc_ember: 'Угли', ach_nc_aurum: 'Аурум', ach_bn_vault: 'Хранилище', ach_fr_envoy: 'Кольцо посла',
     s1_table: 'Джаз-клуб', s1_bk_gilded: 'Золочёный ар-деко', s1_bk_ticket: 'Джазовый билет', s1_fr_gilded: 'Ореол эпохи джаза', s1_t_debut: 'Дебютант', s1_t_maestro: 'Маэстро',
     s1_nc_champagne: 'Шампанское', s1_bn_skyline: 'Джазовый город', s1_em_jazz: 'Джаз-бэнд', s1_vx_champagne: 'Брызги шампанского',
+    // weekly mini-game tournament (migration 022)
+    tg_fr_podium: 'Лавры пьедестала', tg_t_champion: 'Чемпион', tg_t_podium: 'Финалист',
     pk_starter: 'Стартовый набор', pk_sakura: 'Набор «Сакура»', pk_racing: 'Набор «Пит-лейн»', pk_neon: 'Набор «Неоновая ночь»', pk_aurora: 'Набор «Северное сияние»', pk_montecarlo: 'Набор «Монте-Карло»', pk_riga: 'Набор «Старая Рига»', pk_royal: 'Набор «Королевский двор»',
   },
 };
@@ -173,6 +179,8 @@ const uk: CosStrings = {
     ach_fr_veteran: 'Вінок ветерана', ach_fr_prestige: 'Ореол престижу', ach_fr_obsidian: 'Обсидіанове кільце', ach_nc_ember: 'Жар', ach_nc_aurum: 'Аурум', ach_bn_vault: 'Сховище', ach_fr_envoy: 'Перстень посла',
     s1_table: 'Джаз-клуб', s1_bk_gilded: 'Позолочений ар-деко', s1_bk_ticket: 'Джазовий квиток', s1_fr_gilded: 'Ореол доби джазу', s1_t_debut: 'Дебютант', s1_t_maestro: 'Маестро',
     s1_nc_champagne: 'Шампанське', s1_bn_skyline: 'Джазове місто', s1_em_jazz: 'Джаз-бенд', s1_vx_champagne: 'Бризки шампанського',
+    // weekly mini-game tournament (migration 022)
+    tg_fr_podium: 'Лаври п’єдесталу', tg_t_champion: 'Чемпіон', tg_t_podium: 'Фіналіст',
     pk_starter: 'Стартовий набір', pk_sakura: 'Набір «Сакура»', pk_racing: 'Набір «Піт-лейн»', pk_neon: 'Набір «Неонова ніч»', pk_aurora: 'Набір «Північне сяйво»', pk_montecarlo: 'Набір «Монте-Карло»', pk_riga: 'Набір «Стара Рига»', pk_royal: 'Набір «Королівський двір»',
   },
 };

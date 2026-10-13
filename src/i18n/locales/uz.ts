@@ -709,6 +709,8 @@ const uz: FeaturePack = {
       ach_fr_veteran: 'Faxriy gulchambar', ach_fr_prestige: 'Prestij nuri', ach_fr_obsidian: 'Obsidian halqa', ach_nc_ember: 'Choʻgʻ', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Xazina', ach_fr_envoy: 'Elchi uzugi',
       s1_table: 'Jaz klubi', s1_bk_gilded: 'Zarhal art-deko', s1_bk_ticket: 'Jaz chiptasi', s1_fr_gilded: 'Jaz davri nuri', s1_t_debut: 'Debyutant', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Shampan', s1_bn_skyline: 'Jaz shahri', s1_em_jazz: 'Jaz-bend', s1_vx_champagne: 'Shampan yomgʻiri',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Shohsupa dafnasi', tg_t_champion: 'Chempion', tg_t_podium: 'Finalchi',
       pk_starter: 'Ilk toʻplam', pk_sakura: '«Sakura»', pk_racing: '«Pit-leyn»', pk_neon: '«Neon tun»', pk_aurora: '«Qutb shafagʻi»', pk_montecarlo: '«Monte-Karlo»', pk_riga: '«Eski Riga»', pk_royal: '«Shoh saroyi»',
     },
   },
@@ -851,6 +853,51 @@ const uz: FeaturePack = {
       error: 'Reytingni yuklab bo‘lmadi.', retry: 'Qayta urinish', you: 'sen', guest: 'Reytingga kirish uchun kir.',
     },
     levels: { easy: 'Oson', normal: 'Oddiy', hard: 'Qiyin', expert: 'Ekspert' },
+  },
+  arena: {
+    hall: {
+      title: 'Karta zali darajasi', level: 'Daraja', toNext: 'keyingi darajagacha',
+      ranks: ['Yangi kelgan', 'Doimiy mehmon', 'Karta ustasi', 'Katta tikuvchi', 'Zal afsonasi'],
+      showcase: 'Vitrinang', empty: 'O‘yinni tugat — rekordlaring shu yerda chiqadi.', best: 'Eng yaxshi', fastest: 'Eng tez', streak: 'Seriya', wins: 'G‘alabalar',
+    },
+    today: {
+      gotd: 'Kun o‘yini', bonus: '+50% mukofot', gotdSub: 'Bugun uning har bir partiyasi bir yarim baravar ko‘p beradi.', earned: 'Bugungi bonus', play: 'O‘ynash',
+      marathon: 'Marafon', marathonSub: 'Bugun 3 xil o‘yin o‘yna', open: 'Sandiqni ochish', opened: 'Ochildi — yangi sandiq ertaga', chest: 'Sandiq', signIn: 'Sandiq uchun kir',
+    },
+    tour: {
+      kicker: 'Hafta turniri', title: 'Turnir', endsIn: 'Tugashiga', units: { d: 'k', h: 's', m: 'daq', s: 'son' },
+      metric: { wins: 'Eng ko‘p g‘alaba', score: 'Eng yaxshi ochko' }, points: { wins: 'g‘al.', score: 'och.' },
+      rank: 'O‘rning', unranked: 'Hali o‘rin yo‘q', qualify: 'Saralash: 3 o‘yin + g‘alaba', players: 'O‘yinchilar', free: 'Ishtirok bepul',
+      play: 'Hozir o‘yna', standings: 'Jadval', prizes: 'Sovrinlar', prizeLine: '+ unvon va ramka',
+      tiers: { gold: '1-o‘rin', silver: '2-o‘rin', bronze: '3-o‘rin', top10: 'Top 10%' },
+      items: { champion: '«Chempion» unvoni', podium: '«Finalchi» unvoni', frame: '«Shohsupa dafnasi» ramkasi', badge: '«Top 10%» nishoni' },
+      rules: g => `Shu hafta o‘ynagan har bir «${g}» partiyang hisoblanadi. Ishtirok bepul; sovrinlar hafta oxirida beriladi (dushanba, Riga vaqti).`,
+      empty: 'Hali hech kim o‘ynamadi — peshqadam bo‘l.', error: 'Jadval yuklanmadi.', retry: 'Qayta urinish', you: 'sen',
+      guest: 'Ishtirok etish uchun kir — bepul.', signIn: 'Kirish', lastWeek: 'O‘tgan hafta', noGame: 'Tez orada ilovangda',
+      claim: { title: 'Turnir sovrini!', sub: g => `O‘tgan haftadagi «${g}» natijang`, collect: 'Olish', collecting: 'Olinmoqda…', done: 'Garderobingga qo‘shildi', equip: 'Profil → Uslub bo‘limida kiyib ol' },
+    },
+    challenge: {
+      cta: 'Do‘stingni chorla', ctaSub: 'Tarqatmani o‘yna va do‘stingga aynan o‘shani yubor.', pick: 'O‘yin tanla', pickSub: 'Avval o‘zing o‘yna — natijangni yengish kerak bo‘ladi.',
+      mine: 'Chaqiriqlaring', answers: 'javob', beaten: 'seni ortda qoldirdi', noneYet: 'Hali chaqiriq yubormading.',
+      prompt: 'Do‘stingni chorla', sameDeal: 'Aynan shu tarqatma', ownDeal: 'Natijamni yeng', yourResult: 'Natijang',
+      creating: 'Chaqiriq yaratilmoqda…', link: 'Chaqiriq havolasi', copy: 'Havolani nusxalash', copied: 'Nusxalandi', share: 'Yuborish', image: 'Rasm bilan ulashish', saved: 'Rasm saqlandi — havola nusxalandi',
+      error: 'Chaqiriqni yaratib bo‘lmadi.', retry: 'Qayta urinish', signIn: 'Kirish', signInSub: 'Chaqiriqlar hisobingda saqlanadi.', limit: 'Bugunga chaqiriqlar yetarli.',
+      shareText: (g, r) => `«${g}»dagi ${r} natijamni yenga olasanmi? Aynan shu tarqatma, bitta urinish — Bridge 125`,
+      landing: {
+        kicker: 'Chaqiriq', from: n => `${n} seni chorlamoqda`, toBeat: 'Yengish kerak', play: 'Qabul qilib o‘ynash',
+        sameDeal: 'Senga aynan shu tarqatma tushadi', ownDeal: 'O‘z tarqatmang — faqat natijani yeng',
+        expired: 'Bu chaqiriqning muddati tugagan.', unknown: 'Bunday chaqiriq yo‘q.', loading: 'Aralashtirmoqdamiz…',
+        mine: 'Bu sening chaqirig‘ing — uni do‘stingga yubor.', board: 'Kim qabul qildi', home: 'Bridge 125 ni ochish',
+        guest: 'Mehmon sifatida o‘ynayapsan — natijani saqlash uchun kir.', notHere: 'Bu o‘yin hali sening versiyangda yo‘q — ilovani yangila.', offline: 'Chaqiriqlar uchun aloqa kerak.',
+      },
+      vs: {
+        win: 'Chaqiriqda g‘alaba qozonding!', lose: 'Bu safar emas', tie: 'Durang', you: 'Sen', versus: 'qarshi', back: 'O‘yinlarga qaytish', again: 'Yana o‘ynash',
+        revenge: 'Javob chaqirig‘ini yubor', saved: 'Natija saqlandi', guestNote: 'Natijani saqlab, chaqiriq jadvaliga tushish uchun kir.', first: 'Faqat birinchi urinish hisoblanadi.',
+        share: 'Natijani ulashish', shareText: (g, s) => `«${g}» chaqirig‘i: ${s}. Navbat senda — Bridge 125`,
+      },
+      won: 'G‘alaba', lost: 'Mag‘lubiyat', score: 'Ochko', time: 'Vaqt',
+      card: { kicker: 'Chaqiriq', cta: 'Meni yenga olasanmi?', vs: 'VS' },
+    },
   },
 };
 

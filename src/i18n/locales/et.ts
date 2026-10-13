@@ -711,6 +711,8 @@ const et: FeaturePack = {
       ach_fr_veteran: 'Veterani pärg', ach_fr_prestige: 'Prestiižihalo', ach_fr_obsidian: 'Obsidiaansõrmus', ach_nc_ember: 'Hõõgus', ach_nc_aurum: 'Aurum', ach_bn_vault: 'Seif', ach_fr_envoy: 'Saadiku sõrmus',
       s1_table: 'Džässiklubi', s1_bk_gilded: 'Kullatud deko', s1_bk_ticket: 'Džässipilet', s1_fr_gilded: 'Džässiajastu halo', s1_t_debut: 'Debütant', s1_t_maestro: 'Maestro',
       s1_nc_champagne: 'Šampanja', s1_bn_skyline: 'Džässilinn', s1_em_jazz: 'Džässbänd', s1_vx_champagne: 'Šampanjavihm',
+      // weekly mini-game tournament (migration 022)
+      tg_fr_podium: 'Poodiumi loorber', tg_t_champion: 'Meister', tg_t_podium: 'Finalist',
       pk_starter: 'Algkomplekt', pk_sakura: 'Sakura komplekt', pk_racing: 'Boksiraja komplekt', pk_neon: 'Neoonöö komplekt', pk_aurora: 'Virmaliste komplekt', pk_montecarlo: 'Monte Carlo komplekt', pk_riga: 'Vana-Riia komplekt', pk_royal: 'Õukonna komplekt',
     },
   },
@@ -853,6 +855,51 @@ const et: FeaturePack = {
       error: 'Edetabelit ei õnnestunud laadida.', retry: 'Proovi uuesti', you: 'sina', guest: 'Logi sisse, et pääseda edetabelisse.',
     },
     levels: { easy: 'Lihtne', normal: 'Tavaline', hard: 'Raske', expert: 'Ekspert' },
+  },
+  arena: {
+    hall: {
+      title: 'Kaardisaali tase', level: 'Tase', toNext: 'järgmise tasemeni',
+      ranks: ['Uustulnuk', 'Püsikülaline', 'Kaardiäss', 'Suurte panuste mängija', 'Saali legend'],
+      showcase: 'Sinu vitriin', empty: 'Lõpeta mäng — siia ilmuvad sinu rekordid.', best: 'Parim', fastest: 'Kiireim', streak: 'Seeria', wins: 'Võidud',
+    },
+    today: {
+      gotd: 'Päeva mäng', bonus: '+50% auhindu', gotdSub: 'Täna toob selle mängu iga partii poolteist korda rohkem.', earned: 'Tänane boonus', play: 'Mängi',
+      marathon: 'Maraton', marathonSub: 'Mängi täna 3 erinevat mängu', open: 'Ava kirst', opened: 'Avatud — uus kirst homme', chest: 'Kirst', signIn: 'Logi kirstu saamiseks sisse',
+    },
+    tour: {
+      kicker: 'Nädala turniir', title: 'Turniir', endsIn: 'Lõpuni', units: { d: 'p', h: 't', m: 'min', s: 's' },
+      metric: { wins: 'Enim võite', score: 'Parim tulemus' }, points: { wins: 'võitu', score: 'p' },
+      rank: 'Sinu koht', unranked: 'Veel kohata', qualify: 'Pääs: 3 mängu + võit', players: 'Mängijad', free: 'Osalemine tasuta',
+      play: 'Mängi kohe', standings: 'Tabel', prizes: 'Auhinnad', prizeLine: '+ tiitel ja raam',
+      tiers: { gold: '1. koht', silver: '2. koht', bronze: '3. koht', top10: 'Top 10%' },
+      items: { champion: 'Tiitel „Meister“', podium: 'Tiitel „Finalist“', frame: 'Raam „Poodiumi loorber“', badge: 'Top 10% märk' },
+      rules: g => `Loeb iga ${g} partii, mille sel nädalal mängid. Osalemine on tasuta; auhinnad makstakse nädala lõppedes (esmaspäeval Riia aja järgi).`,
+      empty: 'Keegi pole veel mänginud — võta juhtohjad.', error: 'Tabelit ei õnnestunud laadida.', retry: 'Proovi uuesti', you: 'sina',
+      guest: 'Logi sisse, et osaleda — tasuta.', signIn: 'Logi sisse', lastWeek: 'Eelmine nädal', noGame: 'Peagi sinu äpis',
+      claim: { title: 'Turniiri auhind!', sub: g => `Sinu tulemus mängus ${g} eelmisel nädalal`, collect: 'Võta vastu', collecting: 'Võtan vastu…', done: 'Lisatud su garderoobi', equip: 'Pane selga: Profiil → Stiil' },
+    },
+    challenge: {
+      cta: 'Kutsu sõber võistlema', ctaSub: 'Mängi jagamine läbi ja saada talle täpselt sama.', pick: 'Vali mäng', pickSub: 'Mängi esmalt ise — sinu tulemust tuleb ületada.',
+      mine: 'Sinu väljakutsed', answers: 'vastust', beaten: 'ületasid sind', noneYet: 'Väljakutseid pole veel saadetud.',
+      prompt: 'Kutsu sõber võistlema', sameDeal: 'Sama jagamine', ownDeal: 'Ületa minu tulemus', yourResult: 'Sinu tulemus',
+      creating: 'Loon väljakutset…', link: 'Väljakutse link', copy: 'Kopeeri link', copied: 'Kopeeritud', share: 'Saada', image: 'Jaga pilti', saved: 'Pilt salvestatud — link kopeeritud',
+      error: 'Väljakutset ei õnnestunud luua.', retry: 'Proovi uuesti', signIn: 'Logi sisse', signInSub: 'Väljakutsed salvestatakse sinu kontole.', limit: 'Tänaseks on väljakutseid küllalt.',
+      shareText: (g, r) => `Kas ületad mu ${r} mängus ${g}? Sama jagamine, üks katse — Bridge 125`,
+      landing: {
+        kicker: 'Väljakutse', from: n => `${n} kutsub sind võistlema`, toBeat: 'Ületada tuleb', play: 'Võta vastu ja mängi',
+        sameDeal: 'Saad täpselt sama jagamise', ownDeal: 'Oma jagamine — lihtsalt ületa tulemus',
+        expired: 'See väljakutse on aegunud.', unknown: 'Sellist väljakutset pole.', loading: 'Segame…',
+        mine: 'See on sinu väljakutse — saada see sõbrale.', board: 'Kes selle vastu võttis', home: 'Ava Bridge 125',
+        guest: 'Mängid külalisena — logi sisse, et tulemus salvestada.', notHere: 'Seda mängu sinu versioonis veel pole — uuenda äppi.', offline: 'Väljakutsed vajavad ühendust.',
+      },
+      vs: {
+        win: 'Võitsid väljakutse!', lose: 'Seekord mitte', tie: 'Viik', you: 'Sina', versus: 'vs', back: 'Tagasi mängude juurde', again: 'Mängi uuesti',
+        revenge: 'Kutsu vastu', saved: 'Tulemus salvestatud', guestNote: 'Logi sisse, et tulemus salvestada ja väljakutse tabelisse jõuda.', first: 'Loeb ainult esimene katse.',
+        share: 'Jaga tulemust', shareText: (g, s) => `Väljakutse mängus ${g}: ${s}. Sinu kord — Bridge 125`,
+      },
+      won: 'Võit', lost: 'Kaotus', score: 'Punktid', time: 'Aeg',
+      card: { kicker: 'Väljakutse', cta: 'Kas ületad mind?', vs: 'VS' },
+    },
   },
 };
 

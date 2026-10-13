@@ -16,6 +16,18 @@ export interface GameScreenProps {
   onExit: () => void;
   /** open the sign-in sheet (rewards and leaderboards need an account) */
   onAuth: () => void;
+  /**
+   * SEED CONTRACT (optional, backwards compatible — a game that does not support it simply ignores it).
+   * Set when the player opened a challenge (bridge125.com/c/<code>) or started one from the hub: deal / generate the
+   * FIRST new game of this visit from this seed, right away (skip the lobby; a saved game in progress is NOT resumed).
+   * Same seed + same `level` ⇒ the very same deal / puzzle on every device and build (use a seeded PRNG, e.g.
+   * mulberry32(hash(seed)) — never Math.random for the deal). Later games ("Play again") may be random again.
+   * A game that honours it sets `seeded: true` on its GameModule and reports `seed` in its GameResult.
+   * Seeds are short URL-safe strings: /^[A-Za-z0-9_-]{1,64}$/.
+   */
+  seed?: string;
+  /** with `seed`: the bots' level / puzzle difficulty the challenge was played at ('easy' | 'normal' | 'hard' | 'expert' …) */
+  level?: string;
 }
 
 export interface GameModule {
@@ -37,6 +49,11 @@ export interface GameModule {
   hidden?: boolean;
   /** has a daily puzzle / seeded deal (reported with `day`): the hub shows a "Daily" badge and a "Today" leaderboard */
   daily?: boolean;
+  /**
+   * honours `GameScreenProps.seed` (see the seed contract there): challenges then promise the friend "the same deal".
+   * Without it a challenge is "beat my score" on a deal of their own.
+   */
+  seeded?: boolean;
 }
 
 /** One finished game, reported once at game over. Rewards are decided by the server, never by the client. */
@@ -54,4 +71,9 @@ export interface GameResult {
   day?: string;
   /** small extra facts for quests/achievements, e.g. { durak: true } or { zole_big: 1 } */
   details?: Record<string, number | boolean | string>;
+  /**
+   * the seed this game was dealt from, when the game can replay it (`GameModule.seeded`): lets "Challenge a friend"
+   * after ANY game (not only seeded starts) send the very same deal. Client-only — never sent to record_minigame.
+   */
+  seed?: string;
 }

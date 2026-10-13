@@ -4,6 +4,7 @@ import { pick } from '../i18n/pick';
 import { cosmetic } from '../shop/catalog';
 import { titleOf } from './data';
 import { seasonItem } from '../season/cosmetics';
+import { tgItem } from '../games/tournament/cosmetics';
 import { COS_STRINGS } from './i18n';
 
 /** Translated display name of any item id (theme or cosmetic); English fallback, then the id. */
@@ -19,7 +20,7 @@ export const TitleBadge = memo(function TitleBadge({ id, size }: { id: string | 
   const { lang } = useApp();
   const t = titleOf(id);
   if (!t) return null;
-  const rarity = cosmetic(t.id)?.rarity ?? seasonItem(t.id)?.rarity ?? 'rare';
+  const rarity = cosmetic(t.id)?.rarity ?? seasonItem(t.id)?.rarity ?? tgItem(t.id)?.rarity ?? 'rare';
   return <span className={`ttl r-${rarity} ${size ?? ''}`.trim()} data-title={t.id}><b aria-hidden>{t.glyph}</b>{cosName(lang, t.id, t.name)}</span>;
 });
 
