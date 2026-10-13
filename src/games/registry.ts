@@ -1,7 +1,9 @@
 import type { GameId, GameModule } from './types';
+import { sudoku } from './sudoku';
 
 // One line per game. Keep Bridge out of here: Bridge is the main game and keeps its own home screen.
 const MODULES: GameModule[] = [
+  sudoku,
 ];
 
 export const GAMES: readonly GameModule[] = MODULES;
