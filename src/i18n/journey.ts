@@ -242,6 +242,7 @@ const qen: QuestStrings = {
     w_win10: 'Ten Victories', w_play20: 'Club Member', w_quick: 'Stranger at the Table', w_queen10: 'The Queen’s Court', w_burn3: 'Fire Walker',
     w_jacks3: 'Jack Multiplier', w_bluff30: 'Master of Masks', w_star3: 'A Perfect Night', w_kings: 'Four Crowns',
     g_zole2: 'Zole Night', g_durak2: 'Not the Durak', g_solitaire: 'Patience Pays', g_sudoku_day: 'Daily Grid', g_any3: 'Games Room',
+    g_thousand: 'Race to 1000', g_mahjong_day: 'Daily Tiles', g_freecell: 'Free Hands', g_freecell_day: 'Deal of the Day',
   },
   desc: {
     games: n => (n === 1 ? 'Play a game' : `Play ${n} games`),
@@ -262,6 +263,10 @@ const qen: QuestStrings = {
     mg_durak_win: n => (n === 1 ? 'Win a game of Durak' : `Win ${n} games of Durak`),
     mg_solitaire_win: n => (n === 1 ? 'Solve a game of Solitaire' : `Solve ${n} games of Solitaire`),
     mg_sudoku_daily: () => "Solve today's Sudoku",
+    mg_thousand_win: n => (n === 1 ? 'Win a game of Thousand' : `Win ${n} games of Thousand`),
+    mg_mahjong_daily: () => "Clear today's Mahjong",
+    mg_freecell_win: n => (n === 1 ? 'Win a game of FreeCell' : `Win ${n} games of FreeCell`),
+    mg_freecell_daily: () => "Solve today's FreeCell deal",
   },
   time: { d: 'd', h: 'h', m: 'm' },
 };
@@ -442,6 +447,7 @@ const qlv: QuestStrings = {
     w_win10: 'Desmit uzvaras', w_play20: 'Kluba biedrs', w_quick: 'Svešinieks pie galda', w_queen10: 'Dāmas galms', w_burn3: 'Pa oglēm',
     w_jacks3: 'Kalpu reizinātājs', w_bluff30: 'Masku meistars', w_star3: 'Ideālā nakts', w_kings: 'Četri kroņi',
     g_zole2: 'Zoles vakars', g_durak2: 'Ne muļķis', g_solitaire: 'Pacietība atmaksājas', g_sudoku_day: 'Dienas režģis', g_any3: 'Spēļu zāle',
+    g_thousand: 'Līdz tūkstotim', g_mahjong_day: 'Dienas kauliņi', g_freecell: 'Brīvas rokas', g_freecell_day: 'Dienas izdalījums',
   },
   desc: {
     games: n => (n === 1 ? 'Nospēlē spēli' : `Nospēlē ${n} ${lvPl(n, 'spēli', 'spēles')}`),
@@ -462,6 +468,10 @@ const qlv: QuestStrings = {
     mg_durak_win: n => (n === 1 ? 'Uzvari Durak partiju' : `Uzvari ${n} ${lvPl(n, 'Durak partiju', 'Durak partijas')}`),
     mg_solitaire_win: n => (n === 1 ? 'Izliec pasjansu' : `Izliec ${n} ${lvPl(n, 'pasjansu', 'pasjansus')}`),
     mg_sudoku_daily: () => 'Atrisini šodienas Sudoku',
+    mg_thousand_win: n => (n === 1 ? 'Uzvari Tūkstoša partiju' : `Uzvari ${n} ${lvPl(n, 'Tūkstoša partiju', 'Tūkstoša partijas')}`),
+    mg_mahjong_daily: () => 'Notīri šodienas Madžongu',
+    mg_freecell_win: n => (n === 1 ? 'Atrisini FreeCell partiju' : `Atrisini ${n} FreeCell ${lvPl(n, 'partiju', 'partijas')}`),
+    mg_freecell_daily: () => 'Atrisini šodienas FreeCell',
   },
   time: { d: 'd', h: 'h', m: 'min' },
 };
@@ -642,6 +652,7 @@ const qru: QuestStrings = {
     w_win10: 'Десять побед', w_play20: 'Член клуба', w_quick: 'Незнакомец за столом', w_queen10: 'Двор дамы', w_burn3: 'По углям',
     w_jacks3: 'Множитель вальтов', w_bluff30: 'Мастер масок', w_star3: 'Идеальная ночь', w_kings: 'Четыре короны',
     g_zole2: 'Вечер Золе', g_durak2: 'Не дурак', g_solitaire: 'Терпение окупается', g_sudoku_day: 'Сетка дня', g_any3: 'Игровой зал',
+    g_thousand: 'Гонка до 1000', g_mahjong_day: 'Костяшки дня', g_freecell: 'Свободные руки', g_freecell_day: 'Расклад дня',
   },
   desc: {
     games: n => (n === 1 ? 'Сыграйте партию' : `Сыграйте ${n} ${ruPl(n, 'игру', 'игры', 'игр')}`),
@@ -662,6 +673,10 @@ const qru: QuestStrings = {
     mg_durak_win: n => (n === 1 ? 'Выиграйте партию в Дурака' : `Выиграйте ${n} ${ruPl(n, 'партию', 'партии', 'партий')} в Дурака`),
     mg_solitaire_win: n => (n === 1 ? 'Разложите пасьянс' : `Разложите ${n} ${ruPl(n, 'пасьянс', 'пасьянса', 'пасьянсов')}`),
     mg_sudoku_daily: () => 'Решите сегодняшнее судоку',
+    mg_thousand_win: n => (n === 1 ? 'Выиграйте партию в Тысячу' : `Выиграйте ${n} ${ruPl(n, 'партию', 'партии', 'партий')} в Тысячу`),
+    mg_mahjong_daily: () => 'Разберите сегодняшний маджонг',
+    mg_freecell_win: n => (n === 1 ? 'Разложите «Свободную ячейку»' : `Разложите «Свободную ячейку» ${n} ${ruPl(n, 'раз', 'раза', 'раз')}`),
+    mg_freecell_daily: () => 'Разложите сегодняшнюю «Свободную ячейку»',
   },
   time: { d: 'д', h: 'ч', m: 'мин' },
 };
@@ -842,6 +857,7 @@ const quk: QuestStrings = {
     w_win10: 'Десять перемог', w_play20: 'Член клубу', w_quick: 'Незнайомець за столом', w_queen10: 'Двір дами', w_burn3: 'По вуглинах',
     w_jacks3: 'Множник валетів', w_bluff30: 'Майстер масок', w_star3: 'Ідеальна ніч', w_kings: 'Чотири корони',
     g_zole2: 'Вечір Золе', g_durak2: 'Не дурень', g_solitaire: 'Терпіння окупається', g_sudoku_day: 'Сітка дня', g_any3: 'Ігровий зал',
+    g_thousand: 'Перегони до 1000', g_mahjong_day: 'Кісточки дня', g_freecell: 'Вільні руки', g_freecell_day: 'Розклад дня',
   },
   desc: {
     games: n => (n === 1 ? 'Зіграйте партію' : `Зіграйте ${n} ${ruPl(n, 'гру', 'гри', 'ігор')}`),
@@ -862,6 +878,10 @@ const quk: QuestStrings = {
     mg_durak_win: n => (n === 1 ? 'Виграйте партію в Дурня' : `Виграйте ${n} ${ruPl(n, 'партію', 'партії', 'партій')} у Дурня`),
     mg_solitaire_win: n => (n === 1 ? 'Розкладіть пасьянс' : `Розкладіть ${n} ${ruPl(n, 'пасьянс', 'пасьянси', 'пасьянсів')}`),
     mg_sudoku_daily: () => 'Розв’яжіть сьогоднішнє судоку',
+    mg_thousand_win: n => (n === 1 ? 'Виграйте партію в Тисячу' : `Виграйте ${n} ${ruPl(n, 'партію', 'партії', 'партій')} у Тисячу`),
+    mg_mahjong_daily: () => 'Розберіть сьогоднішній маджонг',
+    mg_freecell_win: n => (n === 1 ? 'Розкладіть FreeCell' : `Розкладіть FreeCell ${n} ${ruPl(n, 'раз', 'рази', 'разів')}`),
+    mg_freecell_daily: () => 'Розкладіть сьогоднішній FreeCell',
   },
   time: { d: 'д', h: 'год', m: 'хв' },
 };

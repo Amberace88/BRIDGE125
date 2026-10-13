@@ -502,6 +502,7 @@ const lt: FeaturePack = {
       w_win10: 'Dešimt pergalių', w_play20: 'Klubo narys', w_quick: 'Nepažįstamasis prie stalo', w_queen10: 'Damos dvaras', w_burn3: 'Per žarijas',
       w_jacks3: 'Valetų daugiklis', w_bluff30: 'Kaukių meistras', w_star3: 'Tobula naktis', w_kings: 'Keturios karūnos',
       g_zole2: 'Zolės vakaras', g_durak2: 'Ne durnius', g_solitaire: 'Kantrybė atsiperka', g_sudoku_day: 'Dienos tinklelis', g_any3: 'Žaidimų salė',
+      g_thousand: 'Iki 1000', g_mahjong_day: 'Dienos kauliukai', g_freecell: 'Laisvos rankos', g_freecell_day: 'Dienos dalijimas',
     },
     desc: {
       games: n => (n === 1 ? 'Sužaisk partiją' : `Sužaisk ${n} ${lt3(n, 'partiją', 'partijas', 'partijų')}`),
@@ -522,6 +523,10 @@ const lt: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Laimėk Durak partiją' : `Laimėk ${n} ${lt3(n, 'Durak partiją', 'Durak partijas', 'Durak partijų')}`),
       mg_solitaire_win: n => (n === 1 ? 'Išdėliok pasjansą' : `Išdėliok ${n} ${lt3(n, 'pasjansą', 'pasjansus', 'pasjansų')}`),
       mg_sudoku_daily: () => 'Išspręsk šiandienos Sudoku',
+      mg_thousand_win: n => (n === 1 ? 'Laimėk Tūkstančio partiją' : `Laimėk ${n} ${lt3(n, 'Tūkstančio partiją', 'Tūkstančio partijas', 'Tūkstančio partijų')}`),
+      mg_mahjong_daily: () => 'Išvalyk šiandienos Madžongą',
+      mg_freecell_win: n => (n === 1 ? 'Išdėliok FreeCell' : `Išdėliok FreeCell ${n} ${lt3(n, 'kartą', 'kartus', 'kartų')}`),
+      mg_freecell_daily: () => 'Išdėliok šiandienos FreeCell',
     },
     time: { d: ' d.', h: ' val.', m: ' min.' },
   },
@@ -637,6 +642,9 @@ const lt: FeaturePack = {
       mg_daily_solver: { name: 'Dienos sprendėjas', desc: 'Išspręsk 7 dienos galvosūkius.' },
       mg_clockwork: { name: 'Kaip laikrodis', desc: 'Spręsk dienos galvosūkį 7 dienas iš eilės.' },
       mg_all_rounder: { name: 'Universalas', desc: 'Laimėk bent kartą 4 skirtinguose mini žaidimuose.' },
+      mg_thousand_master: { name: 'Tūkstančio meistras', desc: 'Laimėk 10 Tūkstančio partijų.' },
+      mg_mahjong_zen: { name: 'Madžongo dzenas', desc: 'Išvalyk 25 Madžongo lentas.' },
+      mg_freecell_purist: { name: 'FreeCell puristas', desc: 'Išdėliok FreeCell 5 kartus iš eilės.' },
     },
   },
   economy: {

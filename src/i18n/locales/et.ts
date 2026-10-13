@@ -499,6 +499,7 @@ const et: FeaturePack = {
       w_win10: 'Kümme võitu', w_play20: 'Klubi liige', w_quick: 'Võõras laua taga', w_queen10: 'Emanda õukond', w_burn3: 'Tulekõndija',
       w_jacks3: 'Poiste kordaja', w_bluff30: 'Maskide meister', w_star3: 'Täiuslik öö', w_kings: 'Neli krooni',
       g_zole2: 'Zole õhtu', g_durak2: 'Mitte loll', g_solitaire: 'Kannatus tasub end ära', g_sudoku_day: 'Päeva ruudustik', g_any3: 'Mängusaal',
+      g_thousand: 'Võidujooks 1000-ni', g_mahjong_day: 'Päeva kivid', g_freecell: 'Vabad käed', g_freecell_day: 'Päeva jagamine',
     },
     desc: {
       games: n => (n === 1 ? 'Mängi üks mäng' : `Mängi ${n} mängu`),
@@ -519,6 +520,10 @@ const et: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Võida üks Duraki mäng' : `Võida ${n} Duraki mängu`),
       mg_solitaire_win: n => (n === 1 ? 'Lahenda üks pasjanss' : `Lahenda ${n} pasjanssi`),
       mg_sudoku_daily: () => 'Lahenda tänane Sudoku',
+      mg_thousand_win: n => (n === 1 ? 'Võida üks Tuhande mäng' : `Võida ${n} Tuhande mängu`),
+      mg_mahjong_daily: () => 'Puhasta tänane Mahjong',
+      mg_freecell_win: n => (n === 1 ? 'Lahenda üks FreeCell' : `Lahenda ${n} FreeCelli`),
+      mg_freecell_daily: () => 'Lahenda tänane FreeCell',
     },
     time: { d: ' p', h: ' h', m: ' min' },
   },
@@ -634,6 +639,9 @@ const et: FeaturePack = {
       mg_daily_solver: { name: 'Päeva lahendaja', desc: 'Lahenda 7 päeva mõistatust.' },
       mg_clockwork: { name: 'Nagu kellavärk', desc: 'Lahenda päeva mõistatust 7 päeva järjest.' },
       mg_all_rounder: { name: 'Universaal', desc: 'Võida vähemalt korra 4 erinevas minimängus.' },
+      mg_thousand_master: { name: 'Tuhande meister', desc: 'Võida 10 Tuhande mängu.' },
+      mg_mahjong_zen: { name: 'Mahjongi zen', desc: 'Puhasta 25 Mahjongi lauda.' },
+      mg_freecell_purist: { name: 'FreeCelli purist', desc: 'Lahenda 5 FreeCelli järjest.' },
     },
   },
   economy: {

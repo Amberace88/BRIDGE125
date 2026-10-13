@@ -4,6 +4,7 @@ import { isLayout, layoutOf, type LayoutId } from './layouts';
 import { matchPoints, minus, nextCombo, HINT_COST, SHUFFLE_COST } from './score';
 import { planWorks, solve } from './solver';
 import { FACES, matches } from './tiles';
+import { seedNumber } from '../../seed';
 
 // One game of Mahjong Solitaire as plain, serializable data (autosaved after every move) + pure actions on it.
 
@@ -45,6 +46,14 @@ export interface Game {
   ms: number;
   status: Status;
 }
+
+/**
+ * The deal seed of a challenge seed (seed contract, ../../types.ts): digits are the deal seed itself (a game reports
+ * `String(game.seed)`, so any deal can be sent to a friend), anything else is hashed. Same layout + seed ⇒ same deal.
+ */
+export const seedFor = (seed: string) => seedNumber(seed, 'mahjong', 0xffffffff, 0);
+/** The reshuffle's seed: from the deal and the shuffle count, so a challenge replays the same on every device. */
+export const shuffleSeed = (g: Pick<Game, 'seed' | 'shuffles'>) => (g.seed ^ Math.imul(g.shuffles + 1, 0x9e3779b1)) >>> 0;
 
 export const gameKey = (mode: Mode, layout: LayoutId, day?: string) => (mode === 'daily' ? `daily:${day}` : `free:${layout}`);
 

@@ -497,6 +497,7 @@ const az: FeaturePack = {
       w_win10: 'On qələbə', w_play20: 'Klub üzvü', w_quick: 'Masada yad', w_queen10: 'Damanın sarayı', w_burn3: 'Köz üstündə',
       w_jacks3: 'Valet vurucusu', w_bluff30: 'Maskalar ustası', w_star3: 'Mükəmməl gecə', w_kings: 'Dörd tac',
       g_zole2: 'Zole axşamı', g_durak2: 'Axmaq deyil', g_solitaire: 'Səbr qazandırır', g_sudoku_day: 'Günün şəbəkəsi', g_any3: 'Oyun zalı',
+      g_thousand: '1000-ə yarış', g_mahjong_day: 'Günün daşları', g_freecell: 'Sərbəst əllər', g_freecell_day: 'Günün paylanması',
     },
     desc: {
       games: n => (n === 1 ? 'Bir partiya oynayın' : `${n} oyun oynayın`),
@@ -517,6 +518,10 @@ const az: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Durakda bir partiya qazanın' : `Durakda ${n} partiya qazanın`),
       mg_solitaire_win: n => (n === 1 ? 'Bir pasyans yığın' : `${n} pasyans yığın`),
       mg_sudoku_daily: () => 'Bugünkü sudokunu həll edin',
+      mg_thousand_win: n => (n === 1 ? 'Min oyununda bir partiya qazanın' : `Min oyununda ${n} partiya qazanın`),
+      mg_mahjong_daily: () => 'Bugünkü Mahjongu təmizləyin',
+      mg_freecell_win: n => (n === 1 ? 'Bir FreeCell yığın' : `${n} FreeCell yığın`),
+      mg_freecell_daily: () => 'Bugünkü FreeCell-i yığın',
     },
     time: { d: ' gün', h: ' saat', m: ' dəq' },
   },
@@ -632,6 +637,9 @@ const az: FeaturePack = {
       mg_daily_solver: { name: 'Günün həllədicisi', desc: '7 gündəlik tapmaca həll edin.' },
       mg_clockwork: { name: 'Saat kimi', desc: 'Gündəlik tapmacanı ardıcıl 7 gün həll edin.' },
       mg_all_rounder: { name: 'Universal', desc: '4 müxtəlif mini-oyunda ən azı bir dəfə qalib gəlin.' },
+      mg_thousand_master: { name: 'Min ustası', desc: 'Min oyununda 10 partiya qazanın.' },
+      mg_mahjong_zen: { name: 'Mahjong zen', desc: '25 Mahjong taxtasını təmizləyin.' },
+      mg_freecell_purist: { name: 'FreeCell puristi', desc: 'Ardıcıl 5 FreeCell yığın.' },
     },
   },
   economy: {

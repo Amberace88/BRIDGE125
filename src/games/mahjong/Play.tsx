@@ -8,10 +8,9 @@ import { VictoryEffect } from '../../cosmetics/VictoryEffect';
 import { GameResultSheet } from '../GameResultSheet';
 import type { GameResult } from '../types';
 import { geoOf, isFree, tilesLeft } from './core/board';
-import { giveUp, hintFor, match, movesOf, shuffleGame, shufflesLeft, takeHint, undo, type Game } from './core/game';
+import { giveUp, hintFor, match, movesOf, shuffleGame, shuffleSeed, shufflesLeft, takeHint, undo, type Game } from './core/game';
 import { COMBO_MS, finalScore } from './core/score';
 import { dailyNo } from './core/daily';
-import { randomSeed } from './core/rng';
 import { matches } from './core/tiles';
 import { layoutOf } from './core/layouts';
 import { Board, type Fly } from './Board';
@@ -90,6 +89,8 @@ export function Play({ initial, onLobby, onAgain, onRestart, onAuth }: Props) {
     const result: GameResult = {
       game: 'mahjong', won, score, seconds, level: x.layout, ...(x.mode === 'daily' && x.day ? { day: x.day } : {}),
       details: { hints: x.hints, shuffles: x.shuffles },
+      // the deal seed replays this very deal on this layout (seedFor)
+      seed: String(x.seed),
     };
     setEnd({
       result,
@@ -154,7 +155,7 @@ export function Play({ initial, onLobby, onAgain, onRestart, onAuth }: Props) {
   const doShuffle = useCallback(() => {
     const x = gRef.current;
     if (paused || x.status !== 'play') return;
-    const r = shuffleGame(x, randomSeed());
+    const r = shuffleGame(x, shuffleSeed(x));
     if (!r) return;
     const next = commit(r.game);
     setSel(-1); setHint(null); setFlies([]);

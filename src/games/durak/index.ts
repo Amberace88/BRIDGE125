@@ -12,5 +12,6 @@ export const durak: GameModule = {
   tagline: TAGLINE,
   Emblem: DurakEmblem,
   Screen: lazy(() => import('./DurakScreen')),
+  seeded: true,
   homeLangs: ['ru', 'uk', 'be', 'kk', 'uz', 'az', 'ka', 'hy', 'bg', 'lv', 'lt', 'et'],
 };

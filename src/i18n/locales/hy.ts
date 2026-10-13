@@ -508,6 +508,7 @@ const hy: FeaturePack = {
       w_win10: 'Տասը հաղթանակ', w_play20: 'Ակումբի անդամ', w_quick: 'Անծանոթը սեղանի շուրջ', w_queen10: 'Դամայի արքունիք', w_burn3: 'Կրակե ածուխների վրայով',
       w_jacks3: 'Վալետների բազմապատկիչ', w_bluff30: 'Դիմակների վարպետ', w_star3: 'Կատարյալ գիշեր', w_kings: 'Չորս թագ',
       g_zole2: 'Զոլեի երեկո', g_durak2: 'Ոչ դուրակ', g_solitaire: 'Համբերությունը վարձատրվում է', g_sudoku_day: 'Օրվա ցանց', g_any3: 'Խաղասրահ',
+      g_thousand: 'Մրցավազք մինչև 1000', g_mahjong_day: 'Օրվա քարերը', g_freecell: 'Ազատ ձեռքեր', g_freecell_day: 'Օրվա բաժանումը',
     },
     desc: {
       games: n => (n === 1 ? 'Խաղացեք մեկ պարտիա' : `Խաղացեք ${n} խաղ`),
@@ -528,6 +529,10 @@ const hy: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Հաղթեք Դուրակի մեկ պարտիա' : `Հաղթեք Դուրակի ${n} պարտիա`),
       mg_solitaire_win: n => (n === 1 ? 'Դասավորեք մեկ պասյանս' : `Դասավորեք ${n} պասյանս`),
       mg_sudoku_daily: () => 'Լուծեք այսօրվա Սուդոկուն',
+      mg_thousand_win: n => (n === 1 ? 'Հաղթեք Հազարի մեկ պարտիա' : `Հաղթեք Հազարի ${n} պարտիա`),
+      mg_mahjong_daily: () => 'Մաքրեք այսօրվա Մաջոնգը',
+      mg_freecell_win: n => (n === 1 ? 'Դասավորեք մեկ FreeCell' : `Դասավորեք ${n} FreeCell`),
+      mg_freecell_daily: () => 'Դասավորեք այսօրվա FreeCell-ը',
     },
     time: { d: 'օ', h: 'ժ', m: 'ր' },
   },
@@ -643,6 +648,9 @@ const hy: FeaturePack = {
       mg_daily_solver: { name: 'Օրվա լուծող', desc: 'Լուծեք օրվա 7 գլուխկոտրուկ։' },
       mg_clockwork: { name: 'Ժամացույցի պես', desc: 'Լուծեք օրվա գլուխկոտրուկը 7 օր անընդմեջ։' },
       mg_all_rounder: { name: 'Ունիվերսալ', desc: 'Հաղթեք առնվազն մեկ անգամ 4 տարբեր մինի խաղերում։' },
+      mg_thousand_master: { name: 'Հազարի վարպետ', desc: 'Հաղթեք Հազարի 10 պարտիա։' },
+      mg_mahjong_zen: { name: 'Մաջոնգի զեն', desc: 'Մաքրեք Մաջոնգի 25 տախտակ։' },
+      mg_freecell_purist: { name: 'FreeCell-ի պուրիստ', desc: 'Դասավորեք 5 FreeCell անընդմեջ։' },
     },
   },
   economy: {

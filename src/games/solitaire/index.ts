@@ -13,6 +13,7 @@ export const solitaire: GameModule = {
   tagline: TAGLINE,
   Emblem: SolitaireEmblem,
   Screen: lazy(() => import('./ui/Solitaire')),
+  seeded: true,
 };
 
 export default solitaire;

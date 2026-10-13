@@ -6,8 +6,9 @@ import { buzz, sfx } from '../../sound';
 import { track } from '../../analytics';
 import { reportStart } from '../session';
 import type { GameScreenProps } from '../types';
-import { gameKey, newGame, restartGame, type Game } from './core/game';
+import { gameKey, newGame, restartGame, seedFor, type Game } from './core/game';
 import { LAYOUT_IDS, layoutOf, type LayoutId } from './core/layouts';
+import { isSeed, pickLevel } from '../seed';
 import { geoOf, tilesLeft } from './core/board';
 import { addDays, dailyLayout, dailyNo, dailySeed, msToRigaMidnight, rigaDay } from './core/daily';
 import { randomSeed } from './core/rng';
@@ -21,8 +22,17 @@ import './mahjong.css';
 
 type View = { v: 'lobby' } | { v: 'play'; game: Game; k: number };
 
-export default function MahjongScreen({ onExit, onAuth }: GameScreenProps) {
-  const [view, setView] = useState<View>({ v: 'lobby' });
+export default function MahjongScreen({ onExit, onAuth, seed, level }: GameScreenProps) {
+  // a challenge seed (../types.ts): no lobby — its deal opens at once (layout = the challenge's level)
+  const [view, setView] = useState<View>(() => (isSeed(seed)
+    ? { v: 'play', game: newGame('free', pickLevel(level, LAYOUT_IDS, getSaved().pick), seedFor(seed)), k: 0 }
+    : { v: 'lobby' }));
+  useEffect(() => {
+    if (!isSeed(seed) || view.v !== 'play') return;
+    saveGame(view.game);
+    reportStart('mahjong', { level: view.game.layout, daily: false, seeded: true });
+    sfx.shuffle();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const skin = useSaved().settings.skin;
 
   useEffect(() => { track('minigame_open', { game: 'mahjong' }); }, []);

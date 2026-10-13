@@ -132,6 +132,9 @@ const en: AchStrings = {
     mg_daily_solver: { name: 'Daily Solver', desc: 'Solve 7 daily puzzles.' },
     mg_clockwork: { name: 'Clockwork', desc: 'Solve the daily puzzle 7 days in a row.' },
     mg_all_rounder: { name: 'All-Rounder', desc: 'Win at least once in 4 different mini games.' },
+    mg_thousand_master: { name: 'Thousand Master', desc: 'Win 10 games of Thousand.' },
+    mg_mahjong_zen: { name: 'Mahjong Zen', desc: 'Clear 25 Mahjong boards.' },
+    mg_freecell_purist: { name: 'FreeCell Purist', desc: 'Win 5 games of FreeCell in a row.' },
   },
 };
 
@@ -247,6 +250,9 @@ const lv: AchStrings = {
     mg_daily_solver: { name: 'Dienas risinātājs', desc: 'Atrisini 7 dienas mīklas.' },
     mg_clockwork: { name: 'Kā pulkstenis', desc: 'Atrisini dienas mīklu 7 dienas pēc kārtas.' },
     mg_all_rounder: { name: 'Universālis', desc: 'Uzvari vismaz vienu reizi 4 dažādās mini spēlēs.' },
+    mg_thousand_master: { name: 'Tūkstoša meistars', desc: 'Uzvari 10 Tūkstoša partijas.' },
+    mg_mahjong_zen: { name: 'Madžonga zen', desc: 'Notīri 25 Madžonga laukumus.' },
+    mg_freecell_purist: { name: 'FreeCell purists', desc: 'Atrisini 5 FreeCell partijas pēc kārtas.' },
   },
 };
 
@@ -362,6 +368,9 @@ const ru: AchStrings = {
     mg_daily_solver: { name: 'Решатель дня', desc: 'Решите 7 ежедневных головоломок.' },
     mg_clockwork: { name: 'Как часы', desc: 'Решайте ежедневную головоломку 7 дней подряд.' },
     mg_all_rounder: { name: 'Универсал', desc: 'Победите хотя бы раз в 4 разных мини-играх.' },
+    mg_thousand_master: { name: 'Мастер Тысячи', desc: 'Выиграйте 10 партий в Тысячу.' },
+    mg_mahjong_zen: { name: 'Дзен маджонга', desc: 'Разберите 25 раскладов маджонга.' },
+    mg_freecell_purist: { name: 'Пурист «Свободной ячейки»', desc: 'Разложите «Свободную ячейку» 5 раз подряд.' },
   },
 };
 
@@ -477,6 +486,9 @@ const uk: AchStrings = {
     mg_daily_solver: { name: 'Розв’язувач дня', desc: 'Розв’яжіть 7 щоденних головоломок.' },
     mg_clockwork: { name: 'Як годинник', desc: 'Розв’язуйте щоденну головоломку 7 днів поспіль.' },
     mg_all_rounder: { name: 'Універсал', desc: 'Переможіть хоча б раз у 4 різних міні-іграх.' },
+    mg_thousand_master: { name: 'Майстер Тисячі', desc: 'Виграйте 10 партій у Тисячу.' },
+    mg_mahjong_zen: { name: 'Дзен маджонгу', desc: 'Розберіть 25 розкладів маджонгу.' },
+    mg_freecell_purist: { name: 'Пурист FreeCell', desc: 'Розкладіть FreeCell 5 разів поспіль.' },
   },
 };
 

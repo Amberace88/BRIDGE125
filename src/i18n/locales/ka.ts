@@ -497,6 +497,7 @@ const ka: FeaturePack = {
       w_win10: 'ათი მოგება', w_play20: 'კლუბის წევრი', w_quick: 'უცნობი მაგიდასთან', w_queen10: 'ქალის კარი', w_burn3: 'ნაკვერჩხლებზე',
       w_jacks3: 'ვალეტების მამრავლი', w_bluff30: 'ნიღბების ოსტატი', w_star3: 'სრულყოფილი ღამე', w_kings: 'ოთხი გვირგვინი',
       g_zole2: 'ზოლეს საღამო', g_durak2: 'არა სულელი', g_solitaire: 'მოთმინება ფასდება', g_sudoku_day: 'დღის ბადე', g_any3: 'სათამაშო დარბაზი',
+      g_thousand: 'რბოლა 1000-მდე', g_mahjong_day: 'დღის ქვები', g_freecell: 'თავისუფალი ხელები', g_freecell_day: 'დღის დარიგება',
     },
     desc: {
       games: n => (n === 1 ? 'ითამაშეთ ერთი პარტია' : `ითამაშეთ ${n} თამაში`),
@@ -517,6 +518,10 @@ const ka: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'მოიგეთ დურაკის ერთი პარტია' : `მოიგეთ დურაკის ${n} პარტია`),
       mg_solitaire_win: n => (n === 1 ? 'გაშალეთ ერთი პასიანსი' : `გაშალეთ ${n} პასიანსი`),
       mg_sudoku_daily: () => 'ამოხსენით დღევანდელი სუდოკუ',
+      mg_thousand_win: n => (n === 1 ? 'მოიგეთ ათასის ერთი პარტია' : `მოიგეთ ათასის ${n} პარტია`),
+      mg_mahjong_daily: () => 'გაასუფთავეთ დღევანდელი მაჯონგი',
+      mg_freecell_win: n => (n === 1 ? 'გაშალეთ ერთი FreeCell' : `გაშალეთ ${n} FreeCell`),
+      mg_freecell_daily: () => 'გაშალეთ დღევანდელი FreeCell',
     },
     time: { d: 'დ', h: 'სთ', m: 'წთ' },
   },
@@ -632,6 +637,9 @@ const ka: FeaturePack = {
       mg_daily_solver: { name: 'დღის ამომხსნელი', desc: 'ამოხსენით 7 დღიური თავსატეხი.' },
       mg_clockwork: { name: 'საათივით', desc: 'ამოხსენით დღიური თავსატეხი 7 დღე ზედიზედ.' },
       mg_all_rounder: { name: 'უნივერსალი', desc: 'მოიგეთ ერთხელ მაინც 4 სხვადასხვა მინი-თამაშში.' },
+      mg_thousand_master: { name: 'ათასის ოსტატი', desc: 'მოიგეთ ათასის 10 პარტია.' },
+      mg_mahjong_zen: { name: 'მაჯონგის ძენი', desc: 'გაასუფთავეთ მაჯონგის 25 დაფა.' },
+      mg_freecell_purist: { name: 'FreeCell-ის პურისტი', desc: 'გაშალეთ 5 FreeCell ზედიზედ.' },
     },
   },
   economy: {

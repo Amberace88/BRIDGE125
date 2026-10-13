@@ -13,6 +13,7 @@ export const freecell: GameModule = {
   tagline: TAGLINE,
   Emblem: FreeCellEmblem,
   Screen: lazy(() => import('./ui/FreeCell')),
+  seeded: true,
 };
 
 export default freecell;

@@ -12,6 +12,8 @@ import type { Puzzle } from './core/generator';
 import { addDays, dailyNo, dailySeed, msToRigaMidnight, rigaDay } from './core/daily';
 import { randomSeed } from './core/rng';
 import { puzzleFor } from './gen';
+import { isSeed, pickLevel } from '../seed';
+import { seedFor } from './core/game';
 import { dailyStreak, getSaved, saveGame, setPick, useSaved, type Saved } from './store';
 import { SUDOKU_STRINGS, type SudokuStrings } from './strings';
 import { Play } from './Play';
@@ -19,7 +21,7 @@ import { IcBack, IcCheck, IcClock, IcClose, IcFlame, IcPlay } from './icons';
 import { fmtLeft, fmtTime } from './time';
 import './sudoku.css';
 
-type View = { v: 'lobby' } | { v: 'play'; game: Game; k: number };
+type View = { v: 'lobby' } | { v: 'wait' } | { v: 'play'; game: Game; k: number };
 
 /** One prefetched classic seed per level, so "New game" is usually instant. */
 const classicSeed: Partial<Record<Level, number>> = {};
@@ -28,9 +30,10 @@ function prefetchClassic(level: Level) {
   void puzzleFor(level, seed).catch(() => {});
 }
 
-export default function SudokuScreen({ onExit, onAuth }: GameScreenProps) {
+export default function SudokuScreen({ onExit, onAuth, seed, level }: GameScreenProps) {
   const s = useStrings(SUDOKU_STRINGS);
-  const [view, setView] = useState<View>({ v: 'lobby' });
+  // a challenge seed (../types.ts): no lobby — its puzzle is generated on mount ('wait' until it is ready)
+  const [view, setView] = useState<View>(() => (isSeed(seed) ? { v: 'wait' } : { v: 'lobby' }));
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const busyRef = useRef(false);
@@ -74,6 +77,18 @@ export default function SudokuScreen({ onExit, onAuth }: GameScreenProps) {
     });
   }, [load]);
 
+  const seededOnce = useRef(false);
+  useEffect(() => {
+    if (!isSeed(seed) || seededOnce.current) return;
+    seededOnce.current = true;
+    const lv = pickLevel(level, LEVELS, getSaved().pick);
+    void load(async () => {
+      const p = await puzzleFor(lv, seedFor(seed));
+      reportStart('sudoku', { level: lv, daily: false, seeded: true });
+      return newGame(p, 'classic');
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const restart = useCallback((g: Game) => {
     const p: Puzzle = { puzzle: g.puzzle, solution: g.solution, level: g.level, seed: g.seed, givens: 0, tier: 0, attempts: 0 };
     const fresh = newGame(p, 'classic');
@@ -91,7 +106,7 @@ export default function SudokuScreen({ onExit, onAuth }: GameScreenProps) {
             exit={{ opacity: 0, scale: 1.02, filter: 'blur(6px)' }} transition={{ duration: 0.28 }}>
             <Lobby s={s} onExit={onExit} onDaily={startDaily} onClassic={startClassic} onResume={k => { const g = getSaved().games[k]; if (g) { sfx.whoosh(0.6); open(g); } }} />
           </motion.div>
-        ) : (
+        ) : view.v === 'wait' ? null : (
           <motion.div key={'play' + view.k} className="sdk-view" initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }} transition={{ type: 'spring', stiffness: 260, damping: 30 }}>
             <Play initial={view.game} onLobby={() => setView({ v: 'lobby' })} onNext={startClassic} onRestart={restart} onAuth={onAuth} />
@@ -100,7 +115,7 @@ export default function SudokuScreen({ onExit, onAuth }: GameScreenProps) {
       </AnimatePresence>
       <AnimatePresence>
         {(busy || failed) && (
-          <motion.div className="sdk-busy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => failed && setFailed(false)}>
+          <motion.div className="sdk-busy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { if (!failed) return; setFailed(false); setView(v => (v.v === 'wait' ? { v: 'lobby' } : v)); }}>
             <div className="sdk-busycard">
               {failed ? <IcClose /> : <Shuffler />}
               <b className="serif">{failed ? '—' : s.generating}</b>

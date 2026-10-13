@@ -8,13 +8,15 @@ import { buzz, sfx } from '../../../sound';
 import { solStrings } from '../strings';
 import { loadSave, recordResult, writeSave, type SolSave } from '../store';
 import {
-  canUndo, finalScore, isSpiderMode, isWon, liveScore, newGame, play, undo, undoCost,
+  MODES, canUndo, finalScore, isSpiderMode, isWon, liveScore, newGame, play, seedStart, undo, undoCost,
   type AnyMove, type Game, type Mode,
 } from '../engine/game';
+import { isSeed, pickLevel } from '../../seed';
+import { newSeed } from '../../challenge/compare';
 import { kAllMoves, kAutoStep, kCanAutoComplete, kCanDraw, kCard, kCollectStep, type KMove, type KState } from '../engine/klondike';
 import { spHint, type SpState } from '../engine/spider';
 import { klondikeHasUsefulMove } from '../engine/solver';
-import { randomSeed, rigaDay } from '../engine/cards';
+import { rigaDay } from '../engine/cards';
 import { computeDaily, computeSeed, computeSolve } from '../compute';
 import { Board, type HintMark } from './Board';
 import { homeMove, movePiles, pileCards, tapMove } from './adapter';
@@ -51,17 +53,19 @@ function useSize(ref: React.RefObject<HTMLDivElement | null>) {
   return size;
 }
 
-export default function Solitaire({ onExit, onAuth }: GameScreenProps) {
+export default function Solitaire({ onExit, onAuth, seed, level }: GameScreenProps) {
   const app = useApp();
   const lang = app.lang;
   const s = solStrings(lang);
   const reduce = !!useReducedMotion();
 
   const [save, setSave] = useState<SolSave>(() => loadSave());
-  const [game, setGame] = useState<Game | null>(() => (save.game && !isWon(save.game) ? save.game : null));
+  // a challenge seed (../../types.ts): no menu and no resume — the seeded deal is dealt on mount
+  const seeded = isSeed(seed) ? seed : null;
+  const [game, setGame] = useState<Game | null>(() => (!seeded && save.game && !isWon(save.game) ? save.game : null));
   const [dealKey, setDealKey] = useState('resume');
   const [dealIn, setDealIn] = useState(false);
-  const [menu, setMenu] = useState(() => !game);
+  const [menu, setMenu] = useState(() => !game && !seeded);
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<HintMark | null>(null);
   const [shake, setShake] = useState<{ id: number; key: number } | null>(null);
@@ -130,7 +134,7 @@ export default function Solitaire({ onExit, onAuth }: GameScreenProps) {
     setAutoRun(false);
     sfx.fanfare();
     buzz([20, 40, 30]);
-    reportGame({ game: 'solitaire', won: true, score, seconds, level: g.mode, day: g.day, details: { moves: g.st.moves, undos: g.undos, mode: g.mode } })
+    reportGame({ game: 'solitaire', won: true, score, seconds, level: g.mode, day: g.day, details: { moves: g.st.moves, undos: g.undos, mode: g.mode }, ...(g.seed ? { seed: g.seed } : {}) })
       .then(r => setWin(w => (w ? { ...w, reward: r, rewardDone: true } : w)));
   }, [persist]);
 
@@ -142,17 +146,19 @@ export default function Solitaire({ onExit, onAuth }: GameScreenProps) {
     const score = finalScore(done);
     const rec = recordResult(saveRef.current, done, false, score);
     saveRef.current = { ...saveRef.current, stats: rec.save.stats, daily: rec.save.daily };
-    reportGame({ game: 'solitaire', won: false, score, seconds, level: g.mode, day: g.day, details: { moves: g.st.moves, undos: g.undos, mode: g.mode } });
+    reportGame({ game: 'solitaire', won: false, score, seconds, level: g.mode, day: g.day, details: { moves: g.st.moves, undos: g.undos, mode: g.mode }, ...(g.seed ? { seed: g.seed } : {}) });
   };
 
   /* ------------------------------------------------------------------ new deals */
-  const deal = useCallback(async (mode: Mode, daily: boolean) => {
+  const deal = useCallback(async (mode: Mode, daily: boolean, from?: string) => {
     setBusy(true);
     let seed: number;
+    // every free deal comes from a string seed (a challenge's, or a fresh one) — reported, so it can be sent to a friend
+    const str = daily ? undefined : from ?? newSeed();
     if (daily) {
       seed = saveRef.current.seeds[today] ?? await computeDaily(today);
-    } else seed = await computeSeed(mode, randomSeed());
-    const g = newGame(daily ? 'klondike-1' : mode, seed, { vegas: saveRef.current.prefs.vegas, day: daily ? today : undefined });
+    } else seed = await computeSeed(mode, seedStart(str!));
+    const g: Game = { ...newGame(daily ? 'klondike-1' : mode, seed, { vegas: saveRef.current.prefs.vegas, day: daily ? today : undefined }), ...(str ? { seed: str } : {}) };
     clockRef.current = 0; setClock(0);
     setGame(g);
     persist(g, daily ? { seeds: { ...saveRef.current.seeds, [today]: seed } } : undefined);
@@ -167,6 +173,13 @@ export default function Solitaire({ onExit, onAuth }: GameScreenProps) {
     if (!saveRef.current.tips) { setTimeout(() => flash(isSpiderMode(g.mode) ? `${s.tipDrag} ${s.spiderNote}` : s.tipTap), 1600); persist(g, { tips: true }); }
     else if (!isSpiderMode(g.mode)) setTimeout(() => flash(`${s.winnable} · ${s.dealNo(seed)}`), 1300);
   }, [persist, today, s]);
+
+  const seededOnce = useRef(false);
+  useEffect(() => {
+    if (!seeded || seededOnce.current) return;
+    seededOnce.current = true;
+    void deal(pickLevel(level, MODES, saveRef.current.prefs.mode), false, seeded);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const askNew = (then: () => void) => {
     const g = gameRef.current;

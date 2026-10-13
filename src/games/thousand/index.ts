@@ -38,5 +38,6 @@ export const thousand: GameModule = {
   tagline: TAGLINES,
   Emblem,
   Screen: lazy(() => import('./ThousandScreen')),
+  seeded: true,
   homeLangs: ['ru', 'uk', 'be', 'lv', 'lt', 'et', 'pl', 'kk', 'bg'],
 };

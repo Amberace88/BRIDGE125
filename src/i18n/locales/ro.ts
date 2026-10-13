@@ -505,6 +505,7 @@ const ro: FeaturePack = {
       w_win10: 'Zece victorii', w_play20: 'Membru al clubului', w_quick: 'Străin la masă', w_queen10: 'Curtea damei', w_burn3: 'Pe jăratic',
       w_jacks3: 'Multiplicatorul valeților', w_bluff30: 'Maestrul măștilor', w_star3: 'O noapte perfectă', w_kings: 'Patru coroane',
       g_zole2: 'Seară de Zole', g_durak2: 'Nu ești Durak', g_solitaire: 'Răbdarea răsplătește', g_sudoku_day: 'Grila zilei', g_any3: 'Sala de jocuri',
+      g_thousand: 'Cursa până la 1000', g_mahjong_day: 'Pietrele zilei', g_freecell: 'Mâini libere', g_freecell_day: 'Împărțeala zilei',
     },
     desc: {
       games: n => (n === 1 ? 'Joacă o partidă' : `Joacă ${roN(n, 'partidă', 'partide')}`),
@@ -525,6 +526,10 @@ const ro: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Câștigă o partidă de Durak' : `Câștigă ${roN(n, 'partidă', 'partide')} de Durak`),
       mg_solitaire_win: n => (n === 1 ? 'Rezolvă un solitaire' : `Rezolvă ${roN(n, 'solitaire', 'solitaire-uri')}`),
       mg_sudoku_daily: () => 'Rezolvă Sudoku-ul de azi',
+      mg_thousand_win: n => (n === 1 ? 'Câștigă o partidă de O mie' : `Câștigă ${roN(n, 'partidă', 'partide')} de O mie`),
+      mg_mahjong_daily: () => 'Golește Mahjong-ul de azi',
+      mg_freecell_win: n => (n === 1 ? 'Rezolvă un FreeCell' : `Rezolvă ${roN(n, 'FreeCell', 'FreeCell-uri')}`),
+      mg_freecell_daily: () => 'Rezolvă FreeCell-ul de azi',
     },
     time: { d: ' z', h: ' h', m: ' min' },
   },
@@ -640,6 +645,9 @@ const ro: FeaturePack = {
       mg_daily_solver: { name: 'Rezolvitorul zilei', desc: 'Rezolvă 7 puzzle-uri zilnice.' },
       mg_clockwork: { name: 'Ca un ceas', desc: 'Rezolvă puzzle-ul zilei 7 zile la rând.' },
       mg_all_rounder: { name: 'Polivalent', desc: 'Câștigă măcar o dată în 4 minijocuri diferite.' },
+      mg_thousand_master: { name: 'Maestrul O mie', desc: 'Câștigă 10 partide de O mie.' },
+      mg_mahjong_zen: { name: 'Zen Mahjong', desc: 'Golește 25 de table de Mahjong.' },
+      mg_freecell_purist: { name: 'Puristul FreeCell', desc: 'Rezolvă 5 FreeCell-uri la rând.' },
     },
   },
   economy: {

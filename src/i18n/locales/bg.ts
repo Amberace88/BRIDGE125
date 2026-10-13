@@ -502,6 +502,7 @@ const bg: FeaturePack = {
       w_win10: 'Десет победи', w_play20: 'Член на клуба', w_quick: 'Непознат на масата', w_queen10: 'Дворът на дамата', w_burn3: 'По жарава',
       w_jacks3: 'Множител с валета', w_bluff30: 'Майстор на маските', w_star3: 'Перфектна нощ', w_kings: 'Четири корони',
       g_zole2: 'Вечер на Золе', g_durak2: 'Не съм глупак', g_solitaire: 'Търпението се отплаща', g_sudoku_day: 'Мрежата на деня', g_any3: 'Игрална зала',
+      g_thousand: 'Надпревара до 1000', g_mahjong_day: 'Плочките на деня', g_freecell: 'Свободни ръце', g_freecell_day: 'Раздаването на деня',
     },
     desc: {
       games: n => (n === 1 ? 'Изиграй една игра' : `Изиграй ${n} игри`),
@@ -522,6 +523,10 @@ const bg: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Спечели партия Дурак' : `Спечели ${n} ${pl(n, 'партия', 'партии')} Дурак`),
       mg_solitaire_win: n => (n === 1 ? 'Нареди пасианс' : `Нареди ${n} ${pl(n, 'пасианс', 'пасианса')}`),
       mg_sudoku_daily: () => 'Реши днешното судоку',
+      mg_thousand_win: n => (n === 1 ? 'Спечели партия Хиляда' : `Спечели ${n} ${pl(n, 'партия', 'партии')} Хиляда`),
+      mg_mahjong_daily: () => 'Изчисти днешния Маджонг',
+      mg_freecell_win: n => (n === 1 ? 'Нареди FreeCell' : `Нареди FreeCell ${n} ${pl(n, 'път', 'пъти')}`),
+      mg_freecell_daily: () => 'Нареди днешния FreeCell',
     },
     time: { d: 'д', h: 'ч', m: 'мин' },
   },
@@ -637,6 +642,9 @@ const bg: FeaturePack = {
       mg_daily_solver: { name: 'Решавач на деня', desc: 'Реши 7 дневни пъзела.' },
       mg_clockwork: { name: 'Като часовник', desc: 'Решавай дневния пъзел 7 дни подред.' },
       mg_all_rounder: { name: 'Универсал', desc: 'Спечели поне веднъж в 4 различни мини игри.' },
+      mg_thousand_master: { name: 'Майстор на Хиляда', desc: 'Спечели 10 партии Хиляда.' },
+      mg_mahjong_zen: { name: 'Дзен в Маджонг', desc: 'Изчисти 25 дъски Маджонг.' },
+      mg_freecell_purist: { name: 'Пурист на FreeCell', desc: 'Нареди FreeCell 5 пъти подред.' },
     },
   },
   economy: {

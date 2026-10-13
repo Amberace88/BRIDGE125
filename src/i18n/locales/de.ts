@@ -499,6 +499,7 @@ const de: FeaturePack = {
       w_win10: 'Zehn Siege', w_play20: 'Clubmitglied', w_quick: 'Fremder am Tisch', w_queen10: 'Der Hof der Dame', w_burn3: 'Feuerläufer',
       w_jacks3: 'Buben-Multiplikator', w_bluff30: 'Meister der Masken', w_star3: 'Eine perfekte Nacht', w_kings: 'Vier Kronen',
       g_zole2: 'Zole-Abend', g_durak2: 'Kein Durak', g_solitaire: 'Geduld zahlt sich aus', g_sudoku_day: 'Gitter des Tages', g_any3: 'Spielsaal',
+      g_thousand: 'Wettlauf bis 1000', g_mahjong_day: 'Steine des Tages', g_freecell: 'Freie Hand', g_freecell_day: 'Blatt des Tages',
     },
     desc: {
       games: n => (n === 1 ? 'Spiel eine Partie' : `Spiel ${n} Partien`),
@@ -519,6 +520,10 @@ const de: FeaturePack = {
       mg_durak_win: n => (n === 1 ? 'Gewinne eine Partie Durak' : `Gewinne ${n} Partien Durak`),
       mg_solitaire_win: n => (n === 1 ? 'Löse eine Patience' : `Löse ${n} Patiencen`),
       mg_sudoku_daily: () => 'Löse das heutige Sudoku',
+      mg_thousand_win: n => (n === 1 ? 'Gewinne eine Partie Tausend' : `Gewinne ${n} Partien Tausend`),
+      mg_mahjong_daily: () => 'Räume das heutige Mahjong ab',
+      mg_freecell_win: n => (n === 1 ? 'Löse ein FreeCell' : `Löse ${n}-mal FreeCell`),
+      mg_freecell_daily: () => 'Löse das heutige FreeCell',
     },
     time: { d: ' T.', h: ' Std.', m: ' Min.' },
   },
@@ -634,6 +639,9 @@ const de: FeaturePack = {
       mg_daily_solver: { name: 'Tagesrätsler', desc: 'Löse 7 Tagesrätsel.' },
       mg_clockwork: { name: 'Wie ein Uhrwerk', desc: 'Löse das Tagesrätsel 7 Tage in Folge.' },
       mg_all_rounder: { name: 'Allrounder', desc: 'Gewinne mindestens einmal in 4 verschiedenen Minispielen.' },
+      mg_thousand_master: { name: 'Tausend-Meister', desc: 'Gewinne 10 Partien Tausend.' },
+      mg_mahjong_zen: { name: 'Mahjong-Zen', desc: 'Räume 25 Mahjong-Bretter ab.' },
+      mg_freecell_purist: { name: 'FreeCell-Purist', desc: 'Löse FreeCell 5-mal in Folge.' },
     },
   },
   economy: {

@@ -16,7 +16,7 @@ import { QuickAudio } from '../../voice/AudioControls';
 import { CountUp } from './CountUp';
 import {
   type Action, type Bid, type Play, type ZCard, type ZState, N, actor, firstHand, isTrump, legalBids, legalCards, sidePoints, sortHand,
-  sumPoints, takenBy, teamOf, trickWinnerIndex,
+  sumPoints, takenBy, teamOf, trickWinnerIndex, makeRng,
 } from './engine';
 import { botAction, suggestBid, type ZLevel } from './bot';
 import { ZOLE } from './strings';
@@ -127,7 +127,8 @@ export function ZoleGame({ g, level, fast, onToggleFast, onAct, onBot, onExit, o
     const base = g.phase === 'bid' ? BOT_MS.bid : g.phase === 'discard' ? BOT_MS.discard : BOT_MS.play + (g.trick.length === 0 ? 180 : 0);
     const delay = (base + Math.random() * BOT_MS.jitter) * (fast ? 0.5 : 1);
     const seq = g.seq, p = who;
-    const tm = setTimeout(() => { const a = botAction(g, p, level); if (a) onBot(seq, p, a); }, delay);
+    // the bots' choices come from the deal's generator too: a seeded challenge replays the same way on every device
+    const tm = setTimeout(() => { const a = botAction(g, p, level, makeRng((g.rng ^ Math.imul(seq + 1, 0x9e3779b1) ^ Math.imul(p + 1, 0x85ebca6b)) >>> 0)); if (a) onBot(seq, p, a); }, delay);
     return () => clearTimeout(tm);
   }, [g.seq, busy, paused, fast]); // eslint-disable-line react-hooks/exhaustive-deps
 

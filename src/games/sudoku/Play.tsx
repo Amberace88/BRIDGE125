@@ -82,6 +82,8 @@ export function Play({ initial, onLobby, onNext, onRestart, onAuth }: Props) {
     void reportGame({
       game: 'sudoku', won, score, seconds, level: x.level, day: x.mode === 'daily' ? x.day : undefined,
       details: { mistakes: x.mistakes, hints: x.hints },
+      // the generator seed replays this very puzzle at this level (seedFor)
+      seed: String(x.seed),
     }).then(r => {
       const bm = r && (typeof r.bm === 'number' ? r.bm : typeof r.reward_bm === 'number' ? r.reward_bm : null);
       setEnd(e => (e ? { ...e, reward: bm as number | null, sent: !!r } : e));

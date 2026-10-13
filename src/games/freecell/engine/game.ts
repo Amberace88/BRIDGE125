@@ -4,6 +4,7 @@ import { hashSeed } from '../../solitaire/engine/cards';
 import { MAX_DEAL, UNSOLVABLE, msDeal } from './deal';
 import { apply, fcScore, fcWon, foundCount, legal, type FcMove, type FcState } from './rules';
 import { solveFreecell } from './solver';
+import { seedNumber } from '../../seed';
 
 export interface FcGame {
   /** Microsoft deal number */
@@ -74,6 +75,18 @@ export function dailyDeal(day: string): number {
 /** A random deal number for "New deal" (the famous impossible ones are skipped). */
 export function randomDeal(rnd = Math.random): number {
   let n = 1 + Math.floor(rnd() * MAX_DEAL);
+  while (UNSOLVABLE.includes(n)) n = (n % MAX_DEAL) + 1;
+  return n;
+}
+
+/**
+ * The deal of a challenge seed (seed contract, ../../types.ts): a seed of digits IS the Microsoft deal number
+ * ("11982" — so a game reports `String(deal)` and a friend gets exactly it); any other seed hashes to a deal
+ * (the famous impossible ones skipped). The same on every device.
+ */
+export function dealFromSeed(seed: string): number {
+  if (/^\d{1,7}$/.test(seed) && Number(seed) >= 1 && Number(seed) <= MAX_DEAL) return Number(seed);
+  let n = seedNumber(seed, 'freecell', MAX_DEAL);
   while (UNSOLVABLE.includes(n)) n = (n % MAX_DEAL) + 1;
   return n;
 }

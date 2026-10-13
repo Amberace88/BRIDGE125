@@ -35,5 +35,6 @@ export const zole: GameModule = {
   tagline: TAGLINES,
   Emblem,
   Screen: lazy(() => import('./ZoleScreen')),
+  seeded: true,
   homeLangs: ['lv'],
 };
