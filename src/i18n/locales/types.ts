@@ -8,6 +8,7 @@ import type { SocialStrings } from '../social';
 import type { JourneyStrings, QuestStrings } from '../journey';
 import type { AchStrings } from '../achievements';
 import type { EcoStrings } from '../economy';
+import type { SeasonStrings } from '../season';
 
 /**
  * Feature strings for one lazily loaded language — one chunk per language, fetched together with the core
@@ -25,4 +26,6 @@ export interface FeaturePack {
   quests: DeepPartial<QuestStrings>;
   achievements: DeepPartial<AchStrings>;
   economy: DeepPartial<EcoStrings>;
+  /** Season Pass (optional until the packs translate it — English shows meanwhile) */
+  season?: DeepPartial<SeasonStrings>;
 }

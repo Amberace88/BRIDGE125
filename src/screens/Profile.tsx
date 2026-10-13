@@ -21,6 +21,7 @@ import { bannerCss } from '../cosmetics/data';
 import { AudioSettings } from '../voice/AudioControls';
 import { WalletPanel } from '../social/WalletPanel';
 import { HOME } from '../i18n/home';
+import { SeasonProfileCard } from '../season/parts';
 
 initMusic();
 
@@ -66,7 +67,7 @@ function MusicRows() {
   );
 }
 
-export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop, onGod, onDiamonds, onAchievements, onVault }: {
+export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onShop, onGod, onDiamonds, onAchievements, onVault, onSeason }: {
   onClose: () => void; onAuth: () => void; onLegal: (k: 'privacy' | 'terms') => void; onInstall: () => void; onAdmin: () => void; onShop?: (itemId?: string) => void;
   /** Opens the GOD MODE panel (admin + god only). */
   onGod?: () => void;
@@ -76,6 +77,8 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
   onAchievements?: () => void;
   /** The vault (/vault): wheel, boosts, collections, prestige. */
   onVault?: () => void;
+  /** Season Pass (/season). */
+  onSeason?: () => void;
 }) {
   const app = useApp();
   const { t } = app;
@@ -126,6 +129,7 @@ export function ProfileSheet({ onClose, onAuth, onLegal, onInstall, onAdmin, onS
       )}
 
       {prof && <LevelBar />}
+      {onSeason && <SeasonProfileCard onOpen={onSeason} />}
 
       {!signedIn && app.online && (
         <div className="pguest">

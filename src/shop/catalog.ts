@@ -34,7 +34,8 @@ export interface Cosmetic {
 }
 
 export interface Bundle { id: string; kind: 'bundle'; bm: number; priceEur: number; bonusPct: number; rarity: Rarity; best?: boolean }
-export interface Pass { id: string; kind: 'pass'; priceEur: number; rarity: Rarity }
+/** The season pass: bought with Diamonds on /season (migration 016), never with € or BM directly — priceEur stays null. */
+export interface Pass { id: string; kind: 'pass'; priceEur: number | null; rarity: Rarity }
 
 const W2 = '2026-10-12';
 const item = (id: string, kind: Slot, priceBm: number, rarity: Rarity, tag?: 'hot'): Cosmetic =>
@@ -141,7 +142,7 @@ export const BUNDLES: Bundle[] = [
   { id: 'bm_80k', kind: 'bundle', bm: 80000, priceEur: 17.99, bonusPct: 77, rarity: 'legendary', best: true },
 ];
 
-export const PASS: Pass = { id: 'pass_s1', kind: 'pass', priceEur: 4.99, rarity: 'legendary' };
+export const PASS: Pass = { id: 'pass_s1', kind: 'pass', priceEur: null, rarity: 'legendary' };
 
 /** The hero of the Featured tab (fallback; the shop rotates a daily pick — see featuredToday). */
 export const FEATURED_ID = 'montecarlo';

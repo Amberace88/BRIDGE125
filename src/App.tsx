@@ -11,6 +11,7 @@ import { RewardsLayer } from './screens/Rewards';
 import { CosmeticsSync } from './cosmetics/useCosmetics';
 import { SocialRoot } from './social/SocialRoot';
 import { QuestToasts } from './campaign/QuestToasts';
+import { SeasonToast } from './season/parts';
 import type { ActiveStake } from './economy/api';
 import { StakePicker } from './economy/StakePicker';
 import { Sheet } from './screens/Sheets';
@@ -28,6 +29,7 @@ const Journey = lazy(() => import('./screens/Journey').then(m => ({ default: m.J
 const QuestsScreen = lazy(() => import('./screens/Quests').then(m => ({ default: m.QuestsScreen })));
 const AchievementsHall = lazy(() => import('./screens/Achievements').then(m => ({ default: m.AchievementsHall })));
 const VaultScreen = lazy(() => import('./screens/Wheel').then(m => ({ default: m.VaultScreen })));
+const SeasonScreen = lazy(() => import('./screens/Season').then(m => ({ default: m.SeasonScreen })));
 import { findQuickMatch, newRoomCode } from './online/useRoom';
 import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
@@ -39,14 +41,14 @@ type Route =
   | { name: 'room'; code: string }
   /** the Journey campaign: map → city → match (it runs LocalGame in campaign mode itself) */
   | { name: 'journey' };
-type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | LegalKind | null;
+type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | LegalKind | null;
 
 function parse(): { route: Route; overlay: Overlay } {
   const p = location.pathname;
   const m = p.match(/^\/r\/([A-Za-z0-9]{4,6})\/?$/);
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
   if (/^\/journey\/?$/.test(p)) return { route: { name: 'journey' }, overlay: null };
-  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault)\/?$/);
+  const o = p.match(/^\/(rules|privacy|terms|admin|shop|merch|god|quests|achievements|vault|season)\/?$/);
   return { route: { name: 'home' }, overlay: o ? (o[1] as Overlay) : null };
 }
 
@@ -118,6 +120,7 @@ function Shell() {
               onQuests={() => openOverlay('quests')}
               onAchievements={() => openOverlay('achievements')}
               onVault={() => openOverlay('vault')}
+              onSeason={() => openOverlay('season')}
               onStakes={() => setSheet('stakes')}
               onProfile={() => setSheet('profile')}
               onAuth={() => setSheet('auth')}
@@ -148,7 +151,8 @@ function Shell() {
       <AnimatePresence>
         {overlay === 'rules' && <Guide key="g" onClose={closeOverlay} onPractice={() => go({ name: 'local', resume: null, key: Date.now() })} />}
         {overlay === 'admin' && <AdminPanel key="adm" onClose={closeOverlay} />}
-        {overlay === 'shop' && <ShopScreen key="shop" initialTab={shopTab} onClose={closeOverlay} onAuth={() => { closeOverlay(); setSheet('auth'); }} />}
+        {overlay === 'shop' && <ShopScreen key="shop" initialTab={shopTab} onClose={closeOverlay} onAuth={() => { closeOverlay(); setSheet('auth'); }} onSeason={() => openOverlay('season')} />}
+        {overlay === 'season' && <SeasonScreen key="season" onClose={closeOverlay} onAuth={auth} onDiamonds={() => openShop('diamonds')} />}
         {overlay === 'quests' && <QuestsScreen key="quests" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'achievements' && <AchievementsHall key="ach" onClose={closeOverlay} onAuth={auth} />}
         {overlay === 'vault' && <VaultScreen key="vault" onClose={closeOverlay} onAuth={auth} />}
@@ -160,7 +164,7 @@ function Shell() {
       </AnimatePresence>
       <AnimatePresence>
         {sheet === 'profile' && <ProfileSheet key="p" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} onLegal={k => { setSheet(null); openOverlay(k); }} onInstall={() => setSheet('install')} onAdmin={() => { setSheet(null); openOverlay('admin'); }} onShop={() => { setSheet(null); openShop(); }} onGod={() => { setSheet(null); openOverlay('god'); }}
-          onDiamonds={() => { setSheet(null); openShop('diamonds'); }} onAchievements={() => { setSheet(null); openOverlay('achievements'); }} onVault={() => { setSheet(null); openOverlay('vault'); }} />}
+          onDiamonds={() => { setSheet(null); openShop('diamonds'); }} onAchievements={() => { setSheet(null); openOverlay('achievements'); }} onVault={() => { setSheet(null); openOverlay('vault'); }} onSeason={() => { setSheet(null); openOverlay('season'); }} />}
         {sheet === 'auth' && <AuthSheet key="a" onClose={() => setSheet(null)} onLegal={k => { setSheet(null); openOverlay(k); }} />}
         {sheet === 'leaders' && <Leaderboard key="lb" onClose={() => setSheet(null)} onAuth={() => setSheet('auth')} />}
         {sheet === 'install' && <InstallSheet key="in" onClose={() => setSheet(null)} />}
@@ -176,6 +180,7 @@ function Shell() {
       <CosmeticsSync />
       <SocialRoot />
       <QuestToasts />
+      <SeasonToast muted={overlay === 'season'} onOpen={() => { setSheet(null); openOverlay('season'); }} />
       <RewardsLayer autoDaily={route.name === 'home' && !overlay && !sheet} onAuth={() => setSheet('auth')} />
     </div>
   );

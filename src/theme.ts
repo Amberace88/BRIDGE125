@@ -1,5 +1,6 @@
 import { BACK_ART, TABLE_ART } from './cosmetics/art';
 import { isCosPremium } from './cosmetics/data';
+import { S1_BACKS, S1_TABLES } from './season/cosmetics';
 import './styles/cosmetics.css';
 
 export interface Accent { id: string; name: string; hi: string; base: string; lo: string; ink: string; premium?: boolean }
@@ -72,6 +73,8 @@ export const TABLES: Table[] = [
   { id: 'damask', name: 'Black Gold Damask', premium: true, ...TABLE_ART.damask },
   { id: 'sakura', name: 'Sakura', premium: true, ...TABLE_ART.sakura },
   { id: 'carbonrace', name: 'Carbon Racing', premium: true, ...TABLE_ART.carbonrace },
+  // ---- Season Pass (earned, never sold — migration 016)
+  ...S1_TABLES,
 ];
 
 export const BACKS: CardBack[] = [
@@ -97,6 +100,8 @@ export const BACKS: CardBack[] = [
   { id: 'bk_teak', name: 'Teak & Brass', premium: true, css: BACK_ART.bk_teak },
   { id: 'bk_studs', name: 'Brass Studs', premium: true, css: BACK_ART.bk_studs },
   { id: 'bk_tartan', name: 'Tartan', premium: true, css: BACK_ART.bk_tartan },
+  // ---- Season Pass (earned, never sold — migration 016)
+  ...S1_BACKS,
 ];
 
 export const isPremium = (id: string) =>

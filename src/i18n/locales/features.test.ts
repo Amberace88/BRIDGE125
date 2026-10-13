@@ -10,13 +10,18 @@ import { SOCIAL_STRINGS } from '../social';
 import { JOURNEY_STRINGS, QUEST_STRINGS } from '../journey';
 import { ACH_STRINGS } from '../achievements';
 import { ECO_STRINGS } from '../economy';
+import { SEASON_STRINGS } from '../season';
 import { missingKeys, pick, registeredStrings, withFallback, type Strings } from '../pick';
 import { FEATURE_LANGS } from './index';
 import type { FeaturePack } from './types';
 
+/** Modules a pack may still omit (optional in FeaturePack): they show English until translated. */
+const OPTIONAL = new Set<string>(['season']);
+
 const MODULES: Record<keyof FeaturePack, Strings<unknown>> = {
   home: HOME, table: TABLE_STRINGS, shop: SHOP_STRINGS, media: MEDIA, merch: MERCH_STRINGS,
   social: SOCIAL_STRINGS, journey: JOURNEY_STRINGS, quests: QUEST_STRINGS, achievements: ACH_STRINGS, economy: ECO_STRINGS,
+  season: SEASON_STRINGS,
 };
 
 /** Functions whose arguments are strings (names, prices, times); everything else takes numbers. */
@@ -57,7 +62,7 @@ describe('feature string modules', () => {
         const s = pick(mod, id);
         expect(missingKeys(mod.en, s), `${id} ${name}`).toEqual([]);
         check(s, name, id);
-        if (FEATURE_LANGS.includes(id)) expect(mod[id], `${id} ${name} pack installed`).toBeDefined();
+        if (FEATURE_LANGS.includes(id) && !OPTIONAL.has(name)) expect(mod[id], `${id} ${name} pack installed`).toBeDefined();
       }
     });
   }

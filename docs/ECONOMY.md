@@ -108,7 +108,7 @@ Uzraudzībai: tabula `economy_log` (katra rata griešana, pastiprinājums, likme
 
 | Ideja | + | − |
 |---|---|---|
-| **Sezonas caurlaide** (bezmaksas + premium celiņš, `pass_s1` jau ir katalogā) | stabils ienākums, 6–8 nedēļu mērķis | daudz satura katrai sezonai |
+| ~~**Sezonas caurlaide**~~ — ieviesta, skat. 6. sadaļu | stabils ienākums, 6–8 nedēļu mērķis | daudz satura katrai sezonai |
 | **Dienas/nedēļas uzdevumi** (“izspēlē 3 astotniekus”) | īss mērķis katru dienu, var dot šķembas | jāseko, lai nebūtu nogurdinoši |
 | **Turnīri ar BM iemaksu pret īstiem spēlētājiem** | ļoti aizraujoši, sociāli | Uzmanību: ja BM var nopirkt par €, likmes starp cilvēkiem var tikt uzskatītas par azartspēli (LV/ES) — tikai ar ieejas maksu un fiksētām kosmētikas balvām, nevis BM banku |
 | **Klubi/ģildes ar kopīgu kasi** | piederība, atgriešanās | moderācija, krāpšanās risks |
@@ -122,3 +122,34 @@ Uzraudzībai: tabula `economy_log` (katra rata griešana, pastiprinājums, likme
 **Juridiska piezīme.** Papildgriezienus par BM var uzskatīt par nejaušības balvu par līdzekļiem, kas netieši pirkti par €.
 Riska mazināšana jau iebūvēta: izredzes publicētas, balvas nav pārdodamas/nododamas, maks. 5 papildgriezieni dienā,
 BM nav izņemami. Pirms maksājumu ieslēgšanas ieteicams to apstiprināt ar juristu.
+
+---
+
+## 6. Sezonas caurlaide (`supabase/migration_016_season.sql`, `/season`)
+
+**1. sezona “Džeza laikmets”**: 8 nedēļas (datumi tabulā `seasons`, maināmi ar vienu `update`), 40 pakāpes, divi celiņi.
+Klienta spoguļkopija: `src/season/data.ts` (tests `src/season/season.test.ts` salīdzina ar SQL).
+
+**Zvaigznes** (sezonas XP; 100 ★ = 1 pakāpe, 1. pakāpe ir uzreiz, 40. pakāpei vajag 3 900 ★):
+
+| Avots | ★ | Dienas griesti |
+|---|---|---|
+| Uzvarēta / zaudēta spēle (tikai apmaksātās, t.i. līdz 60 dienā) | 5 / 2 | 300 |
+| Dienas uzdevums · nedēļas uzdevums · nedēļas lāde | 10 · 25 · 50 | 200 |
+| Dienas izaicinājums (`season_add_xp(uid, 15, 'challenge')` no 014) | 15 | 30 |
+| Sasniegums (bronza · sudrabs · zelts · platīns) | 5 · 10 · 20 · 40 | 400 |
+
+Spēles, uzdevumi un sasniegumi zvaigznes dod caur trigeriem (`profiles`, `player_quests`), tāpēc nevienu esošo funkciju nevajadzēja mainīt.
+Ikdienas spēlētājs (5 spēles + 3 dienas uzdevumi + izaicinājums + nedēļas uzdevumi) pabeidz caurlaidi ~7. nedēļā; aktīvais ~4. nedēļā.
+
+**Balvas** (kopā): bezmaksas celiņš 15 250 BM, 17 šķembas, 4 rata griezieni, 2 × XP ×2, 2 kosmētikas (titulu “Debitants”, kāršu muguru “Džeza biļete”).
+Premium celiņš: 8 ekskluzīvi stili (galds “Džeza klubs”, kāršu mugura “Zeltītais deko”, rāmis “Džeza laikmeta oreols”, tituls “Maestro”,
+vārda krāsa “Šampanietis”, banneris, emociju paka, uzvaras efekts “Šampanieša šalts”) + 6 900 BM, 250 💎, 26 šķembas, 12 griezieni.
+Papildu BM ~270/dienā bezmaksas celiņā — mazāk par 15 % no ikdienas ienākumiem, inflāciju būtiski nemaina.
+
+**Cenas**: Premium 950 💎 (≈ €9,99 paka), pakāpes izlaišana 150 💎/pakāpe. Tikai dimanti — nekad BM. Admins/god: premium un izlaišana bez maksas.
+Premium celiņa 250 💎 atdod ~26 % cenas (motivē nākamo sezonu, bet neatmaksā to). “Rata grieziens” ir bezmaksas grieziens ar publicētajām izredzēm
+(`wheel_prizes`), nevis pārdodama nejaušības balva.
+
+**Nākamā sezona**: jauns `seasons` ieraksts (`s2`, datumi), 80 `season_rewards` rindas, jauni `s2_*` stili `shop_items` (price_bm null) un
+`src/season/cosmetics.ts`. Balvas var saņemt vēl 14 dienas pēc sezonas beigām (`grace_days`).

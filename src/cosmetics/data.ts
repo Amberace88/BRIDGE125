@@ -7,6 +7,7 @@
  */
 import { BANNER_ART } from './art';
 import { ACH_BANNERS, ACH_FRAMES, ACH_NAME_COLORS, ACH_TITLES } from '../economy/cosmetics';
+import { S1_BANNERS, S1_COSMETIC_IDS, S1_EMOTES, S1_FRAMES, S1_NAME_COLORS, S1_TITLES, S1_VICTORIES } from '../season/cosmetics';
 
 export type CosKind = 'face' | 'frame' | 'victory' | 'emotes' | 'title' | 'namecolor' | 'banner';
 export const COS_KINDS: CosKind[] = ['face', 'frame', 'victory', 'emotes', 'title', 'namecolor', 'banner'];
@@ -42,6 +43,8 @@ export const FRAMES: FrameStyle[] = [
   { id: 'fr_diamond', name: 'Diamond', premium: true },
   // earned, never sold (achievements, collections, prestige — migration 012)
   ...ACH_FRAMES,
+  // Season Pass (migration 016)
+  ...S1_FRAMES,
 ];
 
 /** Win celebrations: `<VictoryEffect id>` (src/cosmetics/VictoryEffect.tsx). */
@@ -51,6 +54,7 @@ export const VICTORIES: VictoryStyle[] = [
   { id: 'vx_fireworks', name: 'Fireworks', premium: true },
   { id: 'vx_waterfall', name: 'Card Waterfall', premium: true },
   { id: 'vx_crowns', name: 'Crown Rain', premium: true },
+  ...S1_VICTORIES,
 ];
 
 /** Emote packs: the table's emote picker shows the equipped pack (emotes are sent as plain emoji strings). */
@@ -60,6 +64,7 @@ export const EMOTE_PACKS: EmotePack[] = [
   { id: 'em_animals', name: 'Animals', premium: true, emotes: ['🦊', '🐺', '🦉', '🐻', '🐸', '🦈', '🐙', '🐒'] },
   { id: 'em_casino', name: 'High Roller', premium: true, emotes: ['🃏', '🎰', '💰', '🎲', '🍀', '💸', '🤑', '♠️'] },
   { id: 'em_royal', name: 'Royal', premium: true, emotes: ['👑', '🎩', '🍷', '💎', '🥂', '🏰', '⚜️', '🦚'] },
+  ...S1_EMOTES,
 ];
 
 /** Title badges shown next to the player's name. */
@@ -75,6 +80,7 @@ export const TITLES: TitleBadge[] = [
   // earned, never sold: the Journey finale (migration 011) and achievements (migration 012)
   { id: 't_grand_tour', name: 'Grand Tourist', glyph: '⚜', premium: true },
   ...ACH_TITLES,
+  ...S1_TITLES,
 ];
 
 /** Name colours (CSS classes `.nc-<id>` in styles/cosmetics.css). */
@@ -88,6 +94,7 @@ export const NAME_COLORS: NameColor[] = [
   { id: 'nc_fire', name: 'Fire', swatch: 'linear-gradient(90deg,#ffe066,#ff8a2a,#ff2e4d)', premium: true },
   { id: 'nc_holo', name: 'Holographic', swatch: 'linear-gradient(90deg,#ff9bd2,#ffd28a,#9cf5c8,#8ad0ff,#c69bff)', premium: true },
   ...ACH_NAME_COLORS,
+  ...S1_NAME_COLORS,
 ];
 
 /** Profile banners (the backdrop of the profile header / player card). */
@@ -99,6 +106,7 @@ export const BANNERS: Banner[] = [
   { id: 'bn_riga', name: 'Riga Rooftops', css: BANNER_ART.bn_riga, premium: true },
   { id: 'bn_suits', name: 'Royal Suits', css: BANNER_ART.bn_suits, premium: true },
   ...ACH_BANNERS,
+  ...S1_BANNERS,
 ];
 
 export const COS_LISTS: Record<CosKind, CosItem[]> = {
@@ -116,7 +124,7 @@ export const COS_COLUMN: Record<CosKind, string> = {
 };
 
 /** Earned-only items (never in the shop): shown in the wardrobe as locked until unlocked by play. */
-export const EARNED_IDS = new Set(['t_grand_tour', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id)]);
+export const EARNED_IDS = new Set(['t_grand_tour', ...[...ACH_TITLES, ...ACH_FRAMES, ...ACH_NAME_COLORS, ...ACH_BANNERS].map(x => x.id), ...S1_COSMETIC_IDS]);
 
 const PREMIUM = new Set(COS_KINDS.flatMap(k => COS_LISTS[k].filter(i => i.premium).map(i => i.id)));
 export const isCosPremium = (id: string) => PREMIUM.has(id);
