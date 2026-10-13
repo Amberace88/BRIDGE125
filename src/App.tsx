@@ -19,6 +19,7 @@ const ShopScreen = lazy(() => import('./screens/Shop').then(m => ({ default: m.S
 const MerchScreen = lazy(() => import('./screens/Merch').then(m => ({ default: m.MerchScreen })));
 const InstallSheet = lazy(() => import('./screens/InstallSheet').then(m => ({ default: m.InstallSheet })));
 const Journey = lazy(() => import('./screens/Journey').then(m => ({ default: m.Journey })));
+const OnlineGame = lazy(() => import('./games/online/OnlineGame'));
 const QuestsScreen = lazy(() => import('./screens/Quests').then(m => ({ default: m.QuestsScreen })));
 const AchievementsHall = lazy(() => import('./screens/Achievements').then(m => ({ default: m.AchievementsHall })));
 const VaultScreen = lazy(() => import('./screens/Wheel').then(m => ({ default: m.VaultScreen })));
@@ -43,6 +44,7 @@ import { startHeartbeat, track } from './analytics';
 import { detectPlatform, isStandalone } from './install';
 import type { GameState } from './engine/engine';
 import { gameById } from './games/registry';
+import { isOnlineGame, type OnlineGameId } from './games/online/protocol';
 import { OfflineLayer } from './offline/OfflineLayer';
 import { showNeedsNet } from './offline/nudge';
 import { useOnline } from './offline/net';
@@ -58,7 +60,9 @@ type Route =
   /** a mini game from src/games/registry.ts (/g/<id>); seed/level/mode: a challenge started from the hub (migration 022) */
   | { name: 'game'; id: string; seed?: string; level?: string; mode?: 'create' }
   /** a friend's challenge link (/c/<code>, migration 022) */
-  | { name: 'challenge'; code: string };
+  | { name: 'challenge'; code: string }
+  /** an online table of a card mini game (/g/<id>/r/<CODE>: quick match or a private room) */
+  | { name: 'groom'; id: OnlineGameId; code: string };
 type Overlay = 'rules' | 'admin' | 'shop' | 'merch' | 'god' | 'quests' | 'achievements' | 'vault' | 'season' | 'games' | LegalKind | null;
 
 /** /g/<id>: the registered mini game (inside the challenge-aware GameSession), or back home for an unknown id. */
@@ -75,6 +79,8 @@ function parse(): { route: Route; overlay: Overlay } {
   if (m) return { route: { name: 'room', code: m[1].toUpperCase() }, overlay: null };
   if (/^\/journey\/?$/.test(p)) return { route: { name: 'journey' }, overlay: null };
   if (/^\/daily\/?$/.test(p)) return { route: { name: 'daily' }, overlay: null };
+  const gr = p.match(/^\/g\/([a-z0-9-]{2,24})\/r\/([A-Za-z0-9]{4,6})\/?$/);
+  if (gr && isOnlineGame(gr[1])) return { route: { name: 'groom', id: gr[1], code: gr[2].toUpperCase() }, overlay: null };
   const gm = p.match(/^\/g\/([a-z0-9-]{2,24})\/?$/);
   if (gm) return { route: { name: 'game', id: gm[1] }, overlay: null };
   const cm = p.match(/^\/c\/([A-Za-z0-9]{4,12})\/?$/);
@@ -193,6 +199,12 @@ function Shell() {
           <motion.div key={'game' + route.id} style={{ position: 'absolute', inset: 0 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
             <Suspense fallback={null}><MiniGame id={route.id} seed={route.seed} level={route.level} mode={route.mode} onExit={toGames} onAuth={auth} /></Suspense>
+          </motion.div>
+        )}
+        {route.name === 'groom' && (
+          <motion.div key={'groom' + route.id + route.code} style={{ position: 'absolute', inset: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+            <Suspense fallback={null}><OnlineGame game={route.id} code={route.code} onExit={() => openGame(route.id)} onAuth={auth} /></Suspense>
           </motion.div>
         )}
         {route.name === 'challenge' && (

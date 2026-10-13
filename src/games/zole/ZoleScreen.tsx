@@ -17,6 +17,7 @@ import { TITLES } from './titles';
 import { DEFAULT_PREFS, isStandardRules, loadSave, sessionFromSeed, writeSave, type ZolePrefs, type ZoleRun } from './save';
 import { ZoleGame } from './ZoleGame';
 import { RulesSheet } from './RulesSheet';
+import { PlayModes } from '../online/PlayModes';
 import '../../styles/table.css';
 import './zole.css';
 
@@ -137,6 +138,7 @@ function Lobby({ prefs, onStart, onExit }: { prefs: ZolePrefs; onStart: (p: Zole
         <motion.h1 className="serif zl-title" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>{TITLES[lang] ?? 'Zole'}</motion.h1>
         <motion.p className="zl-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>{s.lobby.sub}</motion.p>
 
+        <PlayModes game="zole">
         <motion.div className="zl-opts" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <div className="zl-row">
             <span className="lbl">{s.lobby.level}</span>
@@ -169,6 +171,7 @@ function Lobby({ prefs, onStart, onExit }: { prefs: ZolePrefs; onStart: (p: Zole
           <button className="btn acc" onClick={() => onStart({ level, rules })}>{s.lobby.start}</button>
           <button className="zl-link" onClick={() => setHowTo(true)}>{s.lobby.howTo}</button>
         </motion.div>
+        </PlayModes>
       </div>
       <AnimatePresence>{howTo && <RulesSheet key="r" rules={rules} onClose={() => setHowTo(false)} />}</AnimatePresence>
     </div>

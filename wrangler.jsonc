@@ -12,12 +12,16 @@
   "durable_objects": {
     "bindings": [
       { "name": "ROOMS", "class_name": "Room" },
-      { "name": "LOBBY", "class_name": "Lobby" }
+      { "name": "LOBBY", "class_name": "Lobby" },
+      // online card mini games (zole / durak / thousand): one GameRoom per table, one GameLobby (quick match) per game
+      { "name": "GAMEROOMS", "class_name": "GameRoom" },
+      { "name": "GAMELOBBY", "class_name": "GameLobby" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["Room"] },
-    { "tag": "v2", "new_sqlite_classes": ["Lobby"] }
+    { "tag": "v2", "new_sqlite_classes": ["Lobby"] },
+    { "tag": "v3", "new_sqlite_classes": ["GameRoom", "GameLobby"] }
   ],
   "observability": { "enabled": true },
   // Merch fulfilment: every 10 min submit due provider orders (retries with backoff) and refresh order statuses.

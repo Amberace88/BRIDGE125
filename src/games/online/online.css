@@ -1,0 +1,87 @@
+/* Online mini games: lobby mode tabs, waiting room, table HUD. Shares Bridge's tokens (styles.css). */
+
+/* ---------- Bots / Online / Friends (same look as Bridge's Home panel) ---------- */
+.gm-modes { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin: 14px auto 4px; width: 100%; max-width: 420px; border-radius: 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(255,255,255,.06); }
+.gm-modes button { position: relative; height: 52px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--mute); transition: color .2s; }
+.gm-modes button:hover { color: var(--text); }
+.gm-modes button.on { color: var(--acc-ink); }
+.gm-modes .pill { position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(180deg, var(--acc-hi), var(--acc) 60%, color-mix(in srgb, var(--acc) 80%, var(--acc-lo))); box-shadow: 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.45); }
+.gm-modes .ic, .gm-modes .tx { position: relative; z-index: 1; }
+.gm-modes .ic svg { width: 21px; height: 21px; display: block; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+.gm-modes .ic svg .f { fill: currentColor; stroke: none; }
+.gm-modes .tx { font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+.gm-modes .live { position: absolute; z-index: 1; top: 8px; right: calc(50% - 20px); width: 7px; height: 7px; border-radius: 50%; background: #4BE3A4; box-shadow: 0 0 8px #4BE3A4; animation: gm-pulse 1.8s ease-in-out infinite; }
+.gm-modes button.on .live { background: #0f7a52; box-shadow: none; animation: none; }
+@keyframes gm-pulse { 50% { opacity: .45; } }
+
+.gm-panel { position: relative; z-index: 2; width: 100%; max-width: 420px; margin: 8px auto 0; display: grid; gap: 12px; }
+.gm-note { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; color: var(--mute); padding: 12px 14px; border-radius: 14px; background: rgba(0,0,0,.24); border: 1px solid rgba(255,255,255,.05); text-align: left; }
+.gm-qdot { position: relative; flex: none; width: 12px; height: 12px; margin-top: 4px; }
+.gm-qdot i, .gm-qdot::after { position: absolute; inset: 0; border-radius: 50%; background: #4BE3A4; }
+.gm-qdot::after { content: ''; animation: gm-ping 1.6s cubic-bezier(.2,.7,.3,1) infinite; }
+@keyframes gm-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }
+.gm-go { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.gm-go .lbl { flex: 1; text-align: center; }
+.gm-go .arr { font-size: 20px; transition: transform .2s; }
+.gm-go:hover .arr { transform: translateX(4px); }
+.gm-go .gm-qdot { margin-top: 0; }
+.gm-go .suit { color: #ff8da0; font-size: 18px; }
+.gm-go.live { background: linear-gradient(180deg, #2b8d68, #17694c); color: #fff; box-shadow: 0 10px 26px rgba(23,105,76,.45), inset 0 1px 0 rgba(255,255,255,.25); }
+.gm-err { font-size: 13px; color: #ff9aa8; text-align: center; }
+.gm-join { display: flex; gap: 8px; }
+.gm-join .field { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .2em; font-weight: 700; text-align: center; }
+.gm-join .btn { height: 50px; flex: none; padding: 0 16px; }
+
+/* ---------- waiting room ---------- */
+.gm-room { max-width: 520px; margin: 0 auto; width: 100%; }
+.gm-title { display: flex; align-items: center; gap: 8px; font-size: 18px; }
+.gm-title b { font-size: 22px; }
+.gm-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #4BE3A4; padding: 3px 8px; border-radius: 999px; background: rgba(75,227,164,.1); }
+.gm-live i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+.gm-codecap { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-top: 14px; }
+.gm-link { font-size: 12.5px; text-align: center; margin-top: 8px; user-select: text; word-break: break-all; }
+
+.gm-rules { margin-top: 16px; display: grid; gap: 8px; }
+.gm-rules .label { margin-bottom: 0; }
+.gm-rrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.gm-rl { font-size: 13.5px; font-weight: 600; color: var(--mute); }
+.gm-seg { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(0,0,0,.3); }
+.gm-seg button { position: relative; min-width: 42px; height: 34px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--mute); }
+.gm-seg button.on { color: var(--acc-ink); }
+.gm-seg button:disabled:not(.on) { opacity: .45; }
+.gm-seg .pill { position: absolute; inset: 0; border-radius: 9px; background: linear-gradient(180deg, var(--acc-hi), var(--acc)); }
+.gm-seg span { position: relative; }
+.gm-sw { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.05); font-size: 14px; font-weight: 600; text-align: left; }
+.gm-sw .sw { position: relative; flex: none; width: 42px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.14); display: flex; padding: 3px; }
+.gm-sw.on .sw { background: var(--acc); justify-content: flex-end; }
+.gm-sw .sw i { width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.gm-rules.ro .gm-sw, .gm-rules.ro .gm-seg { opacity: .8; }
+.gm-rules.ro button { cursor: default; }
+
+/* ---------- table HUD: the server's clock ---------- */
+.gm-bar { position: fixed; z-index: 62; top: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,.06); pointer-events: none; }
+.gm-bar i { display: block; height: 100%; transform-origin: left center; background: rgba(255,255,255,.55); transition: transform .25s linear; }
+.gm-bar.mine i { background: linear-gradient(90deg, var(--acc), var(--acc-hi)); box-shadow: 0 0 10px color-mix(in srgb, var(--acc) 70%, transparent); }
+.gm-bar.hot i { background: #ff6b80; }
+.gm-hud { position: fixed; z-index: 60; top: calc(var(--safe-t) + 46px); left: 50%; translate: -50% 0; display: grid; justify-items: center; gap: 6px; pointer-events: none; }
+.gm-turn { display: flex; align-items: center; gap: 4px; height: 26px; padding: 0 9px 0 5px; border-radius: 999px; background: rgba(8,12,11,.78); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(8px); color: var(--text); box-shadow: 0 4px 14px rgba(0,0,0,.35); font-variant-numeric: tabular-nums; }
+.gm-turn b { font-size: 12.5px; font-weight: 800; min-width: 14px; text-align: center; }
+.gm-turn > span { font-size: 12px; color: #4BE3A4; padding-left: 4px; }
+.gm-turn svg { width: 17px; height: 17px; fill: none; stroke-width: 2.6; }
+.gm-turn svg circle { stroke: rgba(255,255,255,.16); }
+.gm-turn svg path { stroke: currentColor; stroke-linecap: round; }
+.gm-turn.mine { background: linear-gradient(180deg, var(--acc-hi), var(--acc)); color: var(--acc-ink); border-color: transparent; }
+.gm-turn.mine svg circle { stroke: rgba(0,0,0,.15); }
+.gm-turn.hot { color: #ff8d9c; animation: gm-pulse .9s ease-in-out infinite; }
+.gm-turn.mine.hot { color: #7a0f22; }
+.gm-away { max-width: 300px; padding: 7px 12px; border-radius: 12px; background: rgba(140,30,45,.88); color: #fff; font-size: 12.5px; font-weight: 600; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+
+/* ---------- chat ---------- */
+.gm-soc { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.gm-soc > * { pointer-events: auto; }
+.gm-chatbtn { position: absolute; top: calc(var(--safe-t) + 104px); left: 6px; }
+.gm-chatbtn .glyph { background: rgba(8,12,11,.6); border-radius: 50%; }
+.stage.lobby.gm-room ~ .gm-soc .gm-chatbtn { top: calc(var(--safe-t) + 12px); left: auto; right: 14px; }
+.gm-chatbtn .glyph { position: relative; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--acc-hi); background: rgba(8,12,11,.62); border: 1px solid rgba(255,255,255,.08); filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+.gm-chatbtn .glyph svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.gm-chatbtn .glyph svg .fillme { fill: currentColor; stroke: none; }
